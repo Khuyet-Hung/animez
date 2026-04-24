@@ -6,8 +6,8 @@ import Footer from "@/components/layout/Footer";
 import AnimeCard from "@/components/anime/AnimeCard";
 import HeroSection from "@/components/anime/HeroSection";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
 import HorizontalScroll from "@/components/common/HorizontalScroll";
+import MotionSection from "@/components/common/MotionSection";
 
 interface TrendingData {
   trending: { media: AnimeMedia[] };
@@ -48,41 +48,35 @@ export default async function HomePage({
         {heroAnime && <HeroSection anime={heroAnime} />}
 
         {trendingAnime.length > 0 && (
-          <section className="mt-16">
-            <div className="flex items-center justify-between mb-6 px-1">
-              <h2 className="text-white text-2xl font-bold tracking-tight border-l-4 border-[#f49e0b] pl-3">
-                {t("trending")}
-              </h2>
-              <Link href="/search?sort=TRENDING_DESC" className="text-sm text-[#f49e0b] hover:text-white font-bold transition-colors">
-                {t("viewAll")}
-              </Link>
-            </div>
+          <MotionSection
+            className="mt-16"
+            title={t("trending")}
+            viewAllHref="/search?sort=TRENDING_DESC"
+            viewAllLabel={t("viewAll")}
+          >
             <HorizontalScroll className="gap-4 pb-4 snap-x" itemWidth={220}>
-              {trendingAnime.slice(1).map((anime) => (
+              {trendingAnime.slice(1).map((anime, index) => (
                 <div key={anime.id} className="flex-none w-[180px] md:w-[220px] snap-start">
-                  <AnimeCard anime={anime} />
+                  <AnimeCard anime={anime} reveal revealDelay={index * 0.045} />
                 </div>
               ))}
             </HorizontalScroll>
-          </section>
+          </MotionSection>
         )}
 
         {topAllTime.length > 0 && (
-          <section className="mt-16">
-            <div className="flex items-center justify-between mb-6 px-1">
-              <h2 className="text-white text-2xl font-bold tracking-tight border-l-4 border-[#f49e0b] pl-3">
-                {t("topAllTime")}
-              </h2>
-              <Link href="/search?sort=SCORE_DESC" className="text-sm text-[#f49e0b] hover:text-white font-bold transition-colors">
-                {t("viewAll")}
-              </Link>
-            </div>
+          <MotionSection
+            className="mt-16"
+            title={t("topAllTime")}
+            viewAllHref="/search?sort=SCORE_DESC"
+            viewAllLabel={t("viewAll")}
+          >
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6">
-              {topAllTime.map((anime) => (
-                <AnimeCard key={anime.id} anime={anime} />
+              {topAllTime.map((anime, index) => (
+                <AnimeCard key={anime.id} anime={anime} reveal revealDelay={index * 0.045} />
               ))}
             </div>
-          </section>
+          </MotionSection>
         )}
       </main>
       <Footer />
