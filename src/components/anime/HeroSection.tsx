@@ -4,11 +4,12 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import type { AnimeMedia } from "@/types/anime";
 import { formatAnimeTitle } from "@/lib/anime-title";
-import { PlayIcon, Plus } from "lucide-react";
+import { PlayIcon } from "lucide-react";
 import { FaStar } from "react-icons/fa";
 import { useLocale, useTranslations } from "next-intl";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import AnimeListButton from "@/components/anime-list/AnimeListButton";
 import {
   heroContentItemVariants,
   heroContentVariants,
@@ -116,14 +117,17 @@ export default function HeroSection({ anime }: HeroSectionProps) {
               {t("viewDetails")}
             </Link>
           </motion.div>
-          <motion.button
-            className="flex items-center gap-2 h-12 px-6 bg-[#111118] border border-[#1a1a24] hover:border-[#f49e0b] text-white text-base font-bold rounded transition-colors group"
+          <motion.div
+            className="contents"
             whileHover={reduceMotion ? undefined : { y: -2 }}
             whileTap={reduceMotion ? undefined : { scale: 0.98 }}
           >
-            <span className="material-symbols-outlined group-hover:text-[#f49e0b] transition-colors"><Plus /></span>
-            {t("addToWatchlist")}
-          </motion.button>
+            <AnimeListButton
+              anime={anime}
+              variant="hero"
+              className="h-12 px-6 text-base"
+            />
+          </motion.div>
         </motion.div>
       </motion.div>
     </motion.section>

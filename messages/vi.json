@@ -132,6 +132,59 @@
   "card": {
     "viewDetails": "Xem chi tiết"
   },
+  "animeList": {
+    "addToList": "Thêm vào danh sách",
+    "editListEntry": "Sửa danh sách",
+    "removeFromList": "Xóa khỏi danh sách",
+    "saved": "Đã lưu",
+    "saving": "Đang lưu...",
+    "loginRequiredTitle": "Cần đăng nhập",
+    "loginRequiredDescription": "Đăng nhập để lưu anime vào danh sách cá nhân và đồng bộ trên các thiết bị.",
+    "goToLogin": "Đăng nhập",
+    "status": {
+      "label": "Trạng thái",
+      "watching": "Đang xem",
+      "completed": "Đã hoàn thành",
+      "on_hold": "Tạm dừng",
+      "dropped": "Đã bỏ",
+      "plan_to_watch": "Dự định xem"
+    },
+    "score": "Điểm",
+    "unscored": "Chưa chấm",
+    "progress": "Tiến độ",
+    "startedAt": "Ngày bắt đầu",
+    "finishedAt": "Ngày hoàn thành",
+    "priority": "Ưu tiên",
+    "priorityValue": {
+      "0": "Thấp",
+      "1": "Vừa",
+      "2": "Cao"
+    },
+    "tags": "Tags",
+    "tagsPlaceholder": "Ví dụ: action, yêu thích, xem cùng bạn",
+    "notes": "Ghi chú",
+    "notesPlaceholder": "Cảm nhận hoặc ghi chú riêng của bạn...",
+    "rewatch": "Xem lại",
+    "isRewatching": "Đang xem lại",
+    "rewatchCount": "Số lần xem lại",
+    "rewatchValue": "Mức muốn xem lại",
+    "rewatchValueLabel": {
+      "0": "Không",
+      "1": "Rất thấp",
+      "2": "Thấp",
+      "3": "Vừa",
+      "4": "Cao",
+      "5": "Rất cao"
+    },
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "updateFailed": "Không thể cập nhật danh sách. Vui lòng thử lại.",
+    "loadFailed": "Không thể tải trạng thái danh sách.",
+    "invalidScore": "Điểm phải nằm trong khoảng 0-10.",
+    "invalidProgress": "Tiến độ không được là số âm.",
+    "progressTooHigh": "Tiến độ không được vượt quá {count} tập."
+  },
   "auth": {
     "login": "Đăng nhập",
     "register": "Đăng ký",

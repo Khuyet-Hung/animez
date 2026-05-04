@@ -132,6 +132,59 @@
   "card": {
     "viewDetails": "View Details"
   },
+  "animeList": {
+    "addToList": "Add to List",
+    "editListEntry": "Edit List Entry",
+    "removeFromList": "Remove from List",
+    "saved": "Saved",
+    "saving": "Saving...",
+    "loginRequiredTitle": "Log in required",
+    "loginRequiredDescription": "Log in to save anime to your personal list and sync it across devices.",
+    "goToLogin": "Log in",
+    "status": {
+      "label": "Status",
+      "watching": "Watching",
+      "completed": "Completed",
+      "on_hold": "On-Hold",
+      "dropped": "Dropped",
+      "plan_to_watch": "Plan to Watch"
+    },
+    "score": "Score",
+    "unscored": "Unscored",
+    "progress": "Progress",
+    "startedAt": "Start Date",
+    "finishedAt": "Finish Date",
+    "priority": "Priority",
+    "priorityValue": {
+      "0": "Low",
+      "1": "Medium",
+      "2": "High"
+    },
+    "tags": "Tags",
+    "tagsPlaceholder": "Example: action, favorite, watch with friends",
+    "notes": "Notes",
+    "notesPlaceholder": "Your private notes or thoughts...",
+    "rewatch": "Rewatch",
+    "isRewatching": "Currently rewatching",
+    "rewatchCount": "Times rewatched",
+    "rewatchValue": "Rewatch value",
+    "rewatchValueLabel": {
+      "0": "None",
+      "1": "Very Low",
+      "2": "Low",
+      "3": "Medium",
+      "4": "High",
+      "5": "Very High"
+    },
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "updateFailed": "Could not update your list. Please try again.",
+    "loadFailed": "Could not load list status.",
+    "invalidScore": "Score must be between 0 and 10.",
+    "invalidProgress": "Progress cannot be negative.",
+    "progressTooHigh": "Progress cannot exceed {count} episodes."
+  },
   "auth": {
     "login": "Log In",
     "register": "Register",

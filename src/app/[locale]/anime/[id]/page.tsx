@@ -10,11 +10,12 @@ import { notFound } from "next/navigation";
 import AnimeCard from "@/components/anime/AnimeCard";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
-import { CalendarClock, Plus } from "lucide-react";
+import { CalendarClock } from "lucide-react";
 import { FaStar } from "react-icons/fa";
 import { MdLiveTv } from "react-icons/md";
 import HorizontalScroll from "@/components/common/HorizontalScroll";
 import TrailerModalButton from "@/components/anime/TrailerModalButton";
+import AnimeListButton from "@/components/anime-list/AnimeListButton";
 
 interface DetailData {
   Media: AnimeMedia;
@@ -183,10 +184,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
               )}
 
               <div className="flex flex-wrap gap-3 mt-6">
-                <button className="flex items-center gap-2 h-10 px-3 bg-[#f49e0b] hover:bg-[#d68a09] text-[#0a0a0f] font-bold text-sm rounded transition-colors">
-                  <Plus />
-                  {t("addToList")}
-                </button>
+                <AnimeListButton anime={anime} variant="detail" />
               </div>
             </div>
           </div>

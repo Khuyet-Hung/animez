@@ -132,6 +132,59 @@
   "card": {
     "viewDetails": "詳細を見る"
   },
+  "animeList": {
+    "addToList": "リストに追加",
+    "editListEntry": "リストを編集",
+    "removeFromList": "リストから削除",
+    "saved": "保存済み",
+    "saving": "保存中...",
+    "loginRequiredTitle": "ログインが必要です",
+    "loginRequiredDescription": "ログインすると、アニメを個人リストに保存してデバイス間で同期できます。",
+    "goToLogin": "ログイン",
+    "status": {
+      "label": "ステータス",
+      "watching": "視聴中",
+      "completed": "完了",
+      "on_hold": "保留中",
+      "dropped": "中止",
+      "plan_to_watch": "視聴予定"
+    },
+    "score": "スコア",
+    "unscored": "未評価",
+    "progress": "進捗",
+    "startedAt": "開始日",
+    "finishedAt": "完了日",
+    "priority": "優先度",
+    "priorityValue": {
+      "0": "低",
+      "1": "中",
+      "2": "高"
+    },
+    "tags": "タグ",
+    "tagsPlaceholder": "例: action, favorite, friends",
+    "notes": "メモ",
+    "notesPlaceholder": "自分用のメモや感想...",
+    "rewatch": "再視聴",
+    "isRewatching": "再視聴中",
+    "rewatchCount": "再視聴回数",
+    "rewatchValue": "再視聴したさ",
+    "rewatchValueLabel": {
+      "0": "なし",
+      "1": "とても低い",
+      "2": "低い",
+      "3": "中",
+      "4": "高い",
+      "5": "とても高い"
+    },
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "updateFailed": "リストを更新できませんでした。もう一度お試しください。",
+    "loadFailed": "リストの状態を読み込めませんでした。",
+    "invalidScore": "スコアは0から10の範囲で入力してください。",
+    "invalidProgress": "進捗に負の数は使えません。",
+    "progressTooHigh": "進捗は{count}話を超えられません。"
+  },
   "auth": {
     "login": "ログイン",
     "register": "登録",

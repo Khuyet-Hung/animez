@@ -10,6 +10,7 @@ import { useMemo } from "react";
 import { formatAnimeTitle } from "@/lib/anime-title";
 import { createCardRevealVariants, viewportOnce } from "@/lib/motion";
 import useHydratedReducedMotion from "@/hooks/useHydratedReducedMotion";
+import AnimeListButton from "@/components/anime-list/AnimeListButton";
 
 interface AnimeCardProps {
   anime: AnimeMedia;
@@ -43,7 +44,7 @@ export default function AnimeCard({
 
   return (
     <motion.div
-      className="group cursor-pointer block h-full"
+      className="group relative block h-full cursor-pointer"
       initial={reveal ? "hidden" : false}
       whileInView={reveal ? "visible" : undefined}
       viewport={viewportOnce}
@@ -51,6 +52,11 @@ export default function AnimeCard({
       whileHover={reduceMotion ? undefined : { y: -6 }}
       transition={{ duration: 0.24, ease: "easeOut" }}
     >
+      <AnimeListButton
+        anime={anime}
+        variant="card"
+        className="absolute left-2 top-2 z-20 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+      />
       <Link href={`/anime/${anime.id}`} className="block h-full">
         <div
           className={`relative w-full overflow-hidden mb-3 border border-transparent group-hover:border-[#f49e0b]/80 transition-all duration-300 shadow-lg group-hover:shadow-[0_18px_44px_rgba(244,158,11,0.18)] ${
