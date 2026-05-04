@@ -3,9 +3,10 @@
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import type { AnimeMedia } from "@/types/anime";
+import { formatAnimeTitle } from "@/lib/anime-title";
 import { PlayIcon, Plus } from "lucide-react";
 import { FaStar } from "react-icons/fa";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import {
@@ -23,15 +24,17 @@ interface HeroSectionProps {
 export default function HeroSection({ anime }: HeroSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const t = useTranslations("home");
+  const taxonomyT = useTranslations("taxonomy");
+  const locale = useLocale();
   const reduceMotion = useHydratedReducedMotion();
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end start"],
   });
   const imageY = useTransform(scrollYProgress, [0, 1], [0, reduceMotion ? 0 : 36]);
-  const title = anime.title.english || anime.title.romaji;
+  const title = formatAnimeTitle(anime.title, locale);
   const score = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : null;
-  const genres = anime.genres?.slice(0, 3).join(", ") || "";
+  const genres = anime.genres?.slice(0, 3).map((genre) => taxonomyT(`genres.${genre}`)).join(", ") || "";
   const bannerSrc = anime.bannerImage || anime.coverImage?.extraLarge || anime.coverImage?.large;
 
   return (

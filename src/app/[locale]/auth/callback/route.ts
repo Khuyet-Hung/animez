@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { localePathnamePattern } from "@/i18n/locales";
 
 export async function GET(
   request: NextRequest,
@@ -60,7 +61,7 @@ export async function GET(
 
   if (!error) {
     // `next` may start with `/` — prepend locale
-    const hasLocale = /^\/(vi|en)(\/|$)/.test(next);
+    const hasLocale = localePathnamePattern.test(next);
     const redirectPath = hasLocale ? next : `/${locale}${next}`;
     return NextResponse.redirect(`${origin}${redirectPath}`);
   }

@@ -2,6 +2,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { anilistClient } from "@/lib/anilist";
 import { ANIME_DETAIL_QUERY } from "@/lib/queries";
+import { formatAnimeTitle } from "@/lib/anime-title";
 import type { AnimeMedia } from "@/types/anime";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
@@ -24,10 +25,10 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params;
+  const { id, locale } = await params;
   try {
     const data = await anilistClient.request<DetailData>(ANIME_DETAIL_QUERY, { id: parseInt(id, 10) });
-    const title = data.Media.title.english || data.Media.title.romaji;
+    const title = formatAnimeTitle(data.Media.title, locale);
     return {
       title: `${title} — Animez`,
       description: data.Media.description?.replace(/<[^>]*>/g, "").slice(0, 155) || "",
@@ -85,7 +86,8 @@ export default async function AnimeDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const title = anime.title.english || anime.title.romaji;
+  const title = formatAnimeTitle(anime.title, locale);
+  const taxonomyT = await getTranslations("taxonomy");
   const score = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : null;
   const synopsis = anime.description?.replace(/<[^>]*>/g, "") || "";
   const characters = anime.characters?.edges || [];
@@ -174,7 +176,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
                 <div className="flex flex-wrap gap-2 mt-4">
                   {anime.genres.map((g) => (
                     <Link key={g} href={`/search?genre=${encodeURIComponent(g)}`} className="text-xs font-semibold px-3 py-1 bg-[#111118] border border-[#1a1a24] text-[#9ca3af] hover:text-white hover:border-[#f49e0b] rounded-full transition-all">
-                      {g}
+                      {taxonomyT(`genres.${g}`)}
                     </Link>
                   ))}
                 </div>
@@ -226,9 +228,9 @@ export default async function AnimeDetailPage({ params }: PageProps) {
                       <div key={`${edge.relationType}-${edge.node.id}`} className="flex-none w-[140px]">
                         <Link href={`/anime/${edge.node.id}`} className="group block">
                           <div className="relative mb-2 aspect-2/3 overflow-hidden rounded border border-[#1a1a24] bg-[#111118]">
-                            <Image src={edge.node.coverImage.large} alt={edge.node.title.english || edge.node.title.romaji} fill className="object-cover transition-transform duration-300 group-hover:scale-105" unoptimized />
+                            <Image src={edge.node.coverImage.large} alt={formatAnimeTitle(edge.node.title, locale)} fill className="object-cover transition-transform duration-300 group-hover:scale-105" unoptimized />
                           </div>
-                          <p className="truncate text-xs font-semibold text-white group-hover:text-[#f49e0b]">{edge.node.title.english || edge.node.title.romaji}</p>
+                          <p className="truncate text-xs font-semibold text-white group-hover:text-[#f49e0b]">{formatAnimeTitle(edge.node.title, locale)}</p>
                           <p className="mt-1 text-xs text-[#9ca3af]">{formatRelationType(edge.relationType)}</p>
                         </Link>
                       </div>
@@ -258,7 +260,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
                 <InfoRow label={t("episodes")} value={anime.episodes} />
                 <InfoRow label={t("duration")} value={anime.duration ? t("duration_unit", { n: anime.duration }) : null} />
                 <InfoRow label={t("status")} value={formatStatus(anime.status)} />
-                <InfoRow label={t("season")} value={anime.season && anime.seasonYear ? `${anime.season} ${anime.seasonYear}` : null} />
+                <InfoRow label={t("season")} value={anime.season && anime.seasonYear ? `${taxonomyT(`seasons.${anime.season}`)} ${anime.seasonYear}` : null} />
                 <InfoRow label={t("studio")} value={studio} />
                 <InfoRow label={t("source")} value={anime.source?.replace("_", " ")} />
 

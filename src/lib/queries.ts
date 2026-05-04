@@ -113,7 +113,7 @@ export const ANIME_DETAIL_QUERY = `
         nodes {
           mediaRecommendation {
             id
-            title { romaji english }
+            title { romaji english native }
             coverImage { large }
             averageScore
             format
@@ -125,7 +125,7 @@ export const ANIME_DETAIL_QUERY = `
           relationType
           node {
             id
-            title { romaji english }
+            title { romaji english native }
             coverImage { large }
             format
             type
@@ -141,7 +141,7 @@ export const SUGGESTIONS_QUERY = `
     Page(page: 1, perPage: 5) {
       media(search: $search, type: ANIME, isAdult: false) {
         id
-        title { romaji english }
+        title { romaji english native }
         coverImage { medium }
         format
       }

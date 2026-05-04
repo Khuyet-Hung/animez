@@ -46,6 +46,34 @@
     "status_finished": "Đã hoàn thành",
     "status_not_yet": "Chưa phát sóng"
   },
+  "taxonomy": {
+    "genres": {
+      "Action": "Hành động",
+      "Adventure": "Phiêu lưu",
+      "Comedy": "Hài",
+      "Drama": "Chính kịch",
+      "Ecchi": "Ecchi",
+      "Fantasy": "Giả tưởng",
+      "Horror": "Kinh dị",
+      "Mahou Shoujo": "Thiếu nữ phép thuật",
+      "Mecha": "Người máy",
+      "Music": "Âm nhạc",
+      "Mystery": "Bí ẩn",
+      "Psychological": "Tâm lý",
+      "Romance": "Lãng mạn",
+      "Sci-Fi": "Khoa học viễn tưởng",
+      "Slice of Life": "Đời thường",
+      "Sports": "Thể thao",
+      "Supernatural": "Siêu nhiên",
+      "Thriller": "Giật gân"
+    },
+    "seasons": {
+      "WINTER": "Mùa đông",
+      "SPRING": "Mùa xuân",
+      "SUMMER": "Mùa hè",
+      "FALL": "Mùa thu"
+    }
+  },
   "detail": {
     "synopsis": "Tóm tắt nội dung",
     "trailer": "Trailer",

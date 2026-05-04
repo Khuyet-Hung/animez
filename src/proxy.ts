@@ -1,12 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import createIntlMiddleware from "next-intl/middleware";
 import { type NextRequest, NextResponse } from "next/server";
+import { getPathLocale, localePathnamePattern } from "./i18n/locales";
 import { routing } from "./i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
 const PROTECTED_ROUTES = ["/profile", "/watchlist", "/settings"];
-const LOCALE_PATTERN = /^\/(vi|en)(\/|$)/;
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -39,14 +39,13 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const strippedPath = pathname.replace(LOCALE_PATTERN, "/");
+  const strippedPath = pathname.replace(localePathnamePattern, "/");
   const isProtected = PROTECTED_ROUTES.some(
     (route) => strippedPath === route || strippedPath.startsWith(`${route}/`)
   );
 
   if (isProtected && !user) {
-    const localeMatch = pathname.match(/^\/(vi|en)/);
-    const locale = localeMatch?.[1] ?? routing.defaultLocale;
+    const locale = getPathLocale(pathname) ?? routing.defaultLocale;
     const loginUrl = new URL(`/${locale}/login`, request.url);
 
     loginUrl.searchParams.set("next", pathname);

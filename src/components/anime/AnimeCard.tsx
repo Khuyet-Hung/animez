@@ -4,9 +4,10 @@ import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import type { AnimeMedia } from "@/types/anime";
 import { FaStar } from "react-icons/fa";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { useMemo } from "react";
+import { formatAnimeTitle } from "@/lib/anime-title";
 import { createCardRevealVariants, viewportOnce } from "@/lib/motion";
 import useHydratedReducedMotion from "@/hooks/useHydratedReducedMotion";
 
@@ -15,10 +16,6 @@ interface AnimeCardProps {
   variant?: "compact" | "full";
   reveal?: boolean;
   revealDelay?: number;
-}
-
-function formatTitle(anime: AnimeMedia) {
-  return anime.title.english || anime.title.romaji;
 }
 
 function formatScore(score?: number | null) {
@@ -33,10 +30,12 @@ export default function AnimeCard({
   revealDelay = 0,
 }: AnimeCardProps) {
   const t = useTranslations("card");
+  const taxonomyT = useTranslations("taxonomy");
+  const locale = useLocale();
   const reduceMotion = useHydratedReducedMotion();
-  const title = formatTitle(anime);
+  const title = formatAnimeTitle(anime.title, locale);
   const score = formatScore(anime.averageScore);
-  const genres = anime.genres?.slice(0, 2).join(" \u2022 ") || "";
+  const genres = anime.genres?.slice(0, 2).map((genre) => taxonomyT(`genres.${genre}`)).join(" \u2022 ") || "";
   const revealVariants = useMemo(
     () => createCardRevealVariants(revealDelay, reduceMotion),
     [revealDelay, reduceMotion]

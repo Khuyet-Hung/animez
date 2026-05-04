@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { useRef, useState, useEffect, Suspense } from "react";
 import { anilistClient } from "@/lib/anilist";
 import { SUGGESTIONS_QUERY } from "@/lib/queries";
+import { defaultLocale, type AppLocale, isAppLocale, locales } from "@/i18n/locales";
+import { formatAnimeTitle } from "@/lib/anime-title";
 import type { AnimeMedia } from "@/types/anime";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
@@ -15,6 +17,7 @@ import useHydratedReducedMotion from "@/hooks/useHydratedReducedMotion";
 
 function SearchBarInner() {
   const t = useTranslations("nav");
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") || "");
@@ -97,10 +100,10 @@ function SearchBarInner() {
           {suggestions.map((anime) => (
             <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => setShowSuggestions(false)} className="flex items-center gap-3 px-3 py-2 hover:bg-[#1a1a24] transition-colors">
               {anime.coverImage?.medium && (
-                <Image src={anime.coverImage.medium} alt={anime.title.romaji} width={32} height={44} className="rounded object-cover flex-none" unoptimized />
+                <Image src={anime.coverImage.medium} alt={formatAnimeTitle(anime.title, locale)} width={32} height={44} className="rounded object-cover flex-none" unoptimized />
               )}
               <div className="min-w-0">
-                <p className="text-white text-sm font-medium truncate">{anime.title.english || anime.title.romaji}</p>
+                <p className="text-white text-sm font-medium truncate">{formatAnimeTitle(anime.title, locale)}</p>
                 {anime.format && <p className="text-[#9ca3af] text-xs">{anime.format.replace("_", " ")}</p>}
               </div>
             </Link>
@@ -113,6 +116,7 @@ function SearchBarInner() {
 
 function LanguageSwitcher() {
   const locale = useLocale();
+  const currentLocale = isAppLocale(locale) ? locale : defaultLocale;
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -126,14 +130,14 @@ function LanguageSwitcher() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  function switchLocale(newLocale: string) {
+  function switchLocale(newLocale: AppLocale) {
     // next-intl useRouter.replace handles locale switching automatically
     router.replace(pathname, { locale: newLocale });
     setOpen(false);
   }
 
-  const flags: Record<string, string> = { en: "🇺🇸", vi: "🇻🇳" };
-  const labels: Record<string, string> = { en: "EN", vi: "VI" };
+  const flags: Record<AppLocale, string> = { en: "🇺🇸", vi: "🇻🇳", ja: "🇯🇵" };
+  const labels: Record<AppLocale, string> = { en: "EN", vi: "VI", ja: "JA" };
 
   return (
     <div ref={ref} className="relative">
@@ -141,8 +145,8 @@ function LanguageSwitcher() {
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-1.5 h-9 px-3 rounded bg-[#111118] border border-[#1a1a24] hover:border-[#f49e0b] text-white text-sm font-bold transition-all"
       >
-        <span>{flags[locale]}</span>
-        <span>{labels[locale]}</span>
+        <span>{flags[currentLocale]}</span>
+        <span>{labels[currentLocale]}</span>
         <span className="text-[#9ca3af]" style={{ fontSize: "16px" }}>
           {open ? <ChevronUpIcon /> : <ChevronDownIcon />}
         </span>
@@ -150,19 +154,19 @@ function LanguageSwitcher() {
 
       {open && (
         <div className="absolute right-0 top-full mt-1 w-24 bg-[#111118] border border-[#1a1a24] rounded shadow-xl z-50 overflow-hidden">
-          {["en", "vi"].map((l) => (
+          {locales.map((l) => (
             <button
               key={l}
               onClick={() => switchLocale(l)}
               className={`w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold transition-colors ${
-                l === locale
+                l === currentLocale
                   ? "bg-[#f49e0b]/10 text-[#f49e0b]"
                   : "text-[#9ca3af] hover:text-white hover:bg-[#1a1a24]"
               }`}
             >
               <span>{flags[l]}</span>
               <span>{labels[l]}</span>
-              {l === locale && <span style={{ fontSize: "16px" }}><CheckIcon /></span>}
+              {l === currentLocale && <span style={{ fontSize: "16px" }}><CheckIcon /></span>}
             </button>
           ))}
         </div>

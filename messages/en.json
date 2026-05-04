@@ -46,6 +46,34 @@
     "status_finished": "Finished",
     "status_not_yet": "Not Yet Aired"
   },
+  "taxonomy": {
+    "genres": {
+      "Action": "Action",
+      "Adventure": "Adventure",
+      "Comedy": "Comedy",
+      "Drama": "Drama",
+      "Ecchi": "Ecchi",
+      "Fantasy": "Fantasy",
+      "Horror": "Horror",
+      "Mahou Shoujo": "Mahou Shoujo",
+      "Mecha": "Mecha",
+      "Music": "Music",
+      "Mystery": "Mystery",
+      "Psychological": "Psychological",
+      "Romance": "Romance",
+      "Sci-Fi": "Sci-Fi",
+      "Slice of Life": "Slice of Life",
+      "Sports": "Sports",
+      "Supernatural": "Supernatural",
+      "Thriller": "Thriller"
+    },
+    "seasons": {
+      "WINTER": "Winter",
+      "SPRING": "Spring",
+      "SUMMER": "Summer",
+      "FALL": "Fall"
+    }
+  },
   "detail": {
     "synopsis": "Synopsis",
     "trailer": "Trailer",

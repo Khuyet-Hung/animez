@@ -4,8 +4,10 @@ import { MagnetIcon, SearchIcon } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { useRef, useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 
 export default function SearchBar() {
+  const t = useTranslations("search");
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") || "");
@@ -46,7 +48,7 @@ export default function SearchBar() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="flex-1 bg-transparent border-none text-base text-white focus:outline-none placeholder:text-[#6b7280] px-4"
-          placeholder="Search anime, genres, studios..."
+          placeholder={t("placeholder")}
         />
         {query && (
           <button
@@ -61,7 +63,7 @@ export default function SearchBar() {
           type="submit"
           className="px-5 bg-[#f49e0b] hover:bg-[#d68a09] text-[#0a0a0f] font-bold text-sm rounded-r transition-colors"
         >
-          Search
+          {t("submit")}
         </button>
       </div>
     </form>

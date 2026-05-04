@@ -4,13 +4,9 @@ import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 import { useTranslations } from "next-intl";
-import type { MediaFormat, MediaStatus, MediaSeason, MediaSort } from "@/types/anime";
-
-const GENRES = [
-  "Action", "Adventure", "Comedy", "Drama", "Ecchi", "Fantasy",
-  "Horror", "Mahou Shoujo", "Mecha", "Music", "Mystery", "Psychological",
-  "Romance", "Sci-Fi", "Slice of Life", "Sports", "Supernatural", "Thriller",
-];
+import { animeGenres, animeSeasons } from "@/lib/anime-taxonomy";
+import type { MediaFormat } from "@/types/anime";
+import { MdFilterList } from "react-icons/md";
 
 const FORMATS: { label: string; value: MediaFormat }[] = [
   { label: "TV", value: "TV" },
@@ -26,13 +22,6 @@ const STATUS_KEYS = [
   { key: "status_not_yet", value: "NOT_YET_RELEASED" },
 ] as const;
 
-const SEASONS: { label: string; value: MediaSeason }[] = [
-  { label: "Winter", value: "WINTER" },
-  { label: "Spring", value: "SPRING" },
-  { label: "Summer", value: "SUMMER" },
-  { label: "Fall", value: "FALL" },
-];
-
 const SORTS = [
   { key: "sort_trending", value: "TRENDING_DESC" },
   { key: "sort_popularity", value: "POPULARITY_DESC" },
@@ -45,6 +34,7 @@ const YEARS = Array.from({ length: 35 }, (_, i) => 2025 - i);
 
 export default function FilterPanel() {
   const t = useTranslations("filter");
+  const taxonomyT = useTranslations("taxonomy");
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -77,7 +67,7 @@ export default function FilterPanel() {
     <aside className="w-full lg:w-[280px] flex-none bg-[#111118] border border-[#1a1a24] rounded p-5 flex flex-col gap-6 self-start">
       <div className="flex items-center justify-between">
         <h2 className="text-white font-bold text-base flex items-center gap-2">
-          <span className="material-symbols-outlined text-[#f49e0b]" style={{ fontSize: "20px" }}>tune</span>
+          <MdFilterList size={20} />
           {t("title")}
         </h2>
         <button onClick={clearAll} className="text-[#9ca3af] hover:text-[#f49e0b] text-xs font-semibold transition-colors">
@@ -103,10 +93,10 @@ export default function FilterPanel() {
       <div>
         <p className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-3">{t("genres")}</p>
         <div className="flex flex-wrap gap-2">
-          {GENRES.map((genre) => (
+          {animeGenres.map((genre) => (
             <button key={genre} onClick={() => updateFilter("genre", current.genre === genre ? null : genre)}
               className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${current.genre === genre ? "bg-[#f49e0b] text-[#0a0a0f]" : "bg-[#0a0a0f] border border-[#1a1a24] text-[#9ca3af] hover:border-[#f49e0b] hover:text-white"}`}>
-              {genre}
+              {taxonomyT(`genres.${genre}`)}
             </button>
           ))}
         </div>
@@ -142,10 +132,10 @@ export default function FilterPanel() {
       <div>
         <p className="text-[#9ca3af] text-xs font-semibold uppercase tracking-wide mb-3">{t("season")}</p>
         <div className="flex flex-wrap gap-2 mb-3">
-          {SEASONS.map((s) => (
-            <button key={s.value} onClick={() => updateFilter("season", current.season === s.value ? null : s.value)}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${current.season === s.value ? "bg-[#f49e0b] text-[#0a0a0f]" : "bg-[#0a0a0f] border border-[#1a1a24] text-[#9ca3af] hover:border-[#f49e0b] hover:text-white"}`}>
-              {s.label}
+          {animeSeasons.map((season) => (
+            <button key={season} onClick={() => updateFilter("season", current.season === season ? null : season)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${current.season === season ? "bg-[#f49e0b] text-[#0a0a0f]" : "bg-[#0a0a0f] border border-[#1a1a24] text-[#9ca3af] hover:border-[#f49e0b] hover:text-white"}`}>
+              {taxonomyT(`seasons.${season}`)}
             </button>
           ))}
         </div>
