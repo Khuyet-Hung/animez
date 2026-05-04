@@ -9,7 +9,6 @@ import { FaStar } from "react-icons/fa";
 import { useLocale, useTranslations } from "next-intl";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import AnimeListButton from "@/components/anime-list/AnimeListButton";
 import {
   heroContentItemVariants,
   heroContentVariants,
@@ -116,17 +115,6 @@ export default function HeroSection({ anime }: HeroSectionProps) {
               <span className="material-symbols-outlined"><PlayIcon /></span>
               {t("viewDetails")}
             </Link>
-          </motion.div>
-          <motion.div
-            className="contents"
-            whileHover={reduceMotion ? undefined : { y: -2 }}
-            whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-          >
-            <AnimeListButton
-              anime={anime}
-              variant="hero"
-              className="h-12 px-6 text-base"
-            />
           </motion.div>
         </motion.div>
       </motion.div>
