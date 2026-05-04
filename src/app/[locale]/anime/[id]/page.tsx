@@ -9,10 +9,11 @@ import { notFound } from "next/navigation";
 import AnimeCard from "@/components/anime/AnimeCard";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
-import { Plus, Star } from "lucide-react";
+import { CalendarClock, Plus } from "lucide-react";
 import { FaStar } from "react-icons/fa";
 import { MdLiveTv } from "react-icons/md";
 import HorizontalScroll from "@/components/common/HorizontalScroll";
+import TrailerModalButton from "@/components/anime/TrailerModalButton";
 
 interface DetailData {
   Media: AnimeMedia;
@@ -46,6 +47,29 @@ function InfoRow({ label, value }: { label: string; value?: string | number | nu
   );
 }
 
+function formatAiringDate(timestamp: number, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(timestamp * 1000));
+}
+
+const relationMessageKeys: Record<string, string> = {
+  ADAPTATION: "relation_adaptation",
+  PREQUEL: "relation_prequel",
+  SEQUEL: "relation_sequel",
+  PARENT: "relation_parent",
+  SIDE_STORY: "relation_side_story",
+  CHARACTER: "relation_character",
+  SUMMARY: "relation_summary",
+  ALTERNATIVE: "relation_alternative",
+  SPIN_OFF: "relation_spin_off",
+  OTHER: "relation_other",
+  SOURCE: "relation_source",
+  COMPILATION: "relation_compilation",
+  CONTAINS: "relation_contains",
+};
+
 export default async function AnimeDetailPage({ params }: PageProps) {
   const { id, locale } = await params;
   setRequestLocale(locale);
@@ -68,7 +92,10 @@ export default async function AnimeDetailPage({ params }: PageProps) {
   const recommendations = anime.recommendations?.nodes
     .filter((n) => n.mediaRecommendation)
     .map((n) => n.mediaRecommendation!) || [];
+  const relations = anime.relations?.edges.filter((edge) => edge.node.type === "ANIME") || [];
   const studio = anime.studios?.nodes?.[0]?.name || null;
+  const trailer = anime.trailer?.id && anime.trailer.site?.toLowerCase() === "youtube" ? anime.trailer : null;
+  const nextAiringEpisode = anime.nextAiringEpisode;
 
   const statusMap: Record<string, string> = {
     RELEASING: t("status_releasing"),
@@ -78,6 +105,10 @@ export default async function AnimeDetailPage({ params }: PageProps) {
     HIATUS: t("status_hiatus"),
   };
   const formatStatus = (s?: string | null) => s ? (statusMap[s] || s) : "Unknown";
+  const formatRelationType = (relationType: string) => {
+    const messageKey = relationMessageKeys[relationType];
+    return messageKey ? t(messageKey) : relationType.replaceAll("_", " ");
+  };
 
   return (
     <>
@@ -96,9 +127,17 @@ export default async function AnimeDetailPage({ params }: PageProps) {
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="flex flex-col md:flex-row gap-8 -mt-20 relative">
             <div className="flex-none self-start">
-              <div className="relative w-[140px] md:w-[200px] aspect-2/3 rounded shadow-2xl overflow-hidden border border-[#1a1a24]">
+              <div className="group/poster relative w-[140px] md:w-[200px] aspect-2/3 rounded shadow-2xl overflow-hidden border border-[#1a1a24]">
                 {anime.coverImage?.large && (
                   <Image src={anime.coverImage.large} alt={title} fill className="object-cover" unoptimized />
+                )}
+                {trailer?.id && (
+                  <TrailerModalButton
+                    videoId={trailer.id}
+                    title={title}
+                    watchLabel={t("watchTrailer")}
+                    closeLabel={t("closeTrailer")}
+                  />
                 )}
               </div>
             </div>
@@ -179,6 +218,25 @@ export default async function AnimeDetailPage({ params }: PageProps) {
                 </section>
               )}
 
+              {relations.length > 0 && (
+                <section>
+                  <h2 className="text-white text-xl font-bold mb-4 border-l-4 border-[#f49e0b] pl-3">{t("relations")}</h2>
+                  <HorizontalScroll className="gap-4 pb-4" itemWidth={140}>
+                    {relations.map((edge) => (
+                      <div key={`${edge.relationType}-${edge.node.id}`} className="flex-none w-[140px]">
+                        <Link href={`/anime/${edge.node.id}`} className="group block">
+                          <div className="relative mb-2 aspect-2/3 overflow-hidden rounded border border-[#1a1a24] bg-[#111118]">
+                            <Image src={edge.node.coverImage.large} alt={edge.node.title.english || edge.node.title.romaji} fill className="object-cover transition-transform duration-300 group-hover:scale-105" unoptimized />
+                          </div>
+                          <p className="truncate text-xs font-semibold text-white group-hover:text-[#f49e0b]">{edge.node.title.english || edge.node.title.romaji}</p>
+                          <p className="mt-1 text-xs text-[#9ca3af]">{formatRelationType(edge.relationType)}</p>
+                        </Link>
+                      </div>
+                    ))}
+                  </HorizontalScroll>
+                </section>
+              )}
+
               {recommendations.length > 0 && (
                 <section>
                   <h2 className="text-white text-xl font-bold mb-4 border-l-4 border-[#f49e0b] pl-3">{t("recommendations")}</h2>
@@ -203,6 +261,19 @@ export default async function AnimeDetailPage({ params }: PageProps) {
                 <InfoRow label={t("season")} value={anime.season && anime.seasonYear ? `${anime.season} ${anime.seasonYear}` : null} />
                 <InfoRow label={t("studio")} value={studio} />
                 <InfoRow label={t("source")} value={anime.source?.replace("_", " ")} />
+
+                {nextAiringEpisode && (
+                  <div className="mt-4 pt-4 border-t border-[#1a1a24]">
+                    <div className="mb-2 flex items-center justify-center gap-2 text-[#f49e0b]">
+                      <CalendarClock className="h-5 w-5" />
+                      <p className="text-xs font-bold uppercase tracking-normal">{t("airing")}</p>
+                    </div>
+                    <p className="text-center text-white text-lg font-black">{t("nextEpisode", { episode: nextAiringEpisode.episode })}</p>
+                    <p className="mt-1 text-center text-[#9ca3af] text-xs">
+                      {t("airsOn", { date: formatAiringDate(nextAiringEpisode.airingAt, locale) })}
+                    </p>
+                  </div>
+                )}
 
                 {score && (
                   <div className="mt-4 pt-4 border-t border-[#1a1a24] text-center">

@@ -82,6 +82,11 @@ export const ANIME_DETAIL_QUERY = `
       meanScore
       popularity
       favourites
+      trailer {
+        id
+        site
+        thumbnail
+      }
       genres
       format
       status
@@ -89,6 +94,11 @@ export const ANIME_DETAIL_QUERY = `
       duration
       season
       seasonYear
+      nextAiringEpisode {
+        episode
+        airingAt
+        timeUntilAiring
+      }
       source
       studios(isMain: true) { nodes { id name } }
       description(asHtml: false)

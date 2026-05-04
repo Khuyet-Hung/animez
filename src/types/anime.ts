@@ -20,6 +20,11 @@ export interface AnimeMedia {
   meanScore?: number | null;
   popularity?: number;
   favourites?: number;
+  trailer?: {
+    id?: string | null;
+    site?: string | null;
+    thumbnail?: string | null;
+  } | null;
   genres?: string[];
   format?: string | null;
   status?: string | null;
@@ -27,6 +32,11 @@ export interface AnimeMedia {
   duration?: number | null;
   season?: string | null;
   seasonYear?: number | null;
+  nextAiringEpisode?: {
+    episode: number;
+    airingAt: number;
+    timeUntilAiring: number;
+  } | null;
   source?: string | null;
   description?: string | null;
   studios?: { nodes: { id: number; name: string }[] };
