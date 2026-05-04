@@ -2,17 +2,62 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "@/i18n/navigation";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { createClient } from "@/lib/supabase/client";
+import { createGravatarUrl } from "@/lib/gravatar";
 import { Link } from "@/i18n/navigation";
 import { LogOutIcon, ChevronDownIcon, UserIcon } from "lucide-react";
+
+function AvatarCircle({
+  src,
+  initials,
+  name,
+  size,
+}: {
+  src: string | null;
+  initials: string;
+  name: string;
+  size: "sm" | "md";
+}) {
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const dimension = size === "sm" ? 24 : 32;
+  const className =
+    size === "sm"
+      ? "w-6 h-6 rounded-full object-cover bg-[#f49e0b]"
+      : "w-8 h-8 rounded-full object-cover bg-[#f49e0b] flex-none";
+  const fallbackClassName =
+    size === "sm"
+      ? "w-6 h-6 rounded-full bg-[#f49e0b] text-[#0a0a0f] text-xs font-black flex items-center justify-center"
+      : "w-8 h-8 rounded-full bg-[#f49e0b] text-[#0a0a0f] text-xs font-black flex items-center justify-center flex-none";
+
+  if (src && failedSrc !== src) {
+    return (
+      <Image
+        src={src}
+        alt={name}
+        width={dimension}
+        height={dimension}
+        className={className}
+        onError={() => setFailedSrc(src)}
+        unoptimized
+      />
+    );
+  }
+
+  return <div className={fallbackClassName}>{initials}</div>;
+}
 
 export default function AuthButton() {
   const t = useTranslations("auth");
   const router = useRouter();
   const { user, loading } = useAuth();
   const [open, setOpen] = useState(false);
+  const [gravatarResult, setGravatarResult] = useState<{
+    email: string;
+    url: string | null;
+  } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -24,6 +69,23 @@ export default function AuthButton() {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  useEffect(() => {
+    if (!user?.email) {
+      return;
+    }
+
+    const email = user.email;
+    let active = true;
+
+    createGravatarUrl(email).then((url) => {
+      if (active) setGravatarResult({ email, url });
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [user?.email]);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -61,12 +123,15 @@ export default function AuthButton() {
     );
   }
 
-  // Logged in — show avatar dropdown
   const displayName: string =
     user.user_metadata?.display_name ||
     user.email?.split("@")[0] ||
     "AN";
   const initials = displayName.slice(0, 2).toUpperCase();
+  const gravatarUrl =
+    user.email && gravatarResult?.email === user.email
+      ? gravatarResult.url
+      : null;
 
   return (
     <div ref={ref} className="relative">
@@ -74,9 +139,7 @@ export default function AuthButton() {
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-2 h-9 px-3 rounded bg-[#111118] border border-[#1a1a24] hover:border-[#f49e0b] text-white text-sm font-bold transition-all"
       >
-        <div className="w-6 h-6 rounded-full bg-[#f49e0b] text-[#0a0a0f] text-xs font-black flex items-center justify-center">
-          {initials}
-        </div>
+        <AvatarCircle src={gravatarUrl} initials={initials} name={displayName} size="sm" />
         <ChevronDownIcon className="w-4 h-4 text-[#9ca3af]" />
       </button>
 
@@ -84,9 +147,7 @@ export default function AuthButton() {
         <div className="absolute right-0 top-full mt-1 w-52 bg-[#111118] border border-[#1a1a24] rounded-lg shadow-xl z-50 overflow-hidden">
           <div className="px-4 py-3 border-b border-[#1a1a24]">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-[#f49e0b] text-[#0a0a0f] text-xs font-black flex items-center justify-center flex-none">
-                {initials}
-              </div>
+              <AvatarCircle src={gravatarUrl} initials={initials} name={displayName} size="md" />
               <div className="min-w-0">
                 <p className="text-white text-sm font-semibold truncate">{displayName}</p>
                 <p className="text-[#9ca3af] text-xs truncate">{user.email}</p>
