@@ -19,6 +19,19 @@ export const ANIME_LIST_SCORE_OPTIONS = [
   0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
 ] as const satisfies readonly AnimeListScore[];
 
+export const ANIME_LIST_SCORE_VALUE_LABEL: Record<Exclude<AnimeListScore, 0>, string> = {
+  1: "Appalling",
+  2: "Horrible",
+  3: "Very Bad",
+  4: "Bad",
+  5: "Average",
+  6: "Fine",
+  7: "Good",
+  8: "Very Good",
+  9: "Great",
+  10: "Masterpiece",
+};
+
 export const ANIME_LIST_PRIORITY_OPTIONS = [0, 1, 2] as const satisfies readonly AnimeListPriority[];
 
 export const ANIME_LIST_REWATCH_VALUE_OPTIONS = [
@@ -32,3 +45,8 @@ export const ANIME_LIST_STATUS_BADGE_CLASS: Record<AnimeListStatus, string> = {
   dropped: "border-red-500/30 bg-red-500/15 text-red-300",
   plan_to_watch: "border-[#f49e0b]/35 bg-[#f49e0b]/15 text-[#f49e0b]",
 };
+
+export function formatAnimeListScoreLabel(score: AnimeListScore, unscoredLabel: string) {
+  if (score === 0) return unscoredLabel;
+  return `(${score}) ${ANIME_LIST_SCORE_VALUE_LABEL[score]}`;
+}
