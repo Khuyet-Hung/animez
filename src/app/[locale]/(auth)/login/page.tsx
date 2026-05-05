@@ -3,12 +3,14 @@ import LoginForm from "@/components/auth/LoginForm";
 import { Link } from "@/i18n/navigation";
 
 interface Props {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 }
 
 export default async function LoginPage({ searchParams }: Props) {
   const t = await getTranslations("auth");
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
+  const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/";
+  const nextPath = safeNext.replace(/^\/(en|vi|ja)(?=\/|$)/, "") || "/";
 
   return (
     <main className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4 py-12">
@@ -37,7 +39,7 @@ export default async function LoginPage({ searchParams }: Props) {
               {t("resetPasswordError")}
             </div>
           )}
-          <LoginForm />
+          <LoginForm nextPath={nextPath} />
         </div>
       </div>
     </main>

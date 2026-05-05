@@ -51,6 +51,7 @@ function AvatarCircle({
 
 export default function AuthButton() {
   const t = useTranslations("auth");
+  const profileT = useTranslations("profile");
   const router = useRouter();
   const { user, loading } = useAuth();
   const [open, setOpen] = useState(false);
@@ -132,7 +133,6 @@ export default function AuthButton() {
     user.email && gravatarResult?.email === user.email
       ? gravatarResult.url
       : null;
-
   return (
     <div ref={ref} className="relative">
       <button
@@ -161,7 +161,7 @@ export default function AuthButton() {
             className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#9ca3af] hover:text-white hover:bg-[#1a1a24] transition-colors"
           >
             <UserIcon className="w-4 h-4" />
-            Profile
+            {profileT("settings")}
           </Link>
 
           <button

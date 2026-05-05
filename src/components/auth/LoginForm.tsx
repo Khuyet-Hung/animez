@@ -6,7 +6,11 @@ import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { Link } from "@/i18n/navigation";
 
-export default function LoginForm() {
+interface LoginFormProps {
+  nextPath?: string;
+}
+
+export default function LoginForm({ nextPath = "/" }: LoginFormProps) {
   const t = useTranslations("auth");
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -31,7 +35,7 @@ export default function LoginForm() {
       return;
     }
 
-    router.push("/");
+    router.push(nextPath);
     router.refresh();
   }
 

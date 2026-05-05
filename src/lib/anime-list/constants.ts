@@ -39,11 +39,11 @@ export const ANIME_LIST_REWATCH_VALUE_OPTIONS = [
 ] as const satisfies readonly AnimeListRewatchValue[];
 
 export const ANIME_LIST_STATUS_BADGE_CLASS: Record<AnimeListStatus, string> = {
-  watching: "border-green-500/30 bg-green-500/15 text-green-300",
-  completed: "border-sky-500/30 bg-sky-500/15 text-sky-300",
-  on_hold: "border-yellow-500/30 bg-yellow-500/15 text-yellow-300",
+  watching: "border-blue-500/30 bg-blue-500/15 text-blue-300",
+  completed: "border-green-500/30 bg-green-500/15 text-green-300",
+  on_hold: "border-amber-200/30 bg-amber-200/15 text-amber-100",
   dropped: "border-red-500/30 bg-red-500/15 text-red-300",
-  plan_to_watch: "border-[#f49e0b]/35 bg-[#f49e0b]/15 text-[#f49e0b]",
+  plan_to_watch: "border-cyan-400/30 bg-cyan-400/15 text-cyan-300",
 };
 
 export function formatAnimeListScoreLabel(score: AnimeListScore, unscoredLabel: string) {

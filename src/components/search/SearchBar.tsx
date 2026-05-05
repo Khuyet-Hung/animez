@@ -1,6 +1,6 @@
 "use client";
 
-import { MagnetIcon, SearchIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { useRef, useState, useCallback } from "react";
