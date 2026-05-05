@@ -56,22 +56,6 @@ function formatAiringDate(timestamp: number, locale: string) {
   }).format(new Date(timestamp * 1000));
 }
 
-const relationMessageKeys: Record<string, string> = {
-  ADAPTATION: "relation_adaptation",
-  PREQUEL: "relation_prequel",
-  SEQUEL: "relation_sequel",
-  PARENT: "relation_parent",
-  SIDE_STORY: "relation_side_story",
-  CHARACTER: "relation_character",
-  SUMMARY: "relation_summary",
-  ALTERNATIVE: "relation_alternative",
-  SPIN_OFF: "relation_spin_off",
-  OTHER: "relation_other",
-  SOURCE: "relation_source",
-  COMPILATION: "relation_compilation",
-  CONTAINS: "relation_contains",
-};
-
 export default async function AnimeDetailPage({ params }: PageProps) {
   const { id, locale } = await params;
   setRequestLocale(locale);
@@ -108,10 +92,6 @@ export default async function AnimeDetailPage({ params }: PageProps) {
     HIATUS: t("status_hiatus"),
   };
   const formatStatus = (s?: string | null) => s ? (statusMap[s] || s) : "Unknown";
-  const formatRelationType = (relationType: string) => {
-    const messageKey = relationMessageKeys[relationType];
-    return messageKey ? t(messageKey) : relationType.replaceAll("_", " ");
-  };
 
   return (
     <>
@@ -224,13 +204,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
                   <HorizontalScroll className="gap-4 pb-4" itemWidth={140}>
                     {relations.map((edge) => (
                       <div key={`${edge.relationType}-${edge.node.id}`} className="flex-none w-[140px]">
-                        <Link href={`/anime/${edge.node.id}`} className="group block">
-                          <div className="relative mb-2 aspect-2/3 overflow-hidden rounded border border-[#1a1a24] bg-[#111118]">
-                            <Image src={edge.node.coverImage.large} alt={formatAnimeTitle(edge.node.title, locale)} fill className="object-cover transition-transform duration-300 group-hover:scale-105" unoptimized />
-                          </div>
-                          <p className="truncate text-xs font-semibold text-white group-hover:text-[#f49e0b]">{formatAnimeTitle(edge.node.title, locale)}</p>
-                          <p className="mt-1 text-xs text-[#9ca3af]">{formatRelationType(edge.relationType)}</p>
-                        </Link>
+                        <AnimeCard anime={{ ...edge.node, coverImage: edge.node.coverImage as { large: string; extraLarge?: string } }} />
                       </div>
                     ))}
                   </HorizontalScroll>
