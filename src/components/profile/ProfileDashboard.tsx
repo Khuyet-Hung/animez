@@ -1,14 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import {
+  useActionState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import AnimeListEditor from "@/components/anime-list/AnimeListEditor";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import ProfileSettingsForm from "@/components/profile/ProfileSettingsForm";
 import { Link, useRouter } from "@/i18n/navigation";
-import { updateProfileVisibilityAction } from "@/app/[locale]/profile/actions";
+import {
+  updateProfileAvatarAction,
+  updateProfileVisibilityAction,
+} from "@/app/[locale]/profile/actions";
 import { createClient } from "@/lib/supabase/client";
+import { PROFILE_AVATAR_UPDATED_EVENT } from "@/lib/profile/avatar-events";
 import {
   clampAnimeListProgress,
   createAnimeListUpsertInput,
@@ -16,10 +29,16 @@ import {
 import { ANIME_LIST_STATUS_BADGE_CLASS } from "@/lib/anime-list/constants";
 import type { AnimeMedia } from "@/types/anime";
 import type { AnimeListEntry, AnimeListEntryInput, AnimeListStatus } from "@/types/anime-list";
-import type { ProfileStats, PublicAnimeListEntry, UserAnimeListEntry, UserProfile } from "@/types/profile";
+import type {
+  ProfileFieldErrorKey,
+  ProfileStats,
+  PublicAnimeListEntry,
+  UserAnimeListEntry,
+  UserProfile,
+} from "@/types/profile";
+import type { ChangeEvent } from "react";
 import {
   EyeOffIcon,
-  Globe2Icon,
   GlobeIcon,
   ImageIcon,
   Loader2Icon,
@@ -42,6 +61,15 @@ const STATUS_FILTERS = [
 
 type ContentTab = "list" | "activity" | "settings";
 type StatusFilter = (typeof STATUS_FILTERS)[number];
+
+const INITIAL_PROFILE_AVATAR_STATE = {
+  status: "idle",
+  messageKey: null,
+  fieldErrors: {},
+} satisfies Awaited<ReturnType<typeof updateProfileAvatarAction>>;
+
+const ACCEPTED_AVATAR_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_AVATAR_FILE_SIZE = 3 * 1024 * 1024;
 
 const STATUS_CHART_COLORS: Record<AnimeListStatus, string> = {
   watching: "#60a5fa",
@@ -568,6 +596,98 @@ function ActivityCard({
   );
 }
 
+function EditableProfileAvatar({
+  avatarSrc,
+  currentAvatarUrl,
+  displayName,
+  locale,
+  onAvatarUpdated,
+}: {
+  avatarSrc: string | null;
+  currentAvatarUrl: string | null;
+  displayName: string;
+  locale: string;
+  onAvatarUpdated: (avatarUrl: string | null) => void;
+}) {
+  const t = useTranslations("profile");
+  const formRef = useRef<HTMLFormElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [state, formAction, pending] = useActionState(
+    updateProfileAvatarAction,
+    INITIAL_PROFILE_AVATAR_STATE
+  );
+  const [clientError, setClientError] = useState<ProfileFieldErrorKey | null>(null);
+
+  useEffect(() => {
+    if (state.status !== "success") return;
+
+    onAvatarUpdated(state.avatarUrl ?? null);
+  }, [onAvatarUpdated, state.avatarUrl, state.status]);
+
+  function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    if (!file) return;
+
+    if (!ACCEPTED_AVATAR_TYPES.has(file.type)) {
+      setClientError("invalidAvatarFile");
+      event.currentTarget.value = "";
+      return;
+    }
+
+    if (file.size > MAX_AVATAR_FILE_SIZE) {
+      setClientError("avatarTooLarge");
+      event.currentTarget.value = "";
+      return;
+    }
+
+    setClientError(null);
+    formRef.current?.requestSubmit();
+  }
+
+  const serverErrorKey = state.fieldErrors.avatar_url;
+  const errorKey = clientError ?? serverErrorKey;
+
+  return (
+    <form ref={formRef} action={formAction} className="shrink-0">
+      <input type="hidden" name="locale" value={locale} />
+      <input type="hidden" name="current_avatar_url" value={currentAvatarUrl ?? ""} />
+      <input
+        ref={inputRef}
+        type="file"
+        name="avatar_file"
+        accept="image/jpeg,image/png,image/webp"
+        className="sr-only"
+        onChange={handleAvatarChange}
+      />
+
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        disabled={pending}
+        className="group relative block size-[88px] rounded-full outline-none transition-transform hover:scale-[1.02] focus-visible:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70"
+        aria-label={t("changeAvatar")}
+        title={t("changeAvatar")}
+      >
+        <ProfileAvatar src={avatarSrc} name={displayName} />
+        <span className="absolute inset-0 rounded-full bg-black/0 transition-colors group-hover:bg-black/45 group-focus-visible:bg-black/45" />
+        <span className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+          {pending ? (
+            <Loader2Icon className="size-6 animate-spin text-white drop-shadow" />
+          ) : (
+            <PencilIcon className="size-6 text-white drop-shadow" />
+          )}
+        </span>
+      </button>
+
+      {errorKey && (
+        <p className="mt-3 w-[120px] text-center text-xs font-semibold leading-5 text-red-300">
+          {t(errorKey)}
+        </p>
+      )}
+    </form>
+  );
+}
+
 interface ProfileDashboardProps {
   avatarSrc: string | null;
   entries: UserAnimeListEntry[];
@@ -608,6 +728,7 @@ export default function ProfileDashboard({
   const [activeStatus, setActiveStatus] = useState<StatusFilter>("all");
   const [dashboardEntries, setDashboardEntries] = useState(entries);
   const [isPublic, setIsPublic] = useState(profile.is_public);
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState(profile.avatar_url);
   const [visibilityError, setVisibilityError] = useState<string | null>(null);
   const [pendingVisibility, setPendingVisibility] = useState<boolean | null>(null);
   const [isVisibilityPending, startVisibilityTransition] = useTransition();
@@ -624,6 +745,10 @@ export default function ProfileDashboard({
     setIsPublic(profile.is_public);
   }, [profile.is_public]);
 
+  useEffect(() => {
+    setProfileAvatarUrl(profile.avatar_url);
+  }, [profile.avatar_url]);
+
   const filteredEntries = useMemo(() => {
     const visibleEntries =
       activeStatus === "all"
@@ -631,6 +756,21 @@ export default function ProfileDashboard({
         : dashboardEntries.filter((entry) => entry.status === activeStatus);
     return visibleEntries.slice(0, 8);
   }, [activeStatus, dashboardEntries]);
+
+  const resolvedAvatarSrc = profileAvatarUrl ?? avatarSrc;
+
+  const handleAvatarUpdated = useCallback(
+    (avatarUrl: string | null) => {
+      setProfileAvatarUrl(avatarUrl);
+      window.dispatchEvent(
+        new CustomEvent(PROFILE_AVATAR_UPDATED_EVENT, {
+          detail: { avatarUrl },
+        })
+      );
+      router.refresh();
+    },
+    [router]
+  );
 
   function handleVisibilityChange(nextPublic: boolean) {
     if (nextPublic === isPublic) return;
@@ -733,7 +873,13 @@ export default function ProfileDashboard({
         <section className="border-b border-[#1a1a24] bg-[#0d0d14] px-4 py-6 md:px-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-center gap-4">
-              <ProfileAvatar src={avatarSrc} name={profile.display_name} />
+              <EditableProfileAvatar
+                avatarSrc={resolvedAvatarSrc}
+                currentAvatarUrl={profileAvatarUrl}
+                displayName={profile.display_name}
+                locale={locale}
+                onAvatarUpdated={handleAvatarUpdated}
+              />
               <div className="min-w-0">
                 <h1 className="truncate text-2xl font-black text-white md:text-3xl">
                   {profile.display_name}
@@ -824,7 +970,10 @@ export default function ProfileDashboard({
                   <SettingsIcon className="size-5 text-[#f49e0b]" />
                   <h2 className="text-xl font-black text-white">{labels.settings}</h2>
                 </div>
-                <ProfileSettingsForm profile={{ ...profile, is_public: isPublic }} locale={locale} />
+                <ProfileSettingsForm
+                  profile={{ ...profile, avatar_url: profileAvatarUrl, is_public: isPublic }}
+                  locale={locale}
+                />
               </div>
             )}
           </section>

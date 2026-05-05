@@ -35,7 +35,10 @@ export type ProfileFieldErrorKey =
   | "reservedUsername"
   | "invalidDisplayName"
   | "bioTooLong"
-  | "invalidAvatarUrl";
+  | "invalidAvatarUrl"
+  | "invalidAvatarFile"
+  | "avatarTooLarge"
+  | "avatarUploadFailed";
 
 export type ProfileFieldErrors = Partial<Record<keyof ProfileFormInput, ProfileFieldErrorKey>>;
 

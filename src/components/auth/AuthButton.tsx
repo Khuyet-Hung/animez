@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { createClient } from "@/lib/supabase/client";
 import { createGravatarUrl } from "@/lib/gravatar";
+import { PROFILE_AVATAR_UPDATED_EVENT } from "@/lib/profile/avatar-events";
 import { Link } from "@/i18n/navigation";
 import { LogOutIcon, ChevronDownIcon, UserIcon } from "lucide-react";
 
@@ -59,6 +60,10 @@ export default function AuthButton() {
     email: string;
     url: string | null;
   } | null>(null);
+  const [profileAvatarResult, setProfileAvatarResult] = useState<{
+    userId: string;
+    url: string | null;
+  } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -87,6 +92,53 @@ export default function AuthButton() {
       active = false;
     };
   }, [user?.email]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      return;
+    }
+
+    const userId = user.id;
+    const supabase = createClient();
+    let active = true;
+
+    supabase
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", userId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (active) {
+          setProfileAvatarResult({
+            userId,
+            url: typeof data?.avatar_url === "string" ? data.avatar_url : null,
+          });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const userId = user.id;
+
+    function handleProfileAvatarUpdated(event: Event) {
+      if (!(event instanceof CustomEvent)) return;
+
+      setProfileAvatarResult({
+        userId,
+        url: typeof event.detail?.avatarUrl === "string" ? event.detail.avatarUrl : null,
+      });
+    }
+
+    window.addEventListener(PROFILE_AVATAR_UPDATED_EVENT, handleProfileAvatarUpdated);
+    return () =>
+      window.removeEventListener(PROFILE_AVATAR_UPDATED_EVENT, handleProfileAvatarUpdated);
+  }, [user?.id]);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -133,13 +185,17 @@ export default function AuthButton() {
     user.email && gravatarResult?.email === user.email
       ? gravatarResult.url
       : null;
+  const profileAvatarUrl =
+    profileAvatarResult?.userId === user.id ? profileAvatarResult.url : null;
+  const avatarUrl = profileAvatarUrl ?? gravatarUrl;
+
   return (
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-2 h-9 px-3 rounded bg-[#111118] border border-[#1a1a24] hover:border-[#f49e0b] text-white text-sm font-bold transition-all"
       >
-        <AvatarCircle src={gravatarUrl} initials={initials} name={displayName} size="sm" />
+        <AvatarCircle src={avatarUrl} initials={initials} name={displayName} size="sm" />
         <ChevronDownIcon className="w-4 h-4 text-[#9ca3af]" />
       </button>
 
@@ -147,7 +203,7 @@ export default function AuthButton() {
         <div className="absolute right-0 top-full mt-1 w-52 bg-[#111118] border border-[#1a1a24] rounded-lg shadow-xl z-50 overflow-hidden">
           <div className="px-4 py-3 border-b border-[#1a1a24]">
             <div className="flex items-center gap-2">
-              <AvatarCircle src={gravatarUrl} initials={initials} name={displayName} size="md" />
+              <AvatarCircle src={avatarUrl} initials={initials} name={displayName} size="md" />
               <div className="min-w-0">
                 <p className="text-white text-sm font-semibold truncate">{displayName}</p>
                 <p className="text-[#9ca3af] text-xs truncate">{user.email}</p>

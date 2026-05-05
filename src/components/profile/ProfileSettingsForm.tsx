@@ -1,9 +1,9 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { EyeIcon, EyeOffIcon, SaveIcon } from "lucide-react";
+import { SaveIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Link, useRouter } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { updateProfileAction } from "@/app/[locale]/profile/actions";
 import type { ProfileSettingsActionState } from "@/app/[locale]/profile/actions";
 import type { UserProfile } from "@/types/profile";
@@ -28,7 +28,6 @@ export default function ProfileSettingsForm({ profile, locale }: ProfileSettings
   );
   const [username, setUsername] = useState(profile.username);
 
-  const publicUsername = state.profile?.username ?? username;
   const isPublic = state.profile?.is_public ?? profile.is_public;
 
   useEffect(() => {
@@ -46,6 +45,8 @@ export default function ProfileSettingsForm({ profile, locale }: ProfileSettings
     <form action={formAction} className="space-y-5">
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="current_username" value={profile.username} />
+      <input type="hidden" name="avatar_url" value={profile.avatar_url ?? ""} />
+      <input type="hidden" name="is_public" value={isPublic ? "on" : "off"} />
 
       {state.messageKey && (
         <p
@@ -88,19 +89,6 @@ export default function ProfileSettingsForm({ profile, locale }: ProfileSettings
           {fieldError("display_name")}
         </label>
       </div>
-
-      <label className="flex flex-col gap-2">
-        <span className="text-xs font-bold uppercase tracking-normal text-[#9ca3af]">
-          {t("avatarUrl")}
-        </span>
-        <input
-          name="avatar_url"
-          defaultValue={profile.avatar_url ?? ""}
-          className="h-11 rounded border border-[#1a1a24] bg-[#111118] px-3 text-sm font-semibold text-white outline-none transition-colors placeholder:text-[#5f6472] focus:border-[#f49e0b]"
-          placeholder="https://..."
-        />
-        {fieldError("avatar_url")}
-      </label>
 
       <label className="flex flex-col gap-2">
         <span className="text-xs font-bold uppercase tracking-normal text-[#9ca3af]">
