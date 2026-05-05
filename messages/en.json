@@ -234,6 +234,10 @@
       "averageScore": "Average score",
       "watchedEpisodes": "Episodes watched"
     },
+    "pagination": {
+      "previous": "Prev",
+      "next": "Next"
+    },
     "tabs": {
       "all": "All"
     }

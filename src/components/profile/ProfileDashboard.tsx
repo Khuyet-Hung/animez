@@ -27,6 +27,7 @@ import {
   createAnimeListUpsertInput,
 } from "@/lib/anime-list/normalizers";
 import { ANIME_LIST_STATUS_BADGE_CLASS } from "@/lib/anime-list/constants";
+import { getVisiblePageNumbers } from "@/lib/pagination";
 import type { AnimeMedia } from "@/types/anime";
 import type { AnimeListEntry, AnimeListEntryInput, AnimeListStatus } from "@/types/anime-list";
 import type {
@@ -38,6 +39,8 @@ import type {
 } from "@/types/profile";
 import type { ChangeEvent } from "react";
 import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
   EyeOffIcon,
   GlobeIcon,
   ImageIcon,
@@ -70,6 +73,7 @@ const INITIAL_PROFILE_AVATAR_STATE = {
 
 const ACCEPTED_AVATAR_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_AVATAR_FILE_SIZE = 3 * 1024 * 1024;
+const PROFILE_LIST_PAGE_SIZE = 12;
 
 const STATUS_CHART_COLORS: Record<AnimeListStatus, string> = {
   watching: "#60a5fa",
@@ -232,6 +236,65 @@ function StatusFilters({
         );
       })}
     </div>
+  );
+}
+
+function PaginationControls({
+  currentPage,
+  lastPage,
+  labels,
+  onPageChange,
+}: {
+  currentPage: number;
+  lastPage: number;
+  labels: {
+    previous: string;
+    next: string;
+  };
+  onPageChange: (page: number) => void;
+}) {
+  if (lastPage <= 1) return null;
+
+  const visiblePages = getVisiblePageNumbers(currentPage, lastPage);
+
+  return (
+    <nav className="mt-5 flex flex-wrap items-center justify-center gap-2" aria-label="Phân trang">
+      <button
+        type="button"
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage <= 1}
+        className="inline-flex h-10 items-center gap-1 rounded border border-[#1a1a24] bg-[#111118] px-3 text-sm font-bold text-white transition-colors hover:border-[#f49e0b] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#1a1a24]"
+      >
+        <ChevronLeftIcon className="size-4" />
+        {labels.previous}
+      </button>
+
+      {visiblePages.map((page) => (
+        <button
+          key={page}
+          type="button"
+          onClick={() => onPageChange(page)}
+          aria-current={page === currentPage ? "page" : undefined}
+          className={`flex size-10 items-center justify-center rounded text-sm font-black transition-colors ${
+            page === currentPage
+              ? "bg-[#f49e0b] text-[#0a0a0f]"
+              : "border border-[#1a1a24] bg-[#111118] text-white hover:border-[#f49e0b]"
+          }`}
+        >
+          {page}
+        </button>
+      ))}
+
+      <button
+        type="button"
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage >= lastPage}
+        className="inline-flex h-10 items-center gap-1 rounded border border-[#1a1a24] bg-[#111118] px-3 text-sm font-bold text-white transition-colors hover:border-[#f49e0b] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#1a1a24]"
+      >
+        {labels.next}
+        <ChevronRightIcon className="size-4" />
+      </button>
+    </nav>
   );
 }
 
@@ -702,6 +765,10 @@ interface ProfileDashboardProps {
     privateStatus: string;
     publicStatus: string;
     viewPublicProfile: string;
+    pagination: {
+      previous: string;
+      next: string;
+    };
     status: Record<AnimeListStatus, string>;
     stats: {
       totalAnime: string;
@@ -726,6 +793,7 @@ export default function ProfileDashboard({
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<ContentTab>("list");
   const [activeStatus, setActiveStatus] = useState<StatusFilter>("all");
+  const [listPage, setListPage] = useState(1);
   const [dashboardEntries, setDashboardEntries] = useState(entries);
   const [isPublic, setIsPublic] = useState(profile.is_public);
   const [profileAvatarUrl, setProfileAvatarUrl] = useState(profile.avatar_url);
@@ -750,14 +818,32 @@ export default function ProfileDashboard({
   }, [profile.avatar_url]);
 
   const filteredEntries = useMemo(() => {
-    const visibleEntries =
-      activeStatus === "all"
-        ? dashboardEntries
-        : dashboardEntries.filter((entry) => entry.status === activeStatus);
-    return visibleEntries.slice(0, 8);
+    if (activeStatus === "all") return dashboardEntries;
+
+    return dashboardEntries.filter((entry) => entry.status === activeStatus);
   }, [activeStatus, dashboardEntries]);
+  const listLastPage = Math.max(1, Math.ceil(filteredEntries.length / PROFILE_LIST_PAGE_SIZE));
+  const listCurrentPage = Math.min(listPage, listLastPage);
+  const paginatedEntries = useMemo(() => {
+    const startIndex = (listCurrentPage - 1) * PROFILE_LIST_PAGE_SIZE;
+
+    return filteredEntries.slice(startIndex, startIndex + PROFILE_LIST_PAGE_SIZE);
+  }, [filteredEntries, listCurrentPage]);
 
   const resolvedAvatarSrc = profileAvatarUrl ?? avatarSrc;
+
+  useEffect(() => {
+    setListPage((currentPage) => Math.min(currentPage, listLastPage));
+  }, [listLastPage]);
+
+  function handleStatusChange(status: StatusFilter) {
+    setActiveStatus(status);
+    setListPage(1);
+  }
+
+  function handleListPageChange(page: number) {
+    setListPage(Math.min(Math.max(page, 1), listLastPage));
+  }
 
   const handleAvatarUpdated = useCallback(
     (avatarUrl: string | null) => {
@@ -947,17 +1033,23 @@ export default function ProfileDashboard({
                     activeStatus={activeStatus}
                     stats={stats}
                     statusLabels={labels.status}
-                    onStatusChange={setActiveStatus}
+                    onStatusChange={handleStatusChange}
                   />
                 </div>
                 <RecentAnimeList
-                  entries={filteredEntries}
+                  entries={paginatedEntries}
                   emptyLabel={labels.emptyList}
                   locale={locale}
                   labels={{ status: labels.status }}
                   onEdit={setEditingEntry}
                   onDelete={handleDeleteEntry}
                   deletingAnimeId={deletingAnimeId}
+                />
+                <PaginationControls
+                  currentPage={listCurrentPage}
+                  lastPage={listLastPage}
+                  labels={labels.pagination}
+                  onPageChange={handleListPageChange}
                 />
               </>
             )}

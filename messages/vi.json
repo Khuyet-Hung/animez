@@ -234,6 +234,10 @@
       "averageScore": "Điểm trung bình",
       "watchedEpisodes": "Tập đã xem"
     },
+    "pagination": {
+      "previous": "Trước",
+      "next": "Tiếp"
+    },
     "tabs": {
       "all": "Tất cả"
     }

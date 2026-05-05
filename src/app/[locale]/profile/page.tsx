@@ -72,6 +72,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
           privateStatus: profileT("privateStatus"),
           publicStatus: profileT("publicStatus"),
           viewPublicProfile: profileT("viewPublicProfile"),
+          pagination: {
+            previous: profileT("pagination.previous"),
+            next: profileT("pagination.next"),
+          },
           status: getStatusLabels(animeListT),
           stats: {
             totalAnime: profileT("stats.totalAnime"),
