@@ -65,6 +65,7 @@ export interface AnimeMedia {
         id: number;
         title: AnimeTitle;
         coverImage: AnimeCoverImage;
+        averageScore?: number | null;
         format?: string | null;
         type?: string | null;
       };

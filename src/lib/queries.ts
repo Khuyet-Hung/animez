@@ -127,6 +127,7 @@ export const ANIME_DETAIL_QUERY = `
             id
             title { romaji english native }
             coverImage { large }
+            averageScore
             format
             type
           }
