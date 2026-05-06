@@ -1,6 +1,7 @@
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { ToastProvider } from "@/components/common/ToastProvider";
 import { routing } from "@/i18n/routing";
 
 export default async function LocaleLayout({
@@ -21,7 +22,7 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider>
-      {children}
+      <ToastProvider>{children}</ToastProvider>
     </NextIntlClientProvider>
   );
 }

@@ -143,8 +143,10 @@ export const SUGGESTIONS_QUERY = `
       media(search: $search, type: ANIME, isAdult: false) {
         id
         title { romaji english native }
-        coverImage { medium }
+        coverImage { medium large }
         format
+        episodes
+        seasonYear
       }
     }
   }

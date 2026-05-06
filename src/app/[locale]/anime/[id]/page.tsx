@@ -16,6 +16,7 @@ import { MdLiveTv } from "react-icons/md";
 import HorizontalScroll from "@/components/common/HorizontalScroll";
 import TrailerModalButton from "@/components/anime/TrailerModalButton";
 import AnimeListButton from "@/components/anime-list/AnimeListButton";
+import CreatePostButton from "@/components/social/CreatePostButton";
 
 interface DetailData {
   Media: AnimeMedia;
@@ -165,6 +166,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
 
               <div className="flex flex-wrap gap-3 mt-6">
                 <AnimeListButton anime={anime} variant="detail" />
+                <CreatePostButton initialAnime={anime} />
               </div>
             </div>
           </div>
