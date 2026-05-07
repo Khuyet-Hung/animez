@@ -90,15 +90,18 @@ const SocialPostCard = memo(function SocialPostCard({ post }: { post: SocialFeed
         </button>
       </div>
 
-      <SocialPostImages imageLayout={post.image_layout} images={post.images} />
-
-      <div className={`${post.images.length > 0 ? "border-t border-[#1a1a24]" : ""} px-4 py-4 sm:px-5`}>
+      <div className="px-4 py-4 sm:px-5">
         <h2 className="whitespace-pre-wrap break-words text-base font-black leading-6 text-white">{post.caption}</h2>
         {post.description && (
           <p className="mt-2 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-[#cbd5e1]">
             {post.description}
           </p>
         )}
+      </div>
+
+      <SocialPostImages imageLayout={post.image_layout} images={post.images} />
+      
+      <div className="px-4 sm:px-5">
         <SocialPostAnime anime={post.anime} />
       </div>
 
@@ -125,12 +128,12 @@ export function SocialPostCardSkeleton() {
         </div>
         <div className="size-9 rounded bg-[#1a1a24]" />
       </div>
-      <div className="aspect-[16/10] bg-[#0a0a0f]" />
-      <div className="grid gap-3 border-t border-[#1a1a24] px-4 py-4 sm:px-5">
+      <div className="grid gap-3 px-4 py-4 sm:px-5">
         <div className="h-4 w-11/12 rounded bg-[#1a1a24]" />
         <div className="h-4 w-7/12 rounded bg-[#1a1a24]" />
         <div className="h-7 w-48 rounded-full bg-[#1a1a24]" />
       </div>
+      <div className="aspect-[16/10] bg-[#0a0a0f]" />
       <div className="flex items-center justify-between border-t border-[#1a1a24] px-3 py-3 sm:px-4">
         <div className="flex gap-1.5">
           <div className="h-9 w-10 rounded bg-[#1a1a24]" />

@@ -48,6 +48,11 @@ interface SelectedImage {
   url: string;
 }
 
+const SOCIAL_POST_IMAGE_MAX_DIMENSION = 1600;
+const SOCIAL_POST_IMAGE_TARGET_SIZE = 1024 * 1024;
+const SOCIAL_POST_IMAGE_QUALITY = 0.82;
+const SOCIAL_POST_IMAGE_OUTPUT_TYPE = "image/webp";
+
 const INITIAL_ACTION_STATE: CreateSocialPostActionState = {
   status: "idle",
   messageKey: null,
@@ -90,6 +95,60 @@ function getImageSelectionError(files: File[], currentImageCount: number) {
   }
 
   return null;
+}
+
+function getOptimizedImageName(fileName: string) {
+  return fileName.replace(/\.[^.]+$/, "") + ".webp";
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(new Error("Could not optimize image."));
+          return;
+        }
+
+        resolve(blob);
+      },
+      type,
+      quality
+    );
+  });
+}
+
+async function optimizeSocialPostImage(file: File) {
+  const bitmap = await createImageBitmap(file);
+
+  try {
+    const scale = Math.min(1, SOCIAL_POST_IMAGE_MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+    const shouldOptimize =
+      file.type !== SOCIAL_POST_IMAGE_OUTPUT_TYPE || file.size > SOCIAL_POST_IMAGE_TARGET_SIZE || scale < 1;
+
+    if (!shouldOptimize) return file;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d");
+    if (!context) return file;
+
+    context.drawImage(bitmap, 0, 0, width, height);
+
+    const blob = await canvasToBlob(canvas, SOCIAL_POST_IMAGE_OUTPUT_TYPE, SOCIAL_POST_IMAGE_QUALITY);
+    if (blob.size >= file.size) return file;
+
+    return new File([blob], getOptimizedImageName(file.name), {
+      type: SOCIAL_POST_IMAGE_OUTPUT_TYPE,
+      lastModified: Date.now(),
+    });
+  } finally {
+    bitmap.close();
+  }
 }
 
 function getActionErrorMessage(
@@ -348,6 +407,7 @@ function CreatePostModal({
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [activePicker, setActivePicker] = useState<ActiveAnimePicker | null>(null);
   const [localErrorKey, setLocalErrorKey] = useState<string | null>(null);
+  const [imageProcessing, setImageProcessing] = useState(false);
   const [images, setImages] = useState<SelectedImage[]>([]);
   const imagesRef = useRef<SelectedImage[]>([]);
   const pending = actionPending || isDispatching;
@@ -373,27 +433,40 @@ function CreatePostModal({
     };
   }, []);
 
-  function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const selectedFiles = Array.from(event.target.files ?? []);
+  async function handleImageChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const input = event.currentTarget;
+    const selectedFiles = Array.from(input.files ?? []);
     if (selectedFiles.length === 0) return;
 
     const imageError = getImageSelectionError(selectedFiles, images.length);
     if (imageError) {
       setLocalErrorKey(imageError);
-      event.target.value = "";
+      input.value = "";
       return;
     }
 
     const slotsLeft = Math.max(0, SOCIAL_POST_MAX_IMAGES - images.length);
-    const nextImages = selectedFiles.slice(0, slotsLeft).map((file) => ({
-      id: crypto.randomUUID(),
-      file,
-      url: URL.createObjectURL(file),
-    }));
+    const filesToAdd = selectedFiles.slice(0, slotsLeft);
 
-    setLocalErrorKey(null);
-    setImages((current) => [...current, ...nextImages]);
-    event.target.value = "";
+    setImageProcessing(true);
+
+    try {
+      const optimizedFiles = await Promise.all(filesToAdd.map(optimizeSocialPostImage));
+      const nextImages = optimizedFiles.map((file) => ({
+        id: crypto.randomUUID(),
+        file,
+        url: URL.createObjectURL(file),
+      }));
+
+      setLocalErrorKey(null);
+      setImages((current) => [...current, ...nextImages]);
+    } catch (error) {
+      console.error("Failed to optimize social post images", error);
+      setLocalErrorKey("uploadFailed");
+    } finally {
+      setImageProcessing(false);
+      input.value = "";
+    }
   }
 
   function removeImage(id: string) {
@@ -701,7 +774,7 @@ function CreatePostModal({
                   accept="image/jpeg,image/png,image/webp"
                   multiple
                   onChange={handleImageChange}
-                  disabled={images.length >= SOCIAL_POST_MAX_IMAGES}
+                  disabled={images.length >= SOCIAL_POST_MAX_IMAGES || imageProcessing || pending}
                   className="sr-only"
                 />
               </label>
@@ -725,10 +798,10 @@ function CreatePostModal({
 
             <button
               type="submit"
-              disabled={pending}
+              disabled={pending || imageProcessing}
               className="inline-flex h-10 items-center gap-2 rounded border border-[#2a2a35] px-4 text-sm font-black text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {pending ? <Loader2Icon className="size-4 animate-spin" /> : <SendIcon className="size-4" />}
+              {pending || imageProcessing ? <Loader2Icon className="size-4 animate-spin" /> : <SendIcon className="size-4" />}
               {pending ? t("publishing") : t("publish")}
             </button>
           </div>

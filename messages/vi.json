@@ -286,6 +286,7 @@
       "tooManyImages": "Chỉ có thể tải lên tối đa 6 ảnh.",
       "invalidImageType": "Chỉ hỗ trợ ảnh JPG, PNG hoặc WebP.",
       "imageTooLarge": "Mỗi ảnh tối đa 5MB.",
+      "imagePostDailyLimit": "Mỗi ngày chỉ có thể đăng tối đa 2 bài viết có ảnh.",
       "uploadFailed": "Không thể tải ảnh lên. Vui lòng thử lại.",
       "animeSearchFailed": "Không thể tìm anime. Vui lòng thử lại."
     }

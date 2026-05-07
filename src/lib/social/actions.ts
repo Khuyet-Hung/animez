@@ -20,6 +20,39 @@ const INITIAL_ERROR_STATE: CreateSocialPostActionState = {
   fieldErrors: {},
 };
 
+const IMAGE_POST_DAILY_LIMIT = 2;
+const VIETNAM_TIMEZONE_OFFSET_MS = 7 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
+
+interface SocialPostInsertPayload {
+  user_id: string;
+  caption: string;
+  description: string;
+  image_layout?: string;
+  visibility: "public";
+}
+
+function logSocialPostActionError(stage: string, error: unknown, context?: Record<string, unknown>) {
+  console.error(`[createSocialPostAction] ${stage}`, {
+    error,
+    ...context,
+  });
+}
+
+function isMissingImageLayoutColumnError(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+
+  const record = error as Record<string, unknown>;
+  const message = typeof record.message === "string" ? record.message : "";
+
+  return (
+    (record.code === "42703" || record.code === "PGRST204") &&
+    message.includes("image_layout")
+  );
+}
+
 function getTextValue(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value : "";
@@ -28,6 +61,16 @@ function getTextValue(formData: FormData, key: string) {
 function getSafeLocale(formData: FormData) {
   const locale = getTextValue(formData, "locale");
   return /^[a-z]{2}$/.test(locale) ? locale : "vi";
+}
+
+function getVietnamDayRange(date = new Date()) {
+  const vietnamTime = date.getTime() + VIETNAM_TIMEZONE_OFFSET_MS;
+  const start = Math.floor(vietnamTime / DAY_MS) * DAY_MS - VIETNAM_TIMEZONE_OFFSET_MS;
+
+  return {
+    start: new Date(start).toISOString(),
+    end: new Date(start + DAY_MS).toISOString(),
+  };
 }
 
 function toAnimeRow(postId: string, anime: SocialPostAnimeDraft, role: "primary" | "supporting", sortOrder: number) {
@@ -65,8 +108,38 @@ async function rollbackUploadedImages(images: UploadedSocialPostImage[]) {
   try {
     await deleteSocialPostImages(images.map((image) => image.storageKey));
   } catch (error) {
-    console.error("Failed to rollback uploaded social post images", error);
+    logSocialPostActionError("Failed to rollback uploaded social post images", error, {
+      imageCount: images.length,
+    });
   }
+}
+
+async function rollbackInsertedPost(
+  supabase: SupabaseClient,
+  postId: string
+) {
+  const { error } = await supabase.from("social_posts").delete().eq("id", postId);
+
+  if (error) {
+    logSocialPostActionError("Failed to rollback inserted social post", error, { postId });
+  }
+}
+
+async function insertSocialPost(supabase: SupabaseClient, payload: SocialPostInsertPayload) {
+  const result = await supabase.from("social_posts").insert(payload).select("id").single();
+
+  if (!isMissingImageLayoutColumnError(result.error)) return result;
+
+  logSocialPostActionError("social_posts.image_layout column is missing; retrying legacy insert", result.error);
+
+  const legacyPayload: Omit<SocialPostInsertPayload, "image_layout"> = {
+    user_id: payload.user_id,
+    caption: payload.caption,
+    description: payload.description,
+    visibility: payload.visibility,
+  };
+
+  return supabase.from("social_posts").insert(legacyPayload).select("id").single();
 }
 
 export async function createSocialPostAction(
@@ -101,6 +174,32 @@ export async function createSocialPostAction(
     };
   }
 
+  if (imageFiles.length > 0) {
+    const { start, end } = getVietnamDayRange();
+    const { count, error: quotaError } = await supabase
+      .from("social_posts")
+      .select("id,social_post_images!inner(id)", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .is("deleted_at", null)
+      .gte("created_at", start)
+      .lt("created_at", end);
+
+    if (quotaError) {
+      logSocialPostActionError("Failed to check social image post quota", quotaError, {
+        imageCount: imageFiles.length,
+      });
+      return INITIAL_ERROR_STATE;
+    }
+
+    if ((count ?? 0) >= IMAGE_POST_DAILY_LIMIT) {
+      return {
+        status: "error",
+        messageKey: "validationFailed",
+        fieldErrors: { images: "imagePostDailyLimit" },
+      };
+    }
+  }
+
   const uploadedImages: UploadedSocialPostImage[] = [];
 
   try {
@@ -108,7 +207,9 @@ export async function createSocialPostAction(
       uploadedImages.push(await uploadSocialPostImage(user.id, file));
     }
   } catch (error) {
-    console.error("Failed to upload social post images", error);
+    logSocialPostActionError("Failed to upload social post images", error, {
+      imageCount: imageFiles.length,
+    });
     await rollbackUploadedImages(uploadedImages);
 
     return {
@@ -117,19 +218,23 @@ export async function createSocialPostAction(
     };
   }
 
-  const { data: post, error: postError } = await supabase
-    .from("social_posts")
-    .insert({
-      user_id: user.id,
-      caption: input.value.caption,
-      description: input.value.description,
-      image_layout: input.value.imageLayout,
-      visibility: "public",
-    })
-    .select("id")
-    .single();
+  const { data: post, error: postError } = await insertSocialPost(supabase, {
+    user_id: user.id,
+    caption: input.value.caption,
+    description: input.value.description,
+    image_layout: input.value.imageLayout,
+    visibility: "public",
+  });
 
   if (postError || !post) {
+    logSocialPostActionError(
+      "Failed to insert social post",
+      postError ?? new Error("Insert social post returned no row."),
+      {
+        imageCount: imageFiles.length,
+        supportingAnimeCount: input.value.supportingAnime.length,
+      }
+    );
     await rollbackUploadedImages(uploadedImages);
     return INITIAL_ERROR_STATE;
   }
@@ -145,7 +250,11 @@ export async function createSocialPostAction(
   const { error: animeError } = await supabase.from("social_post_anime").insert(animeRows);
 
   if (animeError) {
-    await supabase.from("social_posts").delete().eq("id", postId);
+    logSocialPostActionError("Failed to insert social post anime rows", animeError, {
+      postId,
+      animeCount: animeRows.length,
+    });
+    await rollbackInsertedPost(supabase, postId);
     await rollbackUploadedImages(uploadedImages);
     return INITIAL_ERROR_STATE;
   }
@@ -156,7 +265,11 @@ export async function createSocialPostAction(
       .insert(uploadedImages.map((image, index) => toImageRow(postId, image, index)));
 
     if (imageError) {
-      await supabase.from("social_posts").delete().eq("id", postId);
+      logSocialPostActionError("Failed to insert social post image rows", imageError, {
+        postId,
+        imageCount: uploadedImages.length,
+      });
+      await rollbackInsertedPost(supabase, postId);
       await rollbackUploadedImages(uploadedImages);
       return INITIAL_ERROR_STATE;
     }
