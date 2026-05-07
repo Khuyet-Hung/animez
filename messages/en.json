@@ -1,5 +1,6 @@
 {
   "nav": {
+    "feed": "Feed",
     "browse": "Browse",
     "seasonal": "Seasonal",
     "simulcast": "Simulcast",
@@ -121,6 +122,7 @@
     "tagline": "Your ultimate destination for anime tracking, reviews, and community.",
     "navigation": "Navigation",
     "home": "Home",
+    "feed": "Feed",
     "browse": "Browse Anime",
     "seasonal": "Seasonal Chart",
     "account": "Account",
@@ -287,6 +289,23 @@
       "uploadFailed": "Could not upload images. Please try again.",
       "animeSearchFailed": "Could not search anime. Please try again."
     }
+  },
+  "feed": {
+    "eyebrow": "Community feed",
+    "title": "Latest anime posts",
+    "description": "Read public posts from the Animez community, ordered from newest to oldest.",
+    "createTitle": "Share a new post",
+    "createDescription": "Pick an anime, write a caption, and publish it to the public feed.",
+    "loadingMore": "Loading more posts...",
+    "end": "You are all caught up",
+    "emptyTitle": "No posts yet",
+    "emptyDescription": "Public posts will appear here after someone shares their anime thoughts.",
+    "errorTitle": "Could not load the feed",
+    "errorDescription": "Please try again in a moment.",
+    "retry": "Retry",
+    "unknownAuthor": "Animez user",
+    "primaryAnime": "Primary anime",
+    "episode": "Ep {episode}"
   },
   "auth": {
     "login": "Log In",

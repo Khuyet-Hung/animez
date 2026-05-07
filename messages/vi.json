@@ -1,5 +1,6 @@
 {
   "nav": {
+    "feed": "Feed",
     "browse": "Khám phá",
     "seasonal": "Theo mùa",
     "simulcast": "Đang chiếu",
@@ -121,6 +122,7 @@
     "tagline": "Điểm đến lý tưởng để theo dõi, đánh giá anime và giao lưu cùng cộng đồng.",
     "navigation": "Điều hướng",
     "home": "Trang chủ",
+    "feed": "Feed",
     "browse": "Khám phá Anime",
     "seasonal": "Anime theo mùa",
     "account": "Tài khoản",
@@ -287,6 +289,23 @@
       "uploadFailed": "Không thể tải ảnh lên. Vui lòng thử lại.",
       "animeSearchFailed": "Không thể tìm anime. Vui lòng thử lại."
     }
+  },
+  "feed": {
+    "eyebrow": "Feed cộng đồng",
+    "title": "Bài viết anime mới nhất",
+    "description": "Đọc các bài viết public từ cộng đồng Animez, sắp xếp từ mới nhất đến cũ hơn.",
+    "createTitle": "Chia sẻ bài mới",
+    "createDescription": "Chọn anime, viết caption và đăng lên feed public.",
+    "loadingMore": "Đang tải thêm bài viết...",
+    "end": "Bạn đã xem hết feed",
+    "emptyTitle": "Chưa có bài viết",
+    "emptyDescription": "Các bài viết public sẽ xuất hiện tại đây sau khi có người chia sẻ cảm nhận anime.",
+    "errorTitle": "Không thể tải feed",
+    "errorDescription": "Vui lòng thử lại sau ít phút.",
+    "retry": "Thử lại",
+    "unknownAuthor": "Người dùng Animez",
+    "primaryAnime": "Phim chính",
+    "episode": "Tập {episode}"
   },
   "auth": {
     "login": "Đăng nhập",

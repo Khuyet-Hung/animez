@@ -3,6 +3,7 @@
 import { useActionState, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import momoAvatar from "@/assets/gifs/momo_1.gif";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   FilmIcon,
   HashIcon,
@@ -704,6 +705,7 @@ function CreatePostModal({
 export default function CreatePostButton({ initialAnime, className = "" }: CreatePostButtonProps) {
   const t = useTranslations("social");
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const { showToast } = useToast();
   const { user, loading } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
@@ -711,10 +713,11 @@ export default function CreatePostButton({ initialAnime, className = "" }: Creat
   const loginHref = `/login?next=${encodeURIComponent(pathname)}`;
 
   const handlePublished = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: ["social-feed"] });
     showToast({
       title: t("published"),
     });
-  }, [showToast, t]);
+  }, [queryClient, showToast, t]);
 
   function handleClick() {
     if (!loading && !user) {

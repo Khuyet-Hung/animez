@@ -25,6 +25,7 @@ export default function Footer() {
           <h4 className="text-white font-bold mb-4">{t("navigation")}</h4>
           <ul className="flex flex-col gap-2 text-sm text-[#9ca3af]">
             <li><Link href="/" className="hover:text-[#f49e0b] transition-colors">{t("home")}</Link></li>
+            <li><Link href="/feed" className="hover:text-[#f49e0b] transition-colors">{t("feed")}</Link></li>
             <li><Link href="/search" className="hover:text-[#f49e0b] transition-colors">{t("browse")}</Link></li>
             <li><Link href="/search?season=WINTER&seasonYear=2025" className="hover:text-[#f49e0b] transition-colors">{t("seasonal")}</Link></li>
           </ul>

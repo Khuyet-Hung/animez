@@ -163,6 +163,7 @@ export async function createSocialPostAction(
 
   const locale = getSafeLocale(formData);
   revalidatePath(`/${locale}/anime/${input.value.primaryAnime.anime_id}`);
+  revalidatePath(`/${locale}/feed`);
   revalidatePath(`/${locale}/profile`);
 
   return {

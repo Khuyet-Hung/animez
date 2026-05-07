@@ -205,6 +205,7 @@ export default function Navbar() {
 
         <div className="flex items-center gap-4">
           <nav className="hidden lg:flex items-center gap-6">
+            <Link href="/feed" className="text-[#9ca3af] hover:text-[#f49e0b] text-sm font-semibold transition-colors">{t("feed")}</Link>
             <Link href="/search" className="text-[#9ca3af] hover:text-[#f49e0b] text-sm font-semibold transition-colors">{t("browse")}</Link>
             <Link href="/search?season=WINTER&seasonYear=2025" className="text-[#9ca3af] hover:text-[#f49e0b] text-sm font-semibold transition-colors">{t("seasonal")}</Link>
             <Link href="/search?sort=TRENDING_DESC" className="text-[#9ca3af] hover:text-[#f49e0b] text-sm font-semibold transition-colors">{t("simulcast")}</Link>

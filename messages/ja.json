@@ -1,5 +1,6 @@
 {
   "nav": {
+    "feed": "フィード",
     "browse": "探す",
     "seasonal": "シーズン",
     "simulcast": "配信中",
@@ -121,6 +122,7 @@
     "tagline": "アニメの記録、レビュー、コミュニティのための場所。",
     "navigation": "ナビゲーション",
     "home": "ホーム",
+    "feed": "フィード",
     "browse": "アニメを探す",
     "seasonal": "シーズンチャート",
     "account": "アカウント",
@@ -283,6 +285,23 @@
       "uploadFailed": "画像をアップロードできませんでした。もう一度お試しください。",
       "animeSearchFailed": "アニメを検索できませんでした。もう一度お試しください。"
     }
+  },
+  "feed": {
+    "eyebrow": "コミュニティフィード",
+    "title": "最新のアニメ投稿",
+    "description": "Animezコミュニティの公開投稿を新しい順に表示します。",
+    "createTitle": "新しい投稿を共有",
+    "createDescription": "アニメを選び、キャプションを書いて公開フィードに投稿します。",
+    "loadingMore": "さらに投稿を読み込み中...",
+    "end": "すべて表示しました",
+    "emptyTitle": "まだ投稿がありません",
+    "emptyDescription": "誰かがアニメの感想を共有すると、公開投稿がここに表示されます。",
+    "errorTitle": "フィードを読み込めませんでした",
+    "errorDescription": "しばらくしてからもう一度お試しください。",
+    "retry": "再試行",
+    "unknownAuthor": "Animezユーザー",
+    "primaryAnime": "メインアニメ",
+    "episode": "第{episode}話"
   },
   "auth": {
     "login": "ログイン",
