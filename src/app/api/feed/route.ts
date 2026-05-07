@@ -17,6 +17,7 @@ interface SocialFeedRpcRow {
   id: string;
   caption: string;
   description: string;
+  image_layout: SocialFeedPost["image_layout"];
   created_at: string;
   updated_at: string;
   author: SocialFeedAuthor;
@@ -52,6 +53,7 @@ function normalizePost(row: SocialFeedRpcRow): SocialFeedPost {
     id: row.id,
     caption: row.caption,
     description: row.description,
+    image_layout: row.image_layout,
     created_at: row.created_at,
     updated_at: row.updated_at,
     author: row.author,

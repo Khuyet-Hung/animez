@@ -90,7 +90,7 @@ const SocialPostCard = memo(function SocialPostCard({ post }: { post: SocialFeed
         </button>
       </div>
 
-      <SocialPostImages images={post.images} />
+      <SocialPostImages imageLayout={post.image_layout} images={post.images} />
 
       <div className={`${post.images.length > 0 ? "border-t border-[#1a1a24]" : ""} px-4 py-4 sm:px-5`}>
         <h2 className="whitespace-pre-wrap break-words text-base font-black leading-6 text-white">{post.caption}</h2>

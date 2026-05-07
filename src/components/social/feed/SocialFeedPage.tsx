@@ -14,30 +14,25 @@ export default function SocialFeedPage() {
         <section className="min-w-0">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
-              <div className="mb-3 inline-flex items-center gap-2 border border-[#2a2a35] bg-[#111118] px-3 py-1.5 text-xs font-black uppercase tracking-normal text-[#f49e0b]">
+              <div className="inline-flex items-center gap-2 border border-[#2a2a35] bg-[#111118] px-3 py-1.5 text-xs font-black uppercase tracking-normal text-[#f49e0b]">
                 <RadioIcon className="size-3.5" />
                 {t("eyebrow")}
               </div>
-              <h1 className="text-3xl font-black leading-tight tracking-tight text-white md:text-4xl">
-                {t("title")}
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-[#9ca3af]">
-                {t("description")}
-              </p>
             </div>
           </div>
 
           <SocialFeedList />
         </section>
 
-        <aside className="hidden lg:block">
-          <div className="sticky top-24 border-l border-[#1a1a24] pl-5">
+        <aside className="hidden lg:sticky lg:top-24 lg:block">
+          <div className="border-l border-[#1a1a24] pl-5">
             <p className="text-xs font-black uppercase tracking-normal text-[#f49e0b]">{t("createTitle")}</p>
             <p className="mt-2 text-sm font-semibold leading-6 text-[#9ca3af]">{t("createDescription")}</p>
-            <CreatePostButton className="mt-4 max-w-none" />
+            <CreatePostButton className="mt-4 max-w-none" title={t("triggerPlaceholder")} />
           </div>
         </aside>
       </div>
+      <CreatePostButton variant="floating" />
     </main>
   );
 }

@@ -73,8 +73,8 @@ export async function createSocialPostAction(
   _previousState: CreateSocialPostActionState,
   formData: FormData
 ): Promise<CreateSocialPostActionState> {
-  const input = validateCreateSocialPostInput(formData);
   const imageFiles = getSocialPostImageFiles(formData);
+  const input = validateCreateSocialPostInput(formData, imageFiles.length);
   const imageErrors = validateSocialPostImages(imageFiles);
 
   if (!input.ok || Object.keys(imageErrors).length > 0) {
@@ -123,6 +123,7 @@ export async function createSocialPostAction(
       user_id: user.id,
       caption: input.value.caption,
       description: input.value.description,
+      image_layout: input.value.imageLayout,
       visibility: "public",
     })
     .select("id")

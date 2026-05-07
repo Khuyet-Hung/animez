@@ -296,6 +296,7 @@
     "description": "Read public posts from the Animez community, ordered from newest to oldest.",
     "createTitle": "Share a new post",
     "createDescription": "Pick an anime, write a caption, and publish it to the public feed.",
+    "triggerPlaceholder": "What are you thinking?",
     "loadingMore": "Loading more posts...",
     "end": "You are all caught up",
     "emptyTitle": "No posts yet",

@@ -25,7 +25,10 @@ import { createSocialPostAction } from "@/lib/social/actions";
 import {
   SOCIAL_POST_CAPTION_MAX_LENGTH,
   SOCIAL_POST_DESCRIPTION_MAX_LENGTH,
+  getDefaultSocialPostImageLayout,
+  SOCIAL_POST_IMAGE_MIME_EXTENSIONS,
   SOCIAL_POST_MAX_IMAGES,
+  SOCIAL_POST_MAX_IMAGE_SIZE,
   SOCIAL_POST_MAX_SUPPORTING_ANIME,
 } from "@/lib/social/validators";
 import { formatAnimeTitle } from "@/lib/anime-title";
@@ -35,6 +38,8 @@ import type { CreateSocialPostActionState, SocialPostAnimeDraft } from "@/types/
 interface CreatePostButtonProps {
   initialAnime?: AnimeMedia;
   className?: string;
+  variant?: "inline" | "floating";
+  title?: string;
 }
 
 interface SelectedImage {
@@ -74,6 +79,17 @@ function formatBytes(bytes: number) {
 
 function getDraftTitle(anime: SocialPostAnimeDraft) {
   return anime.title_english || anime.title_romaji || `Anime #${anime.anime_id}`;
+}
+
+function getImageSelectionError(files: File[], currentImageCount: number) {
+  if (currentImageCount + files.length > SOCIAL_POST_MAX_IMAGES) return "tooManyImages";
+
+  for (const file of files) {
+    if (!SOCIAL_POST_IMAGE_MIME_EXTENSIONS[file.type]) return "invalidImageType";
+    if (file.size > SOCIAL_POST_MAX_IMAGE_SIZE) return "imageTooLarge";
+  }
+
+  return null;
 }
 
 function getActionErrorMessage(
@@ -338,6 +354,7 @@ function CreatePostModal({
   const actionErrorMessage =
     state.status === "error" ? getActionErrorMessage(t, state.fieldErrors, state.messageKey) : null;
   const errorMessage = localErrorKey ? t(`errors.${localErrorKey}`) : actionErrorMessage;
+  const imageLayout = getDefaultSocialPostImageLayout(images.length);
 
   useEffect(() => {
     if (state.status === "success") {
@@ -360,6 +377,13 @@ function CreatePostModal({
     const selectedFiles = Array.from(event.target.files ?? []);
     if (selectedFiles.length === 0) return;
 
+    const imageError = getImageSelectionError(selectedFiles, images.length);
+    if (imageError) {
+      setLocalErrorKey(imageError);
+      event.target.value = "";
+      return;
+    }
+
     const slotsLeft = Math.max(0, SOCIAL_POST_MAX_IMAGES - images.length);
     const nextImages = selectedFiles.slice(0, slotsLeft).map((file) => ({
       id: crypto.randomUUID(),
@@ -367,6 +391,7 @@ function CreatePostModal({
       url: URL.createObjectURL(file),
     }));
 
+    setLocalErrorKey(null);
     setImages((current) => [...current, ...nextImages]);
     event.target.value = "";
   }
@@ -394,8 +419,18 @@ function CreatePostModal({
       return;
     }
 
+    const imageError = getImageSelectionError(
+      images.map((image) => image.file),
+      0
+    );
+    if (imageError) {
+      setLocalErrorKey(imageError);
+      return;
+    }
+
     const formData = new FormData(event.currentTarget);
     formData.set("locale", locale);
+    formData.set("image_layout", imageLayout);
     formData.set("primary_anime", JSON.stringify(primaryAnime));
     formData.set("supporting_anime", JSON.stringify(supportingAnime));
     formData.delete("images");
@@ -454,6 +489,7 @@ function CreatePostModal({
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <input type="hidden" name="locale" value={locale} />
           <input type="hidden" name="description" value={description} />
+          <input type="hidden" name="image_layout" value={imageLayout} />
 
           <div className="flex items-center justify-between gap-4 border-b border-[#1a1a24] bg-[#111118] px-5 py-4">
             <div className="flex min-w-0 items-center gap-3">
@@ -702,7 +738,7 @@ function CreatePostModal({
   );
 }
 
-export default function CreatePostButton({ initialAnime, className = "" }: CreatePostButtonProps) {
+export default function CreatePostButton({ initialAnime, className = "", variant = "inline", title }: CreatePostButtonProps) {
   const t = useTranslations("social");
   const pathname = usePathname();
   const queryClient = useQueryClient();
@@ -728,8 +764,20 @@ export default function CreatePostButton({ initialAnime, className = "" }: Creat
     setModalOpen(true);
   }
 
-  return (
-    <>
+  const trigger =
+    variant === "floating" ? (
+      <button
+        type="button"
+        disabled={loading}
+        onClick={handleClick}
+        className={`fixed bottom-5 right-4 z-40 inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#f49e0b]/45 bg-[#f49e0b] px-4 text-sm font-black text-[#0a0a0f] shadow-[0_18px_48px_rgba(0,0,0,0.45)] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 lg:hidden ${className}`}
+        aria-label={t("createPost")}
+        title={t("createPost")}
+      >
+        {loading ? <Loader2Icon className="size-4 animate-spin" /> : <MessageSquarePlusIcon className="size-4" />}
+        <span className="hidden sm:inline">{t("publish")}</span>
+      </button>
+    ) : (
       <button
         type="button"
         disabled={loading}
@@ -751,15 +799,21 @@ export default function CreatePostButton({ initialAnime, className = "" }: Creat
           )}
         </span>
         <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[#6b7280] transition-colors">
-          {t("triggerPlaceholder")}
+          {title || t("triggerPlaceholder")}
         </span>
         <span
           onClick={handleClick}
-          className="inline-flex cursor-pointer h-10 shrink-0 items-center justify-center gap-1.5 rounded border text-black bg-[#f49e0b] px-3 text-sm font-black  transition-colors sm:px-4">
+          className="inline-flex cursor-pointer h-10 shrink-0 items-center justify-center gap-1.5 rounded border text-black bg-[#f49e0b] px-3 text-sm font-black  transition-colors sm:px-4"
+        >
           <MessageSquarePlusIcon className="size-4" />
           <span>{t("publish")}</span>
         </span>
       </button>
+    );
+
+  return (
+    <>
+      {trigger}
 
       {loginPromptOpen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">

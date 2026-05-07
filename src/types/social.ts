@@ -1,4 +1,12 @@
 export type SocialPostAnimeRole = "primary" | "supporting";
+export type SocialPostImageLayout =
+  | "auto"
+  | "stacked"
+  | "side_by_side"
+  | "featured_top"
+  | "featured_side"
+  | "mosaic_top"
+  | "mosaic_side";
 
 export interface SocialPostAnimeDraft {
   anime_id: number;
@@ -56,6 +64,7 @@ export interface SocialFeedPost {
   id: string;
   caption: string;
   description: string;
+  image_layout: SocialPostImageLayout;
   created_at: string;
   updated_at: string;
   author: SocialFeedAuthor;

@@ -296,6 +296,7 @@
     "description": "Đọc các bài viết public từ cộng đồng Animez, sắp xếp từ mới nhất đến cũ hơn.",
     "createTitle": "Chia sẻ bài mới",
     "createDescription": "Chọn anime, viết caption và đăng lên feed public.",
+    "triggerPlaceholder": "Bạn nghĩ gì?",
     "loadingMore": "Đang tải thêm bài viết...",
     "end": "Bạn đã xem hết feed",
     "emptyTitle": "Chưa có bài viết",

@@ -1,10 +1,19 @@
-import type { SocialPostAnimeDraft, SocialPostFieldErrors } from "@/types/social";
+import type { SocialPostAnimeDraft, SocialPostFieldErrors, SocialPostImageLayout } from "@/types/social";
 
 export const SOCIAL_POST_CAPTION_MAX_LENGTH = 280;
 export const SOCIAL_POST_DESCRIPTION_MAX_LENGTH = 2000;
 export const SOCIAL_POST_MAX_SUPPORTING_ANIME = 5;
 export const SOCIAL_POST_MAX_IMAGES = 6;
 export const SOCIAL_POST_MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+export const SOCIAL_POST_IMAGE_LAYOUTS: SocialPostImageLayout[] = [
+  "auto",
+  "stacked",
+  "side_by_side",
+  "featured_top",
+  "featured_side",
+  "mosaic_top",
+  "mosaic_side",
+];
 
 export const SOCIAL_POST_IMAGE_MIME_EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -15,6 +24,7 @@ export const SOCIAL_POST_IMAGE_MIME_EXTENSIONS: Record<string, string> = {
 interface ParsedSocialPostInput {
   caption: string;
   description: string;
+  imageLayout: SocialPostImageLayout;
   primaryAnime: SocialPostAnimeDraft;
   supportingAnime: SocialPostAnimeDraft[];
 }
@@ -51,6 +61,21 @@ function normalizeNullableInteger(value: unknown) {
   if (!Number.isFinite(parsed)) return null;
 
   return Math.trunc(parsed);
+}
+
+export function getDefaultSocialPostImageLayout(imageCount: number): SocialPostImageLayout {
+  if (imageCount <= 1) return "auto";
+  if (imageCount === 2) return "stacked";
+  if (imageCount <= 4) return "featured_top";
+  return "mosaic_top";
+}
+
+function normalizeImageLayout(value: string, imageCount: number): SocialPostImageLayout {
+  if (SOCIAL_POST_IMAGE_LAYOUTS.includes(value as SocialPostImageLayout)) {
+    return value as SocialPostImageLayout;
+  }
+
+  return getDefaultSocialPostImageLayout(imageCount);
 }
 
 function parseAnimeDraft(value: unknown): SocialPostAnimeDraft | null {
@@ -111,9 +136,10 @@ export function validateSocialPostImages(files: File[]): SocialPostFieldErrors {
   return {};
 }
 
-export function validateCreateSocialPostInput(formData: FormData): ValidationResult {
+export function validateCreateSocialPostInput(formData: FormData, imageCount = 0): ValidationResult {
   const caption = getTextValue(formData, "caption").trim();
   const description = getTextValue(formData, "description").trim();
+  const imageLayout = normalizeImageLayout(getTextValue(formData, "image_layout"), imageCount);
   const errors: SocialPostFieldErrors = {};
 
   if (!caption) {
@@ -168,6 +194,7 @@ export function validateCreateSocialPostInput(formData: FormData): ValidationRes
     value: {
       caption,
       description,
+      imageLayout,
       primaryAnime,
       supportingAnime,
     },

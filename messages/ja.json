@@ -292,6 +292,7 @@
     "description": "Animezコミュニティの公開投稿を新しい順に表示します。",
     "createTitle": "新しい投稿を共有",
     "createDescription": "アニメを選び、キャプションを書いて公開フィードに投稿します。",
+    "triggerPlaceholder": "何を考えていますか？",
     "loadingMore": "さらに投稿を読み込み中...",
     "end": "すべて表示しました",
     "emptyTitle": "まだ投稿がありません",
