@@ -164,12 +164,14 @@ export default async function AnimeDetailPage({ params }: PageProps) {
                 </div>
               )}
 
-              <div className="flex flex-wrap gap-3 mt-6">
+              <div className="mt-3 flex w-full max-w-3xl flex-col items-start gap-3">
                 <AnimeListButton anime={anime} variant="detail" />
-                <CreatePostButton initialAnime={anime} />
+                {/* <CreatePostButton initialAnime={anime} /> */}
               </div>
             </div>
           </div>
+          
+          <CreatePostButton initialAnime={anime} />
 
           <div className="flex flex-col lg:flex-row gap-8 mt-12">
             <div className="flex-1 min-w-0 flex flex-col gap-12">

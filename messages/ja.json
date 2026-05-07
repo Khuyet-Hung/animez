@@ -243,6 +243,7 @@
     "createPostTitle": "アニメの感想を共有",
     "caption": "キャプション",
     "captionPlaceholder": "このエピソードについて何を考えていますか？",
+    "triggerPlaceholder": "このアニメについてどう思っていますか？",
     "description": "説明",
     "addDescription": "説明を追加",
     "descriptionPlaceholder": "感想、考察、長めのメモを追加...",

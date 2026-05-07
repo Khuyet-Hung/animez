@@ -2,6 +2,7 @@
 
 import { useActionState, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
+import momoAvatar from "@/assets/gifs/momo_1.gif";
 import {
   FilmIcon,
   HashIcon,
@@ -728,12 +729,33 @@ export default function CreatePostButton({ initialAnime, className = "" }: Creat
     <>
       <button
         type="button"
-        onClick={handleClick}
         disabled={loading}
-        className={`inline-flex h-10 items-center justify-center gap-2 rounded border border-[#2a2a35] bg-[#111118] px-3 text-sm font-bold text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+        className={`group mt-4 cursor-default! w-full max-w-md flex min-h-16 items-center gap-3 rounded-lg border border-[#1a1a24] bg-[#1a1a24] px-4 py-3 text-left disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-14 ${className}`}
+        aria-label={t("createPost")}
       >
-        {loading ? <Loader2Icon className="size-4 animate-spin" /> : <MessageSquarePlusIcon className="size-4" />}
-        <span>{t("createPost")}</span>
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#2a2a35] bg-[#1a1a24] text-[#9ca3af] transition-colors">
+          {loading ? (
+            <Loader2Icon className="size-4 animate-spin" />
+          ) : (
+            <Image
+              src={momoAvatar}
+              alt=""
+              width={36}
+              height={36}
+              className="size-full rounded-full object-cover"
+              unoptimized
+            />
+          )}
+        </span>
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[#6b7280] transition-colors">
+          {t("triggerPlaceholder")}
+        </span>
+        <span
+          onClick={handleClick}
+          className="inline-flex cursor-pointer h-10 shrink-0 items-center justify-center gap-1.5 rounded border text-black bg-[#f49e0b] px-3 text-sm font-black  transition-colors sm:px-4">
+          <MessageSquarePlusIcon className="size-4" />
+          <span>{t("publish")}</span>
+        </span>
       </button>
 
       {loginPromptOpen && (

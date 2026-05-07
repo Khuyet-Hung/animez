@@ -247,6 +247,7 @@
     "createPostTitle": "Share your anime thoughts",
     "caption": "Caption",
     "captionPlaceholder": "What are you thinking about this episode?",
+    "triggerPlaceholder": "What are you thinking about this anime?",
     "description": "Description",
     "addDescription": "Add description",
     "descriptionPlaceholder": "Add more thoughts, analysis, or longer notes...",
