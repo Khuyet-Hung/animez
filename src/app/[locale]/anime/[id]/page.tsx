@@ -108,7 +108,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
           <div className="absolute inset-0 bg-linear-to-t from-[#0a0a0f] via-[#0a0a0f]/40 to-transparent" />
         </div>
 
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-6 lg:pl-32 min-[1600px]:pl-6">
           <div className="flex flex-col md:flex-row gap-8 -mt-20 relative">
             <div className="flex-none self-start">
               <div className="group/poster relative w-[140px] md:w-[200px] aspect-2/3 rounded shadow-2xl overflow-hidden border border-[#1a1a24]">
@@ -229,7 +229,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
               )}
             </div>
 
-            <aside className="w-full lg:w-[260px] flex-none">
+            <aside className="hidden flex-none lg:block lg:w-[260px]">
               <div className="bg-[#111118] border border-[#1a1a24] rounded p-5">
                 <h3 className="text-white font-bold mb-4">{t("information")}</h3>
                 <InfoRow label={t("format")} value={anime.format?.replace("_", " ")} />

@@ -1,6 +1,9 @@
 {
   "nav": {
+    "home": "ホーム",
     "feed": "フィード",
+    "search": "検索",
+    "navigation": "ナビゲーション",
     "browse": "探す",
     "seasonal": "シーズン",
     "simulcast": "配信中",
@@ -225,9 +228,13 @@
     "publicList": "アニメリスト",
     "animeList": "リスト項目",
     "emptyList": "アニメリストは空です。",
+    "emptyPosts": "まだ投稿がありません。",
     "emptyPublicList": "このステータスのアニメはありません。",
     "updated": "更新",
     "listLoadFailed": "公開アニメリストを読み込めませんでした。",
+    "postsLoadFailed": "投稿を読み込めませんでした。",
+    "loadMorePosts": "投稿をさらに読み込む",
+    "retry": "再試行",
     "stats": {
       "totalAnime": "総アニメ数",
       "watching": "視聴中",

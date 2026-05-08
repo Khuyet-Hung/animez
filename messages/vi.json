@@ -1,6 +1,9 @@
 {
   "nav": {
-    "feed": "Feed",
+    "home": "Trang chủ",
+    "feed": "Bài đăng",
+    "search": "Tìm kiếm",
+    "navigation": "Điều hướng",
     "browse": "Khám phá",
     "seasonal": "Theo mùa",
     "simulcast": "Đang chiếu",
@@ -225,9 +228,13 @@
     "publicList": "Danh sách anime",
     "animeList": "Các mục trong danh sách",
     "emptyList": "Danh sách anime của bạn đang trống.",
+    "emptyPosts": "Bạn chưa có bài đăng nào.",
     "emptyPublicList": "Không có anime nào trong trạng thái này.",
     "updated": "Cập nhật",
     "listLoadFailed": "Không thể tải danh sách anime công khai.",
+    "postsLoadFailed": "Không thể tải bài đăng.",
+    "loadMorePosts": "Tải thêm bài đăng",
+    "retry": "Thử lại",
     "stats": {
       "totalAnime": "Tổng anime",
       "watching": "Đang xem",

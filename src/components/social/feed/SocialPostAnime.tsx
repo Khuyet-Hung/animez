@@ -19,10 +19,10 @@ export default function SocialPostAnime({ anime }: { anime: SocialFeedAnime[] })
   const title = getAnimeTitle(primary);
 
   return (
-    <section className="mt-3 flex flex-wrap gap-2">
+    <section className="my-2 flex flex-wrap gap-2">
       <Link
         href={`/anime/${primary.anime_id}`}
-        className="group inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border border-[#f49e0b]/35 bg-[#f49e0b]/10 px-3 py-1.5 text-xs font-black text-[#f49e0b] transition-colors hover:border-[#f49e0b] hover:text-white"
+        className="group inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border border-[#f49e0b]/35 bg-[#f49e0b]/10 px-2 py-1.5 text-xs font-black text-[#f49e0b] transition-colors hover:border-[#f49e0b] hover:text-white"
       >
         <FilmIcon className="size-3.5 shrink-0" />
         <span className="min-w-0 truncate">{title}</span>

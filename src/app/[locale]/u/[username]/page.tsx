@@ -176,7 +176,7 @@ export default async function PublicProfilePage({ params, searchParams }: Public
     return (
       <>
         <Navbar />
-        <main className="min-h-screen bg-[#0a0a0f]">
+        <main className="min-h-screen bg-[#0a0a0f] lg:pl-28 min-[1600px]:pl-6">
           <PrivateProfileState
             title={profileT("privateProfile")}
             description={profileT("privateProfileDescription")}
@@ -209,7 +209,7 @@ export default async function PublicProfilePage({ params, searchParams }: Public
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#0a0a0f] px-4 py-8 pb-20 md:px-6">
+      <main className="min-h-screen bg-[#0a0a0f] px-4 py-8 pb-20 md:px-6 lg:pl-28 min-[1600px]:pl-6">
         <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-8">
           <section className="rounded border border-[#1a1a24] bg-[#0d0d14] px-5 py-8 md:px-6">
             <div className="flex flex-col gap-5 md:flex-row md:items-center">

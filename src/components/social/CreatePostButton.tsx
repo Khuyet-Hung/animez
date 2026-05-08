@@ -2,7 +2,7 @@
 
 import { useActionState, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
-import momoAvatar from "@/assets/gifs/momo_1.gif";
+import momoAvatar from "@/assets/gif/momo_1.gif";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   FilmIcon,
@@ -843,7 +843,7 @@ export default function CreatePostButton({ initialAnime, className = "", variant
         type="button"
         disabled={loading}
         onClick={handleClick}
-        className={`fixed bottom-5 right-4 z-40 inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#f49e0b]/45 bg-[#f49e0b] px-4 text-sm font-black text-[#0a0a0f] shadow-[0_18px_48px_rgba(0,0,0,0.45)] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 lg:hidden ${className}`}
+        className={`fixed bottom-20 right-4 z-40 inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#f49e0b]/45 bg-[#f49e0b] px-4 text-sm font-black text-[#0a0a0f] shadow-[0_18px_48px_rgba(0,0,0,0.45)] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 lg:bottom-6 ${className}`}
         aria-label={t("createPost")}
         title={t("createPost")}
       >

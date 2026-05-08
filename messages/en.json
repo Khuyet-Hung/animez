@@ -1,6 +1,9 @@
 {
   "nav": {
+    "home": "Home",
     "feed": "Feed",
+    "search": "Search",
+    "navigation": "Navigation",
     "browse": "Browse",
     "seasonal": "Seasonal",
     "simulcast": "Simulcast",
@@ -225,9 +228,13 @@
     "publicList": "Anime list",
     "animeList": "List entries",
     "emptyList": "Your anime list is empty.",
+    "emptyPosts": "You have not posted anything yet.",
     "emptyPublicList": "No anime to show in this status.",
     "updated": "Updated",
     "listLoadFailed": "Could not load this public anime list.",
+    "postsLoadFailed": "Could not load posts.",
+    "loadMorePosts": "Load more posts",
+    "retry": "Retry",
     "stats": {
       "totalAnime": "Total anime",
       "watching": "Watching",

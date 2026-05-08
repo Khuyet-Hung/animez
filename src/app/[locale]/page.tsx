@@ -44,7 +44,7 @@ export default async function HomePage({
   return (
     <>
       <Navbar />
-      <main className="flex-1 flex flex-col w-full max-w-[1400px] mx-auto px-4 md:px-6 pb-20">
+      <main className="flex-1 flex flex-col w-full max-w-[1400px] mx-auto px-4 md:px-6 lg:pl-28 min-[1600px]:pl-6 pb-20">
         {heroAnime && <HeroSection anime={heroAnime} />}
 
         {trendingAnime.length > 0 && (

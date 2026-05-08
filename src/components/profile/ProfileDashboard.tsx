@@ -14,6 +14,7 @@ import { useTranslations } from "next-intl";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import AnimeListEditor from "@/components/anime-list/AnimeListEditor";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
+import ProfilePostsList from "@/components/profile/ProfilePostsList";
 import ProfileSettingsForm from "@/components/profile/ProfileSettingsForm";
 import { Link, useRouter } from "@/i18n/navigation";
 import {
@@ -62,7 +63,7 @@ const STATUS_FILTERS = [
   "dropped",
 ] as const;
 
-type ContentTab = "list" | "activity" | "settings";
+type ContentTab = "list" | "posts" | "activity" | "settings";
 type StatusFilter = (typeof STATUS_FILTERS)[number];
 
 const INITIAL_PROFILE_AVATAR_STATE = {
@@ -174,12 +175,13 @@ function ProfileTabs({
 }) {
   const tabs: { key: ContentTab; label: string }[] = [
     { key: "list", label: "Danh sách" },
+    { key: "posts", label: "Bài đăng" },
     { key: "activity", label: "Hoạt động" },
     { key: "settings", label: "Cài đặt hồ sơ" },
   ];
 
   return (
-    <nav className="flex border-b border-[#1a1a24] bg-[#0d0d14] px-4 md:px-6">
+    <nav className="flex overflow-x-auto border-b border-[#1a1a24] bg-[#0d0d14] px-4 md:px-6">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.key;
 
@@ -188,7 +190,7 @@ function ProfileTabs({
             key={tab.key}
             type="button"
             onClick={() => onTabChange(tab.key)}
-            className={`border-b-2 px-4 py-4 text-sm transition-colors ${
+            className={`shrink-0 border-b-2 px-4 py-4 text-sm transition-colors ${
               isActive
                 ? "border-[#f49e0b] font-black text-[#f49e0b]"
                 : "border-transparent font-semibold text-[#9ca3af] hover:text-white"
@@ -954,7 +956,7 @@ export default function ProfileDashboard({
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0a0f] pb-20">
+    <main className="min-h-screen bg-[#0a0a0f] pb-20 lg:pl-28 min-[1600px]:pl-6">
       <div className="mx-auto flex w-full max-w-[1400px] flex-col">
         <section className="border-b border-[#1a1a24] bg-[#0d0d14] px-4 py-6 md:px-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
@@ -1053,6 +1055,8 @@ export default function ProfileDashboard({
                 />
               </>
             )}
+
+            {activeTab === "posts" && <ProfilePostsList profile={{ ...profile, avatar_url: profileAvatarUrl }} />}
 
             {activeTab === "activity" && <ActivityCard entries={dashboardEntries} locale={locale} />}
 

@@ -159,7 +159,7 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
   return (
     <>
       <Navbar />
-      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 md:px-6 py-8 pb-20">
+      <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 md:px-6 lg:pl-32 min-[1600px]:pl-6 py-8 pb-20">
         <h1 className="text-2xl font-black text-white mb-6">
           {q ? t("title_query", { query: q }) : t("title")}
         </h1>

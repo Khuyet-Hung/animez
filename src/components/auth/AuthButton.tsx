@@ -150,29 +150,19 @@ export default function AuthButton() {
 
   if (loading) {
     return (
-      <div className="flex gap-2">
-        <div className="h-9 w-20 rounded bg-[#111118] border border-[#1a1a24] animate-pulse" />
-        <div className="h-9 w-24 rounded bg-[#f49e0b]/20 animate-pulse" />
-      </div>
+      <div className="h-9 w-28 rounded bg-[#111118] border border-[#1a1a24] animate-pulse" />
     );
   }
 
   if (!user) {
     return (
-      <div className="flex gap-2">
-        <Link
-          href="/login"
-          className="hidden sm:flex h-9 items-center justify-center rounded px-4 bg-transparent border border-[#1a1a24] hover:border-[#f49e0b] text-white hover:text-[#f49e0b] text-sm font-bold transition-all"
-        >
-          {t("login")}
-        </Link>
-        <Link
-          href="/register"
-          className="flex h-9 items-center justify-center rounded px-4 bg-[#f49e0b] hover:bg-[#d68a09] text-[#0a0a0f] text-sm font-bold transition-colors"
-        >
-          {t("register")}
-        </Link>
-      </div>
+      <Link
+        href="/login"
+        className="flex h-9 items-center justify-center gap-2 rounded px-4 bg-[#f49e0b] hover:bg-[#d68a09] text-[#0a0a0f] text-sm font-bold transition-colors"
+      >
+        <UserIcon className="size-4" />
+        {t("login")}
+      </Link>
     );
   }
 

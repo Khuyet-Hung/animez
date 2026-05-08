@@ -10,7 +10,7 @@ export default function SocialFeedPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-[1180px] flex-1 flex-col px-4 pb-20 pt-8 md:px-6 md:pt-10">
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+      <div className="mx-auto grid w-full max-w-3xl gap-8 min-[1400px]:max-w-none min-[1400px]:grid-cols-[minmax(0,1fr)_320px] min-[1400px]:items-start">
         <section className="min-w-0">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
@@ -24,7 +24,7 @@ export default function SocialFeedPage() {
           <SocialFeedList />
         </section>
 
-        <aside className="hidden lg:sticky lg:top-24 lg:block">
+        <aside className="hidden min-[1400px]:sticky min-[1400px]:top-24 min-[1400px]:block">
           <div className="border-l border-[#1a1a24] pl-5">
             <p className="text-xs font-black uppercase tracking-normal text-[#f49e0b]">{t("createTitle")}</p>
             <p className="mt-2 text-sm font-semibold leading-6 text-[#9ca3af]">{t("createDescription")}</p>
@@ -32,7 +32,7 @@ export default function SocialFeedPage() {
           </div>
         </aside>
       </div>
-      <CreatePostButton variant="floating" />
+      <CreatePostButton variant="floating" className="min-[1400px]:hidden" />
     </main>
   );
 }
