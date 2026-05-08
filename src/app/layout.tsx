@@ -1,19 +1,64 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import {
+  DEFAULT_SEO_DESCRIPTION,
+  DEFAULT_SEO_TITLE,
+  SEO_THEME_COLOR,
+  SITE_NAME,
+  SITE_URL,
+} from "@/lib/seo";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Animez — Discover & Track Anime",
-  description: "Your ultimate destination for anime browsing, tracking, and reviews.",
+  metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
+  title: {
+    default: DEFAULT_SEO_TITLE,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: DEFAULT_SEO_DESCRIPTION,
+  keywords: [
+    "anime",
+    "anime tracker",
+    "anime list",
+    "anime community",
+    "AniList",
+    "Animez",
+  ],
+  authors: [{ name: SITE_NAME, url: SITE_URL }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
   openGraph: {
-    title: "Animez — Discover & Track Anime",
-    description: "Discover, search, and track your favorite anime.",
+    title: DEFAULT_SEO_TITLE,
+    description: DEFAULT_SEO_DESCRIPTION,
+    url: SITE_URL,
+    siteName: SITE_NAME,
     type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: DEFAULT_SEO_TITLE,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: DEFAULT_SEO_TITLE,
+    description: DEFAULT_SEO_DESCRIPTION,
+    images: ["/opengraph-image"],
   },
 };
 
-// Root layout: owns <html> and <body>
-// [locale]/layout.tsx wraps content with NextIntlClientProvider
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: SEO_THEME_COLOR,
+};
+
+// Root layout quản lý <html> và <body>.
+// [locale]/layout.tsx bọc nội dung bằng NextIntlClientProvider.
 export default async function RootLayout({
   children,
   params,

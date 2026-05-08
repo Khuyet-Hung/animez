@@ -14,6 +14,7 @@ import { ChevronLeftIcon, ChevronRightIcon, LockIcon } from "lucide-react";
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { createSeoMetadata, truncateSeoDescription } from "@/lib/seo";
 
 interface PublicProfilePageProps {
   params: Promise<{ locale: string; username: string }>;
@@ -133,10 +134,36 @@ function PublicProfilePagination({
 }
 
 export async function generateMetadata({ params }: PublicProfilePageProps): Promise<Metadata> {
-  const { username } = await params;
-  return {
-    title: `@${username} — Animez`,
-  };
+  const { locale, username } = await params;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .rpc("get_public_profile", { profile_username: username })
+    .maybeSingle();
+  const profile = data as PublicProfileView | null;
+
+  if (!profile?.is_public) {
+    return createSeoMetadata({
+      locale,
+      path: `/u/${username}`,
+      title: `@${username}`,
+      noIndex: true,
+    });
+  }
+
+  const title = profile.display_name
+    ? `${profile.display_name} (@${profile.username})`
+    : `@${profile.username}`;
+  const description = profile.bio
+    ? truncateSeoDescription(profile.bio)
+    : `View @${profile.username}'s public anime list and profile stats on Animez.`;
+
+  return createSeoMetadata({
+    locale,
+    path: `/u/${profile.username}`,
+    title,
+    description,
+    image: profile.avatar_url,
+  });
 }
 
 function PrivateProfileState({ title, description }: { title: string; description: string }) {

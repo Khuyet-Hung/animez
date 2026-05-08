@@ -314,7 +314,22 @@
     "retry": "Thử lại",
     "unknownAuthor": "Người dùng Animez",
     "primaryAnime": "Phim chính",
-    "episode": "Tập {episode}"
+    "episode": "Tập {episode}",
+    "postActions": "Tùy chọn bài viết",
+    "deletePost": "Xóa bài viết",
+    "deleteConfirmTitle": "Xóa bài viết?",
+    "deleteConfirmDescription": "Bài viết sẽ bị xóa khỏi feed và hồ sơ của bạn. Thao tác này không thể hoàn tác.",
+    "cancelDelete": "Hủy",
+    "deleting": "Đang xóa...",
+    "deleted": "Đã xóa bài viết.",
+    "deleteFailedTitle": "Không thể xóa bài viết",
+    "deleteFailed": "Vui lòng thử lại sau ít phút.",
+    "deleteNotAllowed": "Bạn chỉ có thể xóa bài viết của chính mình.",
+    "deleteLoginRequired": "Vui lòng đăng nhập để xóa bài viết.",
+    "likePost": "Thích bài viết",
+    "commentPost": "Bình luận bài viết",
+    "sharePost": "Chia sẻ bài viết",
+    "savePost": "Lưu bài viết"
   },
   "auth": {
     "login": "Đăng nhập",

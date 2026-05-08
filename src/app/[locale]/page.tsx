@@ -8,6 +8,8 @@ import HeroSection from "@/components/anime/HeroSection";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import HorizontalScroll from "@/components/common/HorizontalScroll";
 import MotionSection from "@/components/common/MotionSection";
+import type { Metadata } from "next";
+import { createSeoMetadata, getLocaleDescription } from "@/lib/seo";
 
 interface TrendingData {
   trending: { media: AnimeMedia[] };
@@ -15,6 +17,22 @@ interface TrendingData {
 }
 
 export const revalidate = 3600;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+
+  return createSeoMetadata({
+    locale,
+    path: "/",
+    title: "Animez - Discover & Track Anime",
+    description: getLocaleDescription(locale),
+    absoluteTitle: true,
+  });
+}
 
 export default async function HomePage({
   params,

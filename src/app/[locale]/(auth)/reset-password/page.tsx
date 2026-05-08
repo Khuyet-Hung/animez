@@ -1,6 +1,24 @@
 import { getTranslations } from "next-intl/server";
 import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
 import { Link } from "@/i18n/navigation";
+import type { Metadata } from "next";
+import { createSeoMetadata } from "@/lib/seo";
+
+interface Props {
+  params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "auth" });
+
+  return createSeoMetadata({
+    locale,
+    path: "/reset-password",
+    title: t("resetPassword"),
+    noIndex: true,
+  });
+}
 
 export default async function ResetPasswordPage() {
   const t = await getTranslations("auth");

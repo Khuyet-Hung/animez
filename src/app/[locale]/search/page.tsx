@@ -10,6 +10,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Suspense } from "react";
 import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+import type { Metadata } from "next";
+import { createSeoMetadata } from "@/lib/seo";
 
 interface PageInfo {
   total: number;
@@ -37,6 +39,26 @@ interface SearchPageProps {
     sort?: string;
     page?: string;
   }>;
+}
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: SearchPageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const { q } = await searchParams;
+  const t = await getTranslations({ locale, namespace: "search" });
+  const title = q ? t("title_query", { query: q }) : t("title");
+  const description = q
+    ? `${title} on Animez.`
+    : "Browse anime by title, genre, format, status, season, and release year on Animez.";
+
+  return createSeoMetadata({
+    locale,
+    path: "/search",
+    title,
+    description,
+  });
 }
 
 function SkeletonCard() {

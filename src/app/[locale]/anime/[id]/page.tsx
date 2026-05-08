@@ -17,6 +17,7 @@ import HorizontalScroll from "@/components/common/HorizontalScroll";
 import TrailerModalButton from "@/components/anime/TrailerModalButton";
 import AnimeListButton from "@/components/anime-list/AnimeListButton";
 import CreatePostButton from "@/components/social/CreatePostButton";
+import { createSeoMetadata, stripHtml, truncateSeoDescription } from "@/lib/seo";
 
 interface DetailData {
   Media: AnimeMedia;
@@ -28,15 +29,31 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id, locale } = await params;
+
   try {
-    const data = await anilistClient.request<DetailData>(ANIME_DETAIL_QUERY, { id: parseInt(id, 10) });
+    const data = await anilistClient.request<DetailData>(ANIME_DETAIL_QUERY, {
+      id: parseInt(id, 10),
+    });
     const title = formatAnimeTitle(data.Media.title, locale);
-    return {
-      title: `${title} — Animez`,
-      description: data.Media.description?.replace(/<[^>]*>/g, "").slice(0, 155) || "",
-    };
+    const description = truncateSeoDescription(stripHtml(data.Media.description));
+    const image = data.Media.bannerImage || data.Media.coverImage?.extraLarge || data.Media.coverImage?.large;
+
+    return createSeoMetadata({
+      locale,
+      path: `/anime/${id}`,
+      title,
+      description,
+      image,
+      type: "article",
+    });
   } catch {
-    return { title: "Anime Detail — Animez" };
+    return {
+      title: "Anime Detail",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
   }
 }
 

@@ -5,6 +5,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { Loader2Icon, RefreshCcwIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import SocialPostCard, { SocialPostCardSkeleton } from "@/components/social/feed/SocialPostCard";
+import { useAuth } from "@/hooks/useAuth";
 import { createClient } from "@/lib/supabase/client";
 import type {
   SocialFeedAnime,
@@ -202,6 +203,7 @@ async function fetchProfilePostsPage({
 
 export default function ProfilePostsList({ profile }: ProfilePostsListProps) {
   const t = useTranslations("profile");
+  const { user } = useAuth();
   const author = useMemo<SocialFeedAuthor>(
     () => ({
       user_id: profile.id,
@@ -275,7 +277,7 @@ export default function ProfilePostsList({ profile }: ProfilePostsListProps) {
   return (
     <div className="grid gap-4">
       {posts.map((post) => (
-        <SocialPostCard key={post.id} post={post} />
+        <SocialPostCard key={post.id} currentUserId={user?.id ?? null} post={post} />
       ))}
 
       {hasNextPage && (

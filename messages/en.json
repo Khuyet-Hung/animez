@@ -314,7 +314,22 @@
     "retry": "Retry",
     "unknownAuthor": "Animez user",
     "primaryAnime": "Primary anime",
-    "episode": "Ep {episode}"
+    "episode": "Ep {episode}",
+    "postActions": "Post actions",
+    "deletePost": "Delete post",
+    "deleteConfirmTitle": "Delete post?",
+    "deleteConfirmDescription": "This post will be removed from the feed and your profile. This action cannot be undone.",
+    "cancelDelete": "Cancel",
+    "deleting": "Deleting...",
+    "deleted": "Post deleted.",
+    "deleteFailedTitle": "Could not delete post",
+    "deleteFailed": "Please try again in a moment.",
+    "deleteNotAllowed": "You can only delete your own posts.",
+    "deleteLoginRequired": "Please log in to delete posts.",
+    "likePost": "Like post",
+    "commentPost": "Comment on post",
+    "sharePost": "Share post",
+    "savePost": "Save post"
   },
   "auth": {
     "login": "Log In",

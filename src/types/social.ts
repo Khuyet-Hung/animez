@@ -33,6 +33,12 @@ export interface CreateSocialPostActionState {
   postId?: string;
 }
 
+export interface DeleteSocialPostActionState {
+  status: "success" | "error";
+  messageKey: string;
+  postId?: string;
+}
+
 export interface SocialFeedAuthor {
   user_id: string;
   username: string | null;

@@ -8,9 +8,23 @@ import type { AnimeListStatus } from "@/types/anime-list";
 import type { UserAnimeListEntry } from "@/types/profile";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { createSeoMetadata } from "@/lib/seo";
 
 interface ProfilePageProps {
   params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({ params }: ProfilePageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "profile" });
+
+  return createSeoMetadata({
+    locale,
+    path: "/profile",
+    title: t("title"),
+    noIndex: true,
+  });
 }
 
 function getStatusLabels(t: Awaited<ReturnType<typeof getTranslations>>) {

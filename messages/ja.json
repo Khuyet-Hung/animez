@@ -310,7 +310,22 @@
     "retry": "再試行",
     "unknownAuthor": "Animezユーザー",
     "primaryAnime": "メインアニメ",
-    "episode": "第{episode}話"
+    "episode": "第{episode}話",
+    "postActions": "投稿の操作",
+    "deletePost": "投稿を削除",
+    "deleteConfirmTitle": "投稿を削除しますか？",
+    "deleteConfirmDescription": "この投稿はフィードとプロフィールから削除されます。この操作は元に戻せません。",
+    "cancelDelete": "キャンセル",
+    "deleting": "削除中...",
+    "deleted": "投稿を削除しました。",
+    "deleteFailedTitle": "投稿を削除できませんでした",
+    "deleteFailed": "しばらくしてからもう一度お試しください。",
+    "deleteNotAllowed": "自分の投稿のみ削除できます。",
+    "deleteLoginRequired": "投稿を削除するにはログインしてください。",
+    "likePost": "投稿にいいね",
+    "commentPost": "投稿にコメント",
+    "sharePost": "投稿を共有",
+    "savePost": "投稿を保存"
   },
   "auth": {
     "login": "ログイン",

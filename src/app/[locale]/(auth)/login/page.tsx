@@ -1,9 +1,24 @@
 import { getTranslations } from "next-intl/server";
 import LoginForm from "@/components/auth/LoginForm";
 import { Link } from "@/i18n/navigation";
+import type { Metadata } from "next";
+import { createSeoMetadata } from "@/lib/seo";
 
 interface Props {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ error?: string; next?: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "auth" });
+
+  return createSeoMetadata({
+    locale,
+    path: "/login",
+    title: t("login"),
+    noIndex: true,
+  });
 }
 
 export default async function LoginPage({ searchParams }: Props) {

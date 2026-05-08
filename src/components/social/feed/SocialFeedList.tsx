@@ -4,12 +4,14 @@ import { useEffect, useMemo, useRef } from "react";
 import { Loader2Icon, RefreshCcwIcon } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSocialFeed } from "@/hooks/useSocialFeed";
+import { useAuth } from "@/hooks/useAuth";
 import SocialPostCard, { SocialPostCardSkeleton } from "@/components/social/feed/SocialPostCard";
 
 export default function SocialFeedList() {
   const locale = useLocale();
   const t = useTranslations("feed");
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
   const {
     data,
     error,
@@ -82,7 +84,7 @@ export default function SocialFeedList() {
   return (
     <div className="grid gap-4">
       {posts.map((post) => (
-        <SocialPostCard key={post.id} post={post} />
+        <SocialPostCard key={post.id} currentUserId={user?.id ?? null} post={post} />
       ))}
 
       <div ref={loadMoreRef} className="min-h-12">

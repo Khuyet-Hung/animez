@@ -1,20 +1,25 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import {
   BookmarkIcon,
   ClockIcon,
   EllipsisIcon,
   HeartIcon,
+  Loader2Icon,
   MessageCircleIcon,
   Share2Icon,
+  Trash2Icon,
   UserCircleIcon,
 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import { useToast } from "@/components/common/ToastProvider";
 import SocialPostAnime from "@/components/social/feed/SocialPostAnime";
 import SocialPostImages from "@/components/social/feed/SocialPostImages";
+import { deleteSocialPostAction } from "@/lib/social/actions";
 import type { SocialFeedPost } from "@/types/social";
 
 function formatPostDate(value: string, locale: string) {
@@ -43,10 +48,61 @@ function SocialPostActionButton({ icon: Icon, label }: { icon: typeof HeartIcon;
   );
 }
 
-const SocialPostCard = memo(function SocialPostCard({ post }: { post: SocialFeedPost }) {
+const SocialPostCard = memo(function SocialPostCard({
+  currentUserId,
+  post,
+}: {
+  currentUserId: string | null;
+  post: SocialFeedPost;
+}) {
   const locale = useLocale();
   const t = useTranslations("feed");
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const actionMenuRef = useRef<HTMLDivElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isDeleting, startDeleteTransition] = useTransition();
+  const canDelete = currentUserId === post.author.user_id;
   const authorName = getAuthorName(post, t("unknownAuthor"));
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      if (!actionMenuRef.current?.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [menuOpen]);
+
+  function handleDeletePost() {
+    startDeleteTransition(async () => {
+      const result = await deleteSocialPostAction(post.id);
+
+      if (result.status === "error") {
+        showToast({
+          title: t("deleteFailedTitle"),
+          description: t(result.messageKey),
+        });
+        return;
+      }
+
+      setConfirmOpen(false);
+      setMenuOpen(false);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["social-feed"] }),
+        queryClient.invalidateQueries({ queryKey: ["profile-posts"] }),
+      ]);
+      showToast({
+        title: t("deleted"),
+      });
+    });
+  }
+
   const authorContent = (
     <>
       <div className="relative size-10 shrink-0 overflow-hidden rounded-full border border-[#2a2a35] bg-[#0f0f16]">
@@ -81,13 +137,35 @@ const SocialPostCard = memo(function SocialPostCard({ post }: { post: SocialFeed
           <div className="flex min-w-0 items-center gap-3">{authorContent}</div>
         )}
 
-        <button
-          type="button"
-          aria-label="Tùy chọn bài viết"
-          className="flex size-9 shrink-0 items-center justify-center rounded border border-[#2a2a35] text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white"
-        >
-          <EllipsisIcon className="size-4" />
-        </button>
+        {canDelete && (
+          <div ref={actionMenuRef} className="relative shrink-0">
+            <button
+              type="button"
+              aria-label={t("postActions")}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((current) => !current)}
+              className="flex size-9 items-center justify-center rounded border border-[#2a2a35] text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white"
+            >
+              <EllipsisIcon className="size-4" />
+            </button>
+
+            {menuOpen && (
+              <div className="absolute right-0 top-[calc(100%+8px)] z-20 w-44 overflow-hidden rounded border border-[#2a2a35] bg-[#0f0f16] p-1 shadow-2xl shadow-black/50">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmOpen(true);
+                    setMenuOpen(false);
+                  }}
+                  className="flex h-10 w-full items-center gap-2 rounded px-3 text-left text-sm font-bold text-red-300 transition-colors hover:bg-red-500/10 hover:text-red-200"
+                >
+                  <Trash2Icon className="size-4" />
+                  {t("deletePost")}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="px-4 py-4 sm:px-5">
@@ -100,19 +178,50 @@ const SocialPostCard = memo(function SocialPostCard({ post }: { post: SocialFeed
       </div>
 
       <SocialPostImages imageLayout={post.image_layout} images={post.images} />
-      
+
       <div className="px-4 sm:px-5">
         <SocialPostAnime anime={post.anime} />
       </div>
 
       <div className="flex items-center justify-between gap-3 border-t border-[#1a1a24] px-3 py-3 sm:px-4">
         <div className="flex min-w-0 items-center gap-1.5">
-          <SocialPostActionButton icon={HeartIcon} label="Thích bài viết" />
-          <SocialPostActionButton icon={MessageCircleIcon} label="Bình luận bài viết" />
-          <SocialPostActionButton icon={Share2Icon} label="Chia sẻ bài viết" />
+          <SocialPostActionButton icon={HeartIcon} label={t("likePost")} />
+          <SocialPostActionButton icon={MessageCircleIcon} label={t("commentPost")} />
+          <SocialPostActionButton icon={Share2Icon} label={t("sharePost")} />
         </div>
-        <SocialPostActionButton icon={BookmarkIcon} label="Lưu bài viết" />
+        <SocialPostActionButton icon={BookmarkIcon} label={t("savePost")} />
       </div>
+
+      {confirmOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-lg border border-[#2a2a35] bg-[#111118] p-5 shadow-2xl">
+            <h3 className="text-lg font-black text-white">{t("deleteConfirmTitle")}</h3>
+            <p className="mt-2 text-sm font-semibold leading-6 text-[#9ca3af]">
+              {t("deleteConfirmDescription")}
+            </p>
+
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(false)}
+                disabled={isDeleting}
+                className="h-10 rounded border border-[#2a2a35] px-4 text-sm font-bold text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {t("cancelDelete")}
+              </button>
+              <button
+                type="button"
+                onClick={handleDeletePost}
+                disabled={isDeleting}
+                className="inline-flex h-10 items-center gap-2 rounded border border-red-400/40 bg-red-500/10 px-4 text-sm font-black text-red-200 transition-colors hover:border-red-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isDeleting ? <Loader2Icon className="size-4 animate-spin" /> : <Trash2Icon className="size-4" />}
+                {isDeleting ? t("deleting") : t("deletePost")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </article>
   );
 });

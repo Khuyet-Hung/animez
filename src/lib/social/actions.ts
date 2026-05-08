@@ -12,7 +12,11 @@ import {
   uploadSocialPostImage,
   type UploadedSocialPostImage,
 } from "@/lib/social/r2";
-import type { CreateSocialPostActionState, SocialPostAnimeDraft } from "@/types/social";
+import type {
+  CreateSocialPostActionState,
+  DeleteSocialPostActionState,
+  SocialPostAnimeDraft,
+} from "@/types/social";
 
 const INITIAL_ERROR_STATE: CreateSocialPostActionState = {
   status: "error",
@@ -23,6 +27,7 @@ const INITIAL_ERROR_STATE: CreateSocialPostActionState = {
 const IMAGE_POST_DAILY_LIMIT = 2;
 const VIETNAM_TIMEZONE_OFFSET_MS = 7 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -36,6 +41,13 @@ interface SocialPostInsertPayload {
 
 function logSocialPostActionError(stage: string, error: unknown, context?: Record<string, unknown>) {
   console.error(`[createSocialPostAction] ${stage}`, {
+    error,
+    ...context,
+  });
+}
+
+function logDeleteSocialPostActionError(stage: string, error: unknown, context?: Record<string, unknown>) {
+  console.error(`[deleteSocialPostAction] ${stage}`, {
     error,
     ...context,
   });
@@ -284,6 +296,87 @@ export async function createSocialPostAction(
     status: "success",
     messageKey: "published",
     fieldErrors: {},
+    postId,
+  };
+}
+
+export async function deleteSocialPostAction(postId: string): Promise<DeleteSocialPostActionState> {
+  if (!UUID_PATTERN.test(postId)) {
+    return {
+      status: "error",
+      messageKey: "deleteFailed",
+    };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      status: "error",
+      messageKey: "deleteLoginRequired",
+    };
+  }
+
+  const { data: post, error: postError } = await supabase
+    .from("social_posts")
+    .select("id, social_post_images(storage_key)")
+    .eq("id", postId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (postError || !post) {
+    logDeleteSocialPostActionError("Failed to find owned social post", postError, {
+      postId,
+      userId: user.id,
+    });
+
+    return {
+      status: "error",
+      messageKey: "deleteNotAllowed",
+    };
+  }
+
+  const { error: deleteError } = await supabase
+    .from("social_posts")
+    .delete()
+    .eq("id", postId)
+    .eq("user_id", user.id);
+
+  if (deleteError) {
+    logDeleteSocialPostActionError("Failed to delete social post", deleteError, {
+      postId,
+      userId: user.id,
+    });
+
+    return {
+      status: "error",
+      messageKey: "deleteFailed",
+    };
+  }
+
+  const storageKeys = ((post as { social_post_images?: { storage_key: string | null }[] })
+    .social_post_images ?? [])
+    .map((image) => image.storage_key)
+    .filter((storageKey): storageKey is string => Boolean(storageKey));
+
+  try {
+    await deleteSocialPostImages(storageKeys);
+  } catch (error) {
+    logDeleteSocialPostActionError("Failed to delete social post images from R2", error, {
+      postId,
+      imageCount: storageKeys.length,
+    });
+  }
+
+  revalidatePath("/feed");
+  revalidatePath("/profile");
+
+  return {
+    status: "success",
+    messageKey: "deleted",
     postId,
   };
 }
