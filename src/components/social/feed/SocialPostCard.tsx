@@ -12,15 +12,22 @@ import {
   Share2Icon,
   Trash2Icon,
   UserCircleIcon,
+  type LucideIcon,
 } from "lucide-react";
+import clsx from "clsx";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useToast } from "@/components/common/ToastProvider";
 import SocialPostAnime from "@/components/social/feed/SocialPostAnime";
 import SocialPostImages from "@/components/social/feed/SocialPostImages";
-import { deleteSocialPostAction } from "@/lib/social/actions";
+import { deleteSocialPostAction, toggleSocialPostLikeAction } from "@/lib/social/actions";
 import type { SocialFeedPost } from "@/types/social";
+
+interface SocialPostLikeState {
+  count: number;
+  liked: boolean;
+}
 
 function formatPostDate(value: string, locale: string) {
   const date = new Date(value);
@@ -36,14 +43,35 @@ function getAuthorName(post: SocialFeedPost, fallbackName: string) {
   return post.author.display_name || post.author.username || fallbackName;
 }
 
-function SocialPostActionButton({ icon: Icon, label }: { icon: typeof HeartIcon; label: string }) {
+function SocialPostActionButton({
+  count,
+  disabled,
+  icon: Icon,
+  label,
+  onClick,
+  pressed,
+}: {
+  count?: number;
+  disabled?: boolean;
+  icon: LucideIcon;
+  label: string;
+  onClick?: () => void;
+  pressed?: boolean;
+}) {
   return (
     <button
       type="button"
       aria-label={label}
-      className="flex h-9 min-w-10 items-center justify-center rounded border border-[#2a2a35] px-3 text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white"
+      aria-pressed={typeof pressed === "boolean" ? pressed : undefined}
+      disabled={disabled}
+      onClick={onClick}
+      className={clsx(
+        "inline-flex h-9 min-w-10 items-center justify-center rounded border px-3 text-sm font-black tabular-nums transition-colors disabled:cursor-not-allowed disabled:opacity-70",
+        "border-[#2a2a35] text-[#d1d5db] hover:border-[#f49e0b] hover:text-white"
+      )}
     >
-      <Icon className="size-4" />
+      <Icon className="size-4 shrink-0" fill={pressed ? "currentColor" : "none"} />
+      {typeof count === "number" && <span className="ml-1.5 min-w-3">{count}</span>}
     </button>
   );
 }
@@ -62,9 +90,15 @@ const SocialPostCard = memo(function SocialPostCard({
   const actionMenuRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [optimisticLikeState, setOptimisticLikeState] = useState<SocialPostLikeState | null>(null);
   const [isDeleting, startDeleteTransition] = useTransition();
+  const [isLiking, startLikeTransition] = useTransition();
   const canDelete = currentUserId === post.author.user_id;
   const authorName = getAuthorName(post, t("unknownAuthor"));
+  const likeState = optimisticLikeState ?? {
+    count: post.like_count,
+    liked: post.liked_by_current_user,
+  };
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -100,6 +134,45 @@ const SocialPostCard = memo(function SocialPostCard({
       showToast({
         title: t("deleted"),
       });
+    });
+  }
+
+  function handleToggleLike() {
+    if (!currentUserId) {
+      showToast({
+        title: t("likeLoginRequiredTitle"),
+        description: t("likeLoginRequired"),
+      });
+      return;
+    }
+
+    const previousState = likeState;
+    const nextLiked = !previousState.liked;
+    setOptimisticLikeState({
+      count: Math.max(0, previousState.count + (nextLiked ? 1 : -1)),
+      liked: nextLiked,
+    });
+
+    startLikeTransition(async () => {
+      const result = await toggleSocialPostLikeAction(post.id);
+
+      if (result.status === "error") {
+        setOptimisticLikeState(previousState);
+        showToast({
+          title: t("likeFailedTitle"),
+          description: t(result.messageKey),
+        });
+        return;
+      }
+
+      setOptimisticLikeState({
+        count: result.likeCount ?? 0,
+        liked: result.liked ?? false,
+      });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["social-feed"] }),
+        queryClient.invalidateQueries({ queryKey: ["profile-posts"] }),
+      ]);
     });
   }
 
@@ -185,7 +258,14 @@ const SocialPostCard = memo(function SocialPostCard({
 
       <div className="flex items-center justify-between gap-3 border-t border-[#1a1a24] px-3 py-3 sm:px-4">
         <div className="flex min-w-0 items-center gap-1.5">
-          <SocialPostActionButton icon={HeartIcon} label={t("likePost")} />
+          <SocialPostActionButton
+            count={likeState.count}
+            disabled={isLiking}
+            icon={HeartIcon}
+            label={t("likePost")}
+            onClick={handleToggleLike}
+            pressed={likeState.liked}
+          />
           <SocialPostActionButton icon={MessageCircleIcon} label={t("commentPost")} />
           <SocialPostActionButton icon={Share2Icon} label={t("sharePost")} />
         </div>

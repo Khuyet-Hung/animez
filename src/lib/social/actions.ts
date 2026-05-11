@@ -16,6 +16,7 @@ import type {
   CreateSocialPostActionState,
   DeleteSocialPostActionState,
   SocialPostAnimeDraft,
+  ToggleSocialPostLikeActionState,
 } from "@/types/social";
 
 const INITIAL_ERROR_STATE: CreateSocialPostActionState = {
@@ -48,6 +49,13 @@ function logSocialPostActionError(stage: string, error: unknown, context?: Recor
 
 function logDeleteSocialPostActionError(stage: string, error: unknown, context?: Record<string, unknown>) {
   console.error(`[deleteSocialPostAction] ${stage}`, {
+    error,
+    ...context,
+  });
+}
+
+function logToggleSocialPostLikeActionError(stage: string, error: unknown, context?: Record<string, unknown>) {
+  console.error(`[toggleSocialPostLikeAction] ${stage}`, {
     error,
     ...context,
   });
@@ -379,5 +387,87 @@ export async function deleteSocialPostAction(postId: string): Promise<DeleteSoci
     status: "success",
     messageKey: "deleted",
     postId,
+  };
+}
+
+export async function toggleSocialPostLikeAction(postId: string): Promise<ToggleSocialPostLikeActionState> {
+  if (!UUID_PATTERN.test(postId)) {
+    return {
+      status: "error",
+      messageKey: "likeFailed",
+    };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      status: "error",
+      messageKey: "likeLoginRequired",
+    };
+  }
+
+  const { data: existingLike, error: existingLikeError } = await supabase
+    .from("social_post_likes")
+    .select("post_id")
+    .eq("post_id", postId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (existingLikeError) {
+    logToggleSocialPostLikeActionError("Failed to read existing social post like", existingLikeError, {
+      postId,
+      userId: user.id,
+    });
+
+    return {
+      status: "error",
+      messageKey: "likeFailed",
+    };
+  }
+
+  const nextLiked = !existingLike;
+  const mutation = nextLiked
+    ? supabase.from("social_post_likes").insert({ post_id: postId, user_id: user.id })
+    : supabase.from("social_post_likes").delete().eq("post_id", postId).eq("user_id", user.id);
+  const { error: mutationError } = await mutation;
+
+  if (mutationError) {
+    logToggleSocialPostLikeActionError("Failed to toggle social post like", mutationError, {
+      postId,
+      userId: user.id,
+      nextLiked,
+    });
+
+    return {
+      status: "error",
+      messageKey: "likeFailed",
+    };
+  }
+
+  const { count, error: countError } = await supabase
+    .from("social_post_likes")
+    .select("post_id", { count: "exact", head: true })
+    .eq("post_id", postId);
+
+  if (countError) {
+    logToggleSocialPostLikeActionError("Failed to count social post likes", countError, {
+      postId,
+      userId: user.id,
+    });
+  }
+
+  revalidatePath("/feed");
+  revalidatePath("/profile");
+
+  return {
+    status: "success",
+    messageKey: nextLiked ? "liked" : "unliked",
+    postId,
+    liked: nextLiked,
+    likeCount: count ?? 0,
   };
 }

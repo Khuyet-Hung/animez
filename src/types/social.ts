@@ -44,6 +44,14 @@ export interface DeleteSocialPostActionState {
   postId?: string;
 }
 
+export interface ToggleSocialPostLikeActionState {
+  status: "success" | "error";
+  messageKey: string;
+  postId?: string;
+  liked?: boolean;
+  likeCount?: number;
+}
+
 export interface SocialFeedAuthor {
   user_id: string;
   username: string | null;
@@ -76,6 +84,8 @@ export interface SocialFeedPost {
   caption: string;
   description: string;
   image_layout: SocialPostImageLayout;
+  like_count: number;
+  liked_by_current_user: boolean;
   created_at: string;
   updated_at: string;
   author: SocialFeedAuthor;

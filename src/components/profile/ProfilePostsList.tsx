@@ -90,6 +90,16 @@ interface ProfilePostImageRow extends SocialFeedImage {
   created_at?: string;
 }
 
+interface ProfilePostLikeRow {
+  post_id: string;
+  user_id: string;
+}
+
+interface ProfilePostLikeSummary {
+  likeCount: number;
+  likedByCurrentUser: boolean;
+}
+
 interface ProfilePostRow {
   id: string;
   caption: string;
@@ -111,6 +121,14 @@ function isMissingImageLayoutError(error: { code?: string; message?: string } | 
   return (
     error?.code === "42703" ||
     error?.message?.toLowerCase().includes("image_layout") ||
+    false
+  );
+}
+
+function isMissingLikesTableError(error: { code?: string; message?: string } | null) {
+  return (
+    error?.code === "42P01" ||
+    error?.message?.toLowerCase().includes("social_post_likes") ||
     false
   );
 }
@@ -142,12 +160,69 @@ async function queryProfilePosts({
   };
 }
 
-function normalizeProfilePost(row: ProfilePostRow, author: SocialFeedAuthor): SocialFeedPost {
+async function queryProfilePostLikes(postIds: string[]) {
+  if (postIds.length === 0) return [] as ProfilePostLikeRow[];
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("social_post_likes")
+    .select("post_id, user_id")
+    .in("post_id", postIds);
+
+  if (isMissingLikesTableError(error)) {
+    return [] as ProfilePostLikeRow[];
+  }
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as ProfilePostLikeRow[];
+}
+
+function getLikeSummaries({
+  currentUserId,
+  likes,
+  postIds,
+}: {
+  currentUserId: string | null;
+  likes: ProfilePostLikeRow[];
+  postIds: string[];
+}) {
+  const summaries = new Map<string, ProfilePostLikeSummary>();
+
+  for (const postId of postIds) {
+    summaries.set(postId, {
+      likeCount: 0,
+      likedByCurrentUser: false,
+    });
+  }
+
+  for (const like of likes) {
+    const summary = summaries.get(like.post_id);
+    if (!summary) continue;
+
+    summary.likeCount += 1;
+    if (currentUserId && like.user_id === currentUserId) {
+      summary.likedByCurrentUser = true;
+    }
+  }
+
+  return summaries;
+}
+
+function normalizeProfilePost(
+  row: ProfilePostRow,
+  author: SocialFeedAuthor,
+  likeSummary: ProfilePostLikeSummary | undefined
+): SocialFeedPost {
   return {
     id: row.id,
     caption: row.caption,
     description: row.description,
     image_layout: row.image_layout ?? "auto",
+    like_count: likeSummary?.likeCount ?? 0,
+    liked_by_current_user: likeSummary?.likedByCurrentUser ?? false,
     created_at: row.created_at,
     updated_at: row.updated_at,
     author,
@@ -158,9 +233,11 @@ function normalizeProfilePost(row: ProfilePostRow, author: SocialFeedAuthor): So
 
 async function fetchProfilePostsPage({
   author,
+  currentUserId,
   offset,
 }: {
   author: SocialFeedAuthor;
+  currentUserId: string | null;
   offset: number;
 }): Promise<ProfilePostsPage> {
   const from = offset;
@@ -185,7 +262,14 @@ async function fetchProfilePostsPage({
     throw new Error(result.error.message);
   }
 
-  const items = ((result.data ?? []) as ProfilePostRow[]).map((row) => normalizeProfilePost(row, author));
+  const rows = (result.data ?? []) as ProfilePostRow[];
+  const postIds = rows.map((row) => row.id);
+  const likeSummaries = getLikeSummaries({
+    currentUserId,
+    likes: await queryProfilePostLikes(postIds),
+    postIds,
+  });
+  const items = rows.map((row) => normalizeProfilePost(row, author, likeSummaries.get(row.id)));
   const loadedCount = offset + items.length;
 
   return {
@@ -229,8 +313,10 @@ export default function ProfilePostsList({ profile }: ProfilePostsListProps) {
       profile.username,
       profile.display_name,
       profile.avatar_url,
+      user?.id ?? null,
     ],
-    queryFn: ({ pageParam }) => fetchProfilePostsPage({ author, offset: pageParam }),
+    queryFn: ({ pageParam }) =>
+      fetchProfilePostsPage({ author, currentUserId: user?.id ?? null, offset: pageParam }),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => lastPage.nextOffset,
     staleTime: 45_000,
