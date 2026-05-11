@@ -13,6 +13,21 @@ import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 import type { Metadata } from "next";
 import { createSeoMetadata } from "@/lib/seo";
 
+const MAX_SEARCH_QUERY_LENGTH = 80;
+const MAX_SEARCH_PAGE = 500;
+const MIN_SEARCH_YEAR = 1940;
+const MAX_SEARCH_YEAR = new Date().getFullYear() + 2;
+const MEDIA_FORMATS = new Set<MediaFormat>(["TV", "TV_SHORT", "MOVIE", "SPECIAL", "OVA", "ONA", "MUSIC"]);
+const MEDIA_STATUSES = new Set<MediaStatus>(["FINISHED", "RELEASING", "NOT_YET_RELEASED", "CANCELLED", "HIATUS"]);
+const MEDIA_SEASONS = new Set<MediaSeason>(["WINTER", "SPRING", "SUMMER", "FALL"]);
+const MEDIA_SORTS = new Set<MediaSort>([
+  "TRENDING_DESC",
+  "POPULARITY_DESC",
+  "SCORE_DESC",
+  "START_DATE_DESC",
+  "FAVOURITES_DESC",
+]);
+
 interface PageInfo {
   total: number;
   currentPage: number;
@@ -41,12 +56,41 @@ interface SearchPageProps {
   }>;
 }
 
+function normalizeSearchQuery(value?: string) {
+  return value?.trim().slice(0, MAX_SEARCH_QUERY_LENGTH) || undefined;
+}
+
+function normalizeGenre(value?: string) {
+  const normalized = value?.trim().slice(0, 40);
+  return normalized || undefined;
+}
+
+function normalizePage(value?: string) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed)) return 1;
+
+  return Math.min(MAX_SEARCH_PAGE, Math.max(1, parsed));
+}
+
+function normalizeYear(value?: string) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed)) return undefined;
+  if (parsed < MIN_SEARCH_YEAR || parsed > MAX_SEARCH_YEAR) return undefined;
+
+  return parsed;
+}
+
+function normalizeEnum<T extends string>(value: string | undefined, allowedValues: Set<T>) {
+  return value && allowedValues.has(value as T) ? (value as T) : undefined;
+}
+
 export async function generateMetadata({
   params,
   searchParams,
 }: SearchPageProps): Promise<Metadata> {
   const { locale } = await params;
-  const { q } = await searchParams;
+  const { q: rawQuery } = await searchParams;
+  const q = normalizeSearchQuery(rawQuery);
   const t = await getTranslations({ locale, namespace: "search" });
   const title = q ? t("title_query", { query: q }) : t("title");
   const description = q
@@ -80,19 +124,26 @@ async function SearchResults({
   const t = await getTranslations("search");
   let animeList: AnimeMedia[] = [];
   let pageInfo: PageInfo = { total: 0, currentPage: 1, lastPage: 1, hasNextPage: false };
-  const currentPage = parseInt(page || "1", 10);
+  const currentPage = normalizePage(page);
+  const searchQuery = normalizeSearchQuery(q);
+  const normalizedGenre = normalizeGenre(genre);
+  const normalizedFormat = normalizeEnum(format, MEDIA_FORMATS);
+  const normalizedStatus = normalizeEnum(status, MEDIA_STATUSES);
+  const normalizedSeason = normalizeEnum(season, MEDIA_SEASONS);
+  const normalizedYear = normalizeYear(year);
+  const normalizedSort = normalizeEnum(sort, MEDIA_SORTS) ?? "TRENDING_DESC";
 
   try {
     const data = await anilistClient.request<SearchData>(SEARCH_QUERY, {
-      search: q || undefined,
+      search: searchQuery,
       page: currentPage,
       perPage: 20,
-      genre: genre || undefined,
-      format: (format as MediaFormat) || undefined,
-      status: (status as MediaStatus) || undefined,
-      season: (season as MediaSeason) || undefined,
-      seasonYear: year ? parseInt(year, 10) : undefined,
-      sort: [(sort as MediaSort) || "TRENDING_DESC"],
+      genre: normalizedGenre,
+      format: normalizedFormat,
+      status: normalizedStatus,
+      season: normalizedSeason,
+      seasonYear: normalizedYear,
+      sort: [normalizedSort],
     });
     animeList = data.Page.media;
     pageInfo = data.Page.pageInfo;
@@ -115,13 +166,13 @@ async function SearchResults({
 
   function buildPageUrl(p: number) {
     const params = new URLSearchParams();
-    if (q) params.set("q", q);
-    if (genre) params.set("genre", genre);
-    if (format) params.set("format", format);
-    if (status) params.set("status", status);
-    if (season) params.set("season", season);
-    if (year) params.set("year", year);
-    if (sort) params.set("sort", sort);
+    if (searchQuery) params.set("q", searchQuery);
+    if (normalizedGenre) params.set("genre", normalizedGenre);
+    if (normalizedFormat) params.set("format", normalizedFormat);
+    if (normalizedStatus) params.set("status", normalizedStatus);
+    if (normalizedSeason) params.set("season", normalizedSeason);
+    if (normalizedYear) params.set("year", String(normalizedYear));
+    if (sort && normalizedSort !== "TRENDING_DESC") params.set("sort", normalizedSort);
     params.set("page", String(p));
     return `/search?${params.toString()}`;
   }
@@ -130,7 +181,7 @@ async function SearchResults({
     <div>
       <p className="text-[#9ca3af] text-sm mb-4">
         {pageInfo.total > 0 && t("results_count", { count: pageInfo.total.toLocaleString() })}
-        {q && <> {t("results_for", { query: q })}</>}
+        {searchQuery && <> {t("results_for", { query: searchQuery })}</>}
       </p>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-5">
@@ -177,13 +228,14 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
   const t = await getTranslations("search");
   const resolvedParams = await searchParams;
   const { q, genre, format, status, season, year, sort, page } = resolvedParams;
+  const searchQuery = normalizeSearchQuery(q);
 
   return (
     <>
       <Navbar />
       <main className="flex-1 w-full max-w-[1400px] mx-auto px-4 md:px-6 lg:pl-32 min-[1600px]:pl-6 py-8 pb-20">
         <h1 className="text-2xl font-black text-white mb-6">
-          {q ? t("title_query", { query: q }) : t("title")}
+          {searchQuery ? t("title_query", { query: searchQuery }) : t("title")}
         </h1>
 
         <Suspense fallback={null}>
@@ -201,7 +253,7 @@ export default async function SearchPage({ params, searchParams }: SearchPagePro
                 {Array.from({ length: 20 }).map((_, i) => <SkeletonCard key={i} />)}
               </div>
             }>
-              <SearchResults q={q} genre={genre} format={format} status={status} season={season} year={year} sort={sort} page={page} />
+              <SearchResults q={searchQuery} genre={genre} format={format} status={status} season={season} year={year} sort={sort} page={page} />
             </Suspense>
           </div>
         </div>

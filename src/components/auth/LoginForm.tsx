@@ -5,6 +5,7 @@ import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { Link } from "@/i18n/navigation";
+import { getAuthCallbackUrl } from "@/lib/site-url";
 
 interface LoginFormProps {
   nextPath?: string;
@@ -46,7 +47,7 @@ export default function LoginForm({ nextPath = "/" }: LoginFormProps) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: getAuthCallbackUrl(nextPath),
       },
     });
 

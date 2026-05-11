@@ -10,6 +10,17 @@ const PROTECTED_ROUTES = ["/profile", "/watchlist", "/settings"];
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const locale = getPathLocale(pathname);
+
+  if (locale && pathname === `/${locale}` && request.nextUrl.searchParams.has("code")) {
+    const callbackUrl = new URL(`/${locale}/auth/callback`, request.url);
+
+    for (const [key, value] of request.nextUrl.searchParams) {
+      callbackUrl.searchParams.append(key, value);
+    }
+
+    return NextResponse.redirect(callbackUrl);
+  }
 
   let response = NextResponse.next({ request });
   const supabase = createServerClient(

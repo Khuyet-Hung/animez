@@ -2,25 +2,37 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { localePathnamePattern } from "@/i18n/locales";
+import { defaultLocale, isAppLocale, localePathnamePattern } from "@/i18n/locales";
+
+function getSafeNextPath(value: string | null) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
+
+  try {
+    const decoded = decodeURIComponent(value);
+    if (!decoded.startsWith("/") || decoded.startsWith("//")) return "/";
+  } catch {
+    return "/";
+  }
+
+  return value;
+}
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ locale: string }> }
 ) {
-  const { locale } = await params;
+  const { locale: rawLocale } = await params;
+  const locale = isAppLocale(rawLocale) ? rawLocale : defaultLocale;
   const { searchParams, origin } = request.nextUrl;
 
-  // Supabase PKCE flow: sends `code`
   const code = searchParams.get("code");
-  // Supabase email OTP flow: sends `token_hash`
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as
     | "recovery"
     | "signup"
     | "magiclink"
     | null;
-  const next = searchParams.get("next") ?? "/";
+  const next = getSafeNextPath(searchParams.get("next"));
 
   const cookieStore = await cookies();
 
@@ -60,13 +72,11 @@ export async function GET(
   }
 
   if (!error) {
-    // `next` may start with `/` — prepend locale
     const hasLocale = localePathnamePattern.test(next);
-    const redirectPath = hasLocale ? next : `/${locale}${next}`;
+    const redirectPath = hasLocale ? next : `/${locale}${next === "/" ? "" : next}`;
     return NextResponse.redirect(`${origin}${redirectPath}`);
   }
 
-  // Redirect back to login with error flag
   return NextResponse.redirect(
     `${origin}/${locale}/login?error=invalid_reset_link`
   );

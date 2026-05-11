@@ -1,7 +1,8 @@
 import { GraphQLClient } from "graphql-request";
 
 const ANILIST_URL = "https://graphql.anilist.co";
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const MAX_CACHE_ENTRIES = 500;
 
 const rawClient = new GraphQLClient(ANILIST_URL, {
   headers: {
@@ -10,8 +11,19 @@ const rawClient = new GraphQLClient(ANILIST_URL, {
   },
 });
 
-// Simple in-memory cache to avoid hammering AniList in dev (ISR doesn't apply in dev mode)
 const cache = new Map<string, { data: unknown; expiresAt: number }>();
+
+function pruneCache(now: number) {
+  for (const [key, value] of cache) {
+    if (value.expiresAt <= now) cache.delete(key);
+  }
+
+  while (cache.size >= MAX_CACHE_ENTRIES) {
+    const oldestKey = cache.keys().next().value;
+    if (!oldestKey) break;
+    cache.delete(oldestKey);
+  }
+}
 
 async function requestWithRetry<T>(
   query: string,
@@ -20,8 +32,11 @@ async function requestWithRetry<T>(
   delayMs = 1000
 ): Promise<T> {
   const cacheKey = JSON.stringify({ query, variables });
+  const now = Date.now();
+  pruneCache(now);
+
   const cached = cache.get(cacheKey);
-  if (cached && cached.expiresAt > Date.now()) {
+  if (cached && cached.expiresAt > now) {
     return cached.data as T;
   }
 
@@ -36,7 +51,7 @@ async function requestWithRetry<T>(
 
       if (status === 429 && attempt < retries) {
         const wait = delayMs * Math.pow(2, attempt);
-        console.warn(`AniList rate limited. Retrying in ${wait}ms…`);
+        console.warn(`AniList bị rate limit. Thử lại sau ${wait}ms...`);
         await new Promise((r) => setTimeout(r, wait));
         continue;
       }
@@ -48,7 +63,6 @@ async function requestWithRetry<T>(
   throw new Error("Max retries exceeded for AniList request");
 }
 
-// Drop-in replacement with the same .request() interface
 export const anilistClient = {
   request: <T>(
     query: string,

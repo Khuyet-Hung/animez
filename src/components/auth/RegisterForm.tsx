@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { Link } from "@/i18n/navigation";
+import { getAuthCallbackUrl } from "@/lib/site-url";
 
 export default function RegisterForm() {
   const t = useTranslations("auth");
@@ -65,7 +66,7 @@ export default function RegisterForm() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: getAuthCallbackUrl(),
       },
     });
 

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { defaultLocale, locales, type AppLocale } from "@/i18n/locales";
+import { SITE_URL } from "@/lib/site-url";
 
-export const SITE_URL = "https://animez.site";
+export { SITE_URL };
 export const SITE_NAME = "Animez";
 export const DEFAULT_SEO_TITLE = "Animez - Discover & Track Anime";
 export const DEFAULT_SEO_DESCRIPTION =

@@ -152,12 +152,22 @@ async function optimizeSocialPostImage(file: File) {
 }
 
 function getActionErrorMessage(
-  t: (key: string) => string,
+  t: (key: string, values?: Record<string, string | number>) => string,
   fieldErrors: CreateSocialPostActionState["fieldErrors"],
-  messageKey: string | null
+  messageKey: string | null,
+  fieldErrorValues?: CreateSocialPostActionState["fieldErrorValues"]
 ) {
-  const firstFieldError = Object.values(fieldErrors)[0];
-  if (firstFieldError) return t(`errors.${firstFieldError}`);
+  const firstFieldError = Object.entries(fieldErrors).find(([, errorKey]) => Boolean(errorKey));
+
+  if (firstFieldError) {
+    const [fieldName, errorKey] = firstFieldError as [
+      keyof CreateSocialPostActionState["fieldErrors"],
+      string,
+    ];
+
+    return t(`errors.${errorKey}`, fieldErrorValues?.[fieldName]);
+  }
+
   if (messageKey) return t(`errors.${messageKey}`);
   return null;
 }
@@ -412,7 +422,9 @@ function CreatePostModal({
   const imagesRef = useRef<SelectedImage[]>([]);
   const pending = actionPending || isDispatching;
   const actionErrorMessage =
-    state.status === "error" ? getActionErrorMessage(t, state.fieldErrors, state.messageKey) : null;
+    state.status === "error"
+      ? getActionErrorMessage(t, state.fieldErrors, state.messageKey, state.fieldErrorValues)
+      : null;
   const errorMessage = localErrorKey ? t(`errors.${localErrorKey}`) : actionErrorMessage;
   const imageLayout = getDefaultSocialPostImageLayout(images.length);
 

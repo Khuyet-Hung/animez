@@ -26,10 +26,15 @@ export interface SocialPostFieldErrors {
   images?: string;
 }
 
+export type SocialPostFieldErrorValues = Partial<
+  Record<keyof SocialPostFieldErrors, Record<string, string | number>>
+>;
+
 export interface CreateSocialPostActionState {
   status: "idle" | "success" | "error";
   messageKey: string | null;
   fieldErrors: SocialPostFieldErrors;
+  fieldErrorValues?: SocialPostFieldErrorValues;
   postId?: string;
 }
 

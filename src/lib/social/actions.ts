@@ -24,7 +24,7 @@ const INITIAL_ERROR_STATE: CreateSocialPostActionState = {
   fieldErrors: {},
 };
 
-const IMAGE_POST_DAILY_LIMIT = 2;
+const IMAGE_POST_DAILY_LIMIT = 10;
 const VIETNAM_TIMEZONE_OFFSET_MS = 7 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -208,6 +208,7 @@ export async function createSocialPostAction(
         status: "error",
         messageKey: "validationFailed",
         fieldErrors: { images: "imagePostDailyLimit" },
+        fieldErrorValues: { images: { limit: IMAGE_POST_DAILY_LIMIT } },
       };
     }
   }

@@ -289,7 +289,7 @@
       "tooManyImages": "画像は最大6枚までアップロードできます。",
       "invalidImageType": "JPG、PNG、WebP画像のみ対応しています。",
       "imageTooLarge": "各画像は5MB以下にしてください。",
-      "imagePostDailyLimit": "画像付きの投稿は1日2件までです。",
+      "imagePostDailyLimit": "画像付きの投稿は1日{limit}件までです。",
       "uploadFailed": "画像をアップロードできませんでした。もう一度お試しください。",
       "animeSearchFailed": "アニメを検索できませんでした。もう一度お試しください。"
     }

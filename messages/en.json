@@ -293,7 +293,7 @@
       "tooManyImages": "You can upload up to 6 images.",
       "invalidImageType": "Only JPG, PNG, or WebP images are supported.",
       "imageTooLarge": "Each image must be 5MB or smaller.",
-      "imagePostDailyLimit": "You can publish up to 2 posts with images per day.",
+      "imagePostDailyLimit": "You can publish up to {limit} posts with images per day.",
       "uploadFailed": "Could not upload images. Please try again.",
       "animeSearchFailed": "Could not search anime. Please try again."
     }

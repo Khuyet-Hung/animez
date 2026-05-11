@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import Script from "next/script";
 import {
   DEFAULT_SEO_DESCRIPTION,
   DEFAULT_SEO_TITLE,
@@ -8,6 +9,8 @@ import {
   SITE_URL,
 } from "@/lib/seo";
 import "./globals.css";
+
+const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -73,6 +76,15 @@ export default async function RootLayout({
     <html lang={lang} className="dark">
       <body className="bg-[#0a0a0f] text-white font-sans overflow-x-hidden min-h-screen flex flex-col">
         {children}
+        {ADSENSE_CLIENT ? (
+          <Script
+            id="google-adsense"
+            async
+            strategy="afterInteractive"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`}
+            crossOrigin="anonymous"
+          />
+        ) : null}
         <Analytics />
       </body>
     </html>
