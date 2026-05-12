@@ -1,6 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
+import AppLogo from "@/components/common/AppLogo";
 import { useTranslations } from "next-intl";
 
 export default function Footer() {
@@ -11,12 +12,7 @@ export default function Footer() {
       <div className="max-w-[1400px] mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8">
         <div className="col-span-1">
           <div className="flex items-center gap-2 text-white mb-4">
-            <div className="size-6 text-[#f49e0b]">
-              <svg className="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"/>
-              </svg>
-            </div>
-            <span className="text-lg font-black tracking-tight">ANIMEZ</span>
+            <AppLogo className=" w-[160px]" sizes="72px" />
           </div>
           <p className="text-[#9ca3af] text-sm">{t("tagline")}</p>
         </div>

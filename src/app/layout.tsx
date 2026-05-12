@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
+import { Exo_2 } from "next/font/google";
 import Script from "next/script";
 import {
   DEFAULT_SEO_DESCRIPTION,
@@ -8,9 +9,15 @@ import {
   SITE_NAME,
   SITE_URL,
 } from "@/lib/seo";
+import { APP_LOGOS } from "@/lib/branding";
 import "./globals.css";
 
 const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT;
+const exo2 = Exo_2({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-exo-2",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -31,6 +38,23 @@ export const metadata: Metadata = {
   authors: [{ name: SITE_NAME, url: SITE_URL }],
   creator: SITE_NAME,
   publisher: SITE_NAME,
+  icons: {
+    icon: [
+      {
+        url: APP_LOGOS.mark.src,
+        type: "image/png",
+        sizes: `${APP_LOGOS.mark.width}x${APP_LOGOS.mark.height}`,
+      },
+    ],
+    apple: [
+      {
+        url: APP_LOGOS.mark.src,
+        type: "image/png",
+        sizes: `${APP_LOGOS.mark.width}x${APP_LOGOS.mark.height}`,
+      },
+    ],
+    shortcut: [APP_LOGOS.mark.src],
+  },
   openGraph: {
     title: DEFAULT_SEO_TITLE,
     description: DEFAULT_SEO_DESCRIPTION,
@@ -73,7 +97,7 @@ export default async function RootLayout({
   const lang = locale || "en";
 
   return (
-    <html lang={lang} className="dark">
+    <html lang={lang} className={`dark ${exo2.variable}`}>
       <body className="bg-[#0a0a0f] text-white font-sans overflow-x-hidden min-h-screen flex flex-col">
         {children}
         {ADSENSE_CLIENT ? (

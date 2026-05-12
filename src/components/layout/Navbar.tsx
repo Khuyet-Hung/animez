@@ -3,8 +3,6 @@
 import { Link, useRouter, usePathname } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { useRef, useState, useEffect, Suspense } from "react";
-import { anilistClient } from "@/lib/anilist";
-import { SUGGESTIONS_QUERY } from "@/lib/queries";
 import { defaultLocale, type AppLocale, isAppLocale, locales } from "@/i18n/locales";
 import { formatAnimeTitle } from "@/lib/anime-title";
 import type { AnimeMedia } from "@/types/anime";
@@ -22,6 +20,7 @@ import {
   TelescopeIcon,
 } from "lucide-react";
 import AuthButton from "@/components/auth/AuthButton";
+import AppLogo from "@/components/common/AppLogo";
 import { motion } from "framer-motion";
 import useHydratedReducedMotion from "@/hooks/useHydratedReducedMotion";
 import gbFlag from "@/assets/svg/gb.svg";
@@ -39,6 +38,7 @@ function SearchBarInner() {
   const [isFocused, setIsFocused] = useState(false);
   const reduceMotion = useHydratedReducedMotion();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,23 +51,46 @@ function SearchBarInner() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      abortRef.current?.abort();
+    };
+  }, []);
+
   function handleChange(value: string) {
     setQuery(value);
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (value.trim().length < 2) {
+    abortRef.current?.abort();
+
+    const search = value.trim();
+    if (search.length < 2) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
     }
+
     debounceRef.current = setTimeout(async () => {
+      const abortController = new AbortController();
+      abortRef.current = abortController;
+
       try {
-        const data = await anilistClient.request<{ Page: { media: AnimeMedia[] } }>(
-          SUGGESTIONS_QUERY, { search: value }
-        );
-        setSuggestions(data.Page.media);
-        setShowSuggestions(true);
-      } catch {
+        const response = await fetch(`/api/anime/suggestions?q=${encodeURIComponent(search)}`, {
+          signal: abortController.signal,
+        });
+        if (!response.ok) throw new Error("Unable to load suggestions.");
+
+        const data = (await response.json()) as { results?: AnimeMedia[] };
+        const nextSuggestions = data.results ?? [];
+        setSuggestions(nextSuggestions);
+        setShowSuggestions(nextSuggestions.length > 0);
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+
         setSuggestions([]);
+        setShowSuggestions(false);
+      } finally {
+        if (abortRef.current === abortController) abortRef.current = null;
       }
     }, 300);
   }
@@ -323,12 +346,11 @@ export default function Navbar() {
             transition={{ duration: 0.2, ease: "easeOut" }}
           >
             <Link href="/" className="flex items-center gap-3 text-white group">
-              <div className="size-8 text-[#f49e0b] transition-colors group-hover:text-[#ffc46b]">
-                <svg className="w-full h-full" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"/>
-                </svg>
-              </div>
-              <h2 className="text-white text-xl font-black tracking-tight group-hover:text-[#f49e0b] transition-colors">ANIMEZ</h2>
+              <AppLogo
+                className="h-10 w-[160px] transition-opacity group-hover:opacity-90"
+                priority
+                sizes="60px"
+              />
             </Link>
           </motion.div>
 

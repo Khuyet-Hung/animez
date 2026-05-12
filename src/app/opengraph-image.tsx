@@ -1,4 +1,7 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import { APP_LOGOS } from "@/lib/branding";
 import { DEFAULT_SEO_DESCRIPTION, SITE_NAME } from "@/lib/seo";
 
 export const alt = "Animez";
@@ -7,8 +10,13 @@ export const size = {
   height: 630,
 };
 export const contentType = "image/png";
+export const runtime = "nodejs";
 
 export default function Image() {
+  const logoDataUrl = `data:image/png;base64,${readFileSync(
+    join(process.cwd(), "public", APP_LOGOS.wide.src.replace(/^\//, ""))
+  ).toString("base64")}`;
+
   return new ImageResponse(
     (
       <div
@@ -32,21 +40,16 @@ export default function Image() {
           }}
         >
           <div
+            aria-label={SITE_NAME}
             style={{
-              width: "58px",
-              height: "58px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "16px",
-              background: "#f49e0b",
-              color: "#0a0a0f",
-              fontSize: "34px",
-              fontWeight: 900,
+              width: "116px",
+              height: "78px",
+              backgroundImage: `url(${logoDataUrl})`,
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "contain",
             }}
-          >
-            A
-          </div>
+          />
           <div
             style={{
               display: "flex",
