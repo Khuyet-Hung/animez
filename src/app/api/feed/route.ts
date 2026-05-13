@@ -20,6 +20,7 @@ interface SocialFeedRpcRow {
   image_layout?: SocialFeedPost["image_layout"] | null;
   like_count?: number | null;
   liked_by_current_user?: boolean | null;
+  comment_count?: number | null;
   created_at: string;
   updated_at: string;
   author: SocialFeedAuthor;
@@ -58,6 +59,7 @@ function normalizePost(row: SocialFeedRpcRow): SocialFeedPost {
     image_layout: row.image_layout ?? "auto",
     like_count: row.like_count ?? 0,
     liked_by_current_user: row.liked_by_current_user ?? false,
+    comment_count: row.comment_count ?? 0,
     created_at: row.created_at,
     updated_at: row.updated_at,
     author: row.author,

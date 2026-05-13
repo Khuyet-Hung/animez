@@ -21,7 +21,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useToast } from "@/components/common/ToastProvider";
 import { useAuth } from "@/hooks/useAuth";
-import { createSocialPostAction } from "@/lib/social/actions";
+import { createSocialPostAction, updateSocialPostAction } from "@/lib/social/actions";
+import { optimizeImageFile } from "@/lib/images/client-optimization";
 import {
   SOCIAL_POST_CAPTION_MAX_LENGTH,
   SOCIAL_POST_DESCRIPTION_MAX_LENGTH,
@@ -33,7 +34,7 @@ import {
 } from "@/lib/social/validators";
 import { formatAnimeTitle } from "@/lib/anime-title";
 import type { AnimeMedia } from "@/types/anime";
-import type { CreateSocialPostActionState, SocialPostAnimeDraft } from "@/types/social";
+import type { CreateSocialPostActionState, SocialFeedAnime, SocialFeedPost, SocialPostAnimeDraft } from "@/types/social";
 
 interface CreatePostButtonProps {
   initialAnime?: AnimeMedia;
@@ -77,6 +78,23 @@ function animeToDraft(anime: AnimeMedia): SocialPostAnimeDraft {
   };
 }
 
+function socialFeedAnimeToDraft(anime: SocialFeedAnime): SocialPostAnimeDraft {
+  return {
+    anime_id: anime.anime_id,
+    episode: anime.episode,
+    title_romaji: anime.title_romaji,
+    title_english: anime.title_english,
+    cover_image: anime.cover_image,
+    format: anime.format,
+    season_year: anime.season_year,
+  };
+}
+
+function getPrimaryAnimeDraft(post: SocialFeedPost) {
+  const primaryAnime = post.anime.find((anime) => anime.role === "primary");
+  return primaryAnime ? socialFeedAnimeToDraft(primaryAnime) : null;
+}
+
 function formatBytes(bytes: number) {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
@@ -97,58 +115,13 @@ function getImageSelectionError(files: File[], currentImageCount: number) {
   return null;
 }
 
-function getOptimizedImageName(fileName: string) {
-  return fileName.replace(/\.[^.]+$/, "") + ".webp";
-}
-
-function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number) {
-  return new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          reject(new Error("Could not optimize image."));
-          return;
-        }
-
-        resolve(blob);
-      },
-      type,
-      quality
-    );
+function optimizeSocialPostImage(file: File) {
+  return optimizeImageFile(file, {
+    maxDimension: SOCIAL_POST_IMAGE_MAX_DIMENSION,
+    targetSize: SOCIAL_POST_IMAGE_TARGET_SIZE,
+    quality: SOCIAL_POST_IMAGE_QUALITY,
+    outputType: SOCIAL_POST_IMAGE_OUTPUT_TYPE,
   });
-}
-
-async function optimizeSocialPostImage(file: File) {
-  const bitmap = await createImageBitmap(file);
-
-  try {
-    const scale = Math.min(1, SOCIAL_POST_IMAGE_MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
-    const width = Math.max(1, Math.round(bitmap.width * scale));
-    const height = Math.max(1, Math.round(bitmap.height * scale));
-    const shouldOptimize =
-      file.type !== SOCIAL_POST_IMAGE_OUTPUT_TYPE || file.size > SOCIAL_POST_IMAGE_TARGET_SIZE || scale < 1;
-
-    if (!shouldOptimize) return file;
-
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-
-    const context = canvas.getContext("2d");
-    if (!context) return file;
-
-    context.drawImage(bitmap, 0, 0, width, height);
-
-    const blob = await canvasToBlob(canvas, SOCIAL_POST_IMAGE_OUTPUT_TYPE, SOCIAL_POST_IMAGE_QUALITY);
-    if (blob.size >= file.size) return file;
-
-    return new File([blob], getOptimizedImageName(file.name), {
-      type: SOCIAL_POST_IMAGE_OUTPUT_TYPE,
-      lastModified: Date.now(),
-    });
-  } finally {
-    bitmap.close();
-  }
 }
 
 function getActionErrorMessage(
@@ -395,26 +368,43 @@ function AnimeSelectionSlot({
   );
 }
 
-function CreatePostModal({
+export function SocialPostEditorModal({
+  editPost,
   initialAnime,
   onClose,
   onPublished,
+  onUpdated,
 }: {
+  editPost?: SocialFeedPost;
   initialAnime?: AnimeMedia;
   onClose: () => void;
-  onPublished: () => void;
+  onPublished?: () => void | Promise<void>;
+  onUpdated?: () => void | Promise<void>;
 }) {
   const t = useTranslations("social");
   const locale = useLocale();
-  const [state, formAction, actionPending] = useActionState(createSocialPostAction, INITIAL_ACTION_STATE);
+  const isEditing = Boolean(editPost);
+  const action = isEditing ? updateSocialPostAction : createSocialPostAction;
+  const [state, formAction, actionPending] = useActionState(action, INITIAL_ACTION_STATE);
   const [isDispatching, startTransition] = useTransition();
-  const [caption, setCaption] = useState("");
-  const [description, setDescription] = useState("");
+  const [caption, setCaption] = useState(() => editPost?.caption ?? "");
+  const [description, setDescription] = useState(() => editPost?.description ?? "");
   const [primaryAnime, setPrimaryAnime] = useState<SocialPostAnimeDraft | null>(() =>
-    initialAnime ? animeToDraft(initialAnime) : null
+    editPost
+      ? getPrimaryAnimeDraft(editPost)
+      : initialAnime
+        ? animeToDraft(initialAnime)
+        : null
   );
-  const [supportingAnime, setSupportingAnime] = useState<SocialPostAnimeDraft[]>([]);
-  const [descriptionOpen, setDescriptionOpen] = useState(false);
+  const [supportingAnime, setSupportingAnime] = useState<SocialPostAnimeDraft[]>(() =>
+    editPost
+      ? editPost.anime
+          .filter((anime) => anime.role === "supporting")
+          .sort((first, second) => first.sort_order - second.sort_order)
+          .map(socialFeedAnimeToDraft)
+      : []
+  );
+  const [descriptionOpen, setDescriptionOpen] = useState(() => Boolean(editPost?.description));
   const [activePicker, setActivePicker] = useState<ActiveAnimePicker | null>(null);
   const [localErrorKey, setLocalErrorKey] = useState<string | null>(null);
   const [imageProcessing, setImageProcessing] = useState(false);
@@ -426,14 +416,18 @@ function CreatePostModal({
       ? getActionErrorMessage(t, state.fieldErrors, state.messageKey, state.fieldErrorValues)
       : null;
   const errorMessage = localErrorKey ? t(`errors.${localErrorKey}`) : actionErrorMessage;
-  const imageLayout = getDefaultSocialPostImageLayout(images.length);
+  const imageLayout = editPost ? editPost.image_layout : getDefaultSocialPostImageLayout(images.length);
 
   useEffect(() => {
     if (state.status === "success") {
-      onPublished();
+      if (isEditing) {
+        void onUpdated?.();
+      } else {
+        void onPublished?.();
+      }
       onClose();
     }
-  }, [onClose, onPublished, state.status]);
+  }, [isEditing, onClose, onPublished, onUpdated, state.status]);
 
   useEffect(() => {
     imagesRef.current = images;
@@ -504,13 +498,15 @@ function CreatePostModal({
       return;
     }
 
-    const imageError = getImageSelectionError(
-      images.map((image) => image.file),
-      0
-    );
-    if (imageError) {
-      setLocalErrorKey(imageError);
-      return;
+    if (!isEditing) {
+      const imageError = getImageSelectionError(
+        images.map((image) => image.file),
+        0
+      );
+      if (imageError) {
+        setLocalErrorKey(imageError);
+        return;
+      }
     }
 
     const formData = new FormData(event.currentTarget);
@@ -518,8 +514,11 @@ function CreatePostModal({
     formData.set("image_layout", imageLayout);
     formData.set("primary_anime", JSON.stringify(primaryAnime));
     formData.set("supporting_anime", JSON.stringify(supportingAnime));
+    if (editPost) formData.set("post_id", editPost.id);
     formData.delete("images");
-    images.forEach((image) => formData.append("images", image.file));
+    if (!isEditing) {
+      images.forEach((image) => formData.append("images", image.file));
+    }
 
     startTransition(() => {
       formAction(formData);
@@ -582,8 +581,12 @@ function CreatePostModal({
                 <FilmIcon className="size-5" />
               </div>
               <div className="min-w-0">
-                <h2 className="line-clamp-1 text-lg font-black leading-tight text-white">{t("createPost")}</h2>
-                <p className="mt-1 line-clamp-1 text-sm font-semibold text-[#9ca3af]">{t("createPostTitle")}</p>
+                <h2 className="line-clamp-1 text-lg font-black leading-tight text-white">
+                  {t(isEditing ? "editPost" : "createPost")}
+                </h2>
+                <p className="mt-1 line-clamp-1 text-sm font-semibold text-[#9ca3af]">
+                  {t(isEditing ? "editPostTitle" : "createPostTitle")}
+                </p>
               </div>
             </div>
 
@@ -736,7 +739,27 @@ function CreatePostModal({
                 </div>
               </section>
 
-              {images.length > 0 && (
+              {editPost && editPost.images.length > 0 && (
+                <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {editPost.images.map((image) => (
+                    <div
+                      key={image.id}
+                      className="group relative aspect-square overflow-hidden rounded border border-[#1a1a24] bg-[#111118]"
+                    >
+                      <Image
+                        src={image.public_url}
+                        alt=""
+                        fill
+                        sizes="220px"
+                        className="object-cover"
+                        unoptimized
+                      />
+                    </div>
+                  ))}
+                </section>
+              )}
+
+              {!editPost && images.length > 0 && (
                 <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {images.map((image) => (
                     <div
@@ -775,21 +798,23 @@ function CreatePostModal({
 
           <div className="flex items-center justify-between gap-3 border-t border-[#1a1a24] bg-[#111118] px-5 py-4">
             <div className="flex items-center gap-2">
-              <label
-                className="flex size-10 cursor-pointer items-center justify-center rounded border border-[#2a2a35] text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50"
-                title={t("chooseImages")}
-              >
-                <ImagePlusIcon className="size-4" />
-                <input
-                  type="file"
-                  name="images"
-                  accept="image/jpeg,image/png,image/webp"
-                  multiple
-                  onChange={handleImageChange}
-                  disabled={images.length >= SOCIAL_POST_MAX_IMAGES || imageProcessing || pending}
-                  className="sr-only"
-                />
-              </label>
+              {!isEditing && (
+                <label
+                  className="flex size-10 cursor-pointer items-center justify-center rounded border border-[#2a2a35] text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50"
+                  title={t("chooseImages")}
+                >
+                  <ImagePlusIcon className="size-4" />
+                  <input
+                    type="file"
+                    name="images"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    onChange={handleImageChange}
+                    disabled={images.length >= SOCIAL_POST_MAX_IMAGES || imageProcessing || pending}
+                    className="sr-only"
+                  />
+                </label>
+              )}
               <button
                 type="button"
                 className="flex size-10 items-center justify-center rounded border border-[#2a2a35] text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white"
@@ -814,7 +839,7 @@ function CreatePostModal({
               className="inline-flex h-10 items-center gap-2 rounded border border-[#2a2a35] px-4 text-sm font-black text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
               {pending || imageProcessing ? <Loader2Icon className="size-4 animate-spin" /> : <SendIcon className="size-4" />}
-              {pending ? t("publishing") : t("publish")}
+              {pending ? t(isEditing ? "updating" : "publishing") : t(isEditing ? "updatePost" : "publish")}
             </button>
           </div>
         </form>
@@ -927,7 +952,7 @@ export default function CreatePostButton({ initialAnime, className = "", variant
       )}
 
       {modalOpen && (
-        <CreatePostModal
+        <SocialPostEditorModal
           initialAnime={initialAnime}
           onClose={() => setModalOpen(false)}
           onPublished={handlePublished}

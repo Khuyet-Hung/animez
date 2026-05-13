@@ -9,6 +9,7 @@ import {
   HeartIcon,
   Loader2Icon,
   MessageCircleIcon,
+  PencilIcon,
   Share2Icon,
   Trash2Icon,
   UserCircleIcon,
@@ -19,7 +20,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useToast } from "@/components/common/ToastProvider";
+import { SocialPostEditorModal } from "@/components/social/CreatePostButton";
 import SocialPostAnime from "@/components/social/feed/SocialPostAnime";
+import SocialPostCommentsModal from "@/components/social/feed/SocialPostCommentsModal";
+import SocialPostImageViewer from "@/components/social/feed/SocialPostImageViewer";
 import SocialPostImages from "@/components/social/feed/SocialPostImages";
 import { deleteSocialPostAction, toggleSocialPostLikeAction } from "@/lib/social/actions";
 import type { SocialFeedPost } from "@/types/social";
@@ -41,6 +45,13 @@ function formatPostDate(value: string, locale: string) {
 
 function getAuthorName(post: SocialFeedPost, fallbackName: string) {
   return post.author.display_name || post.author.username || fallbackName;
+}
+
+function hasPostBeenEdited(post: SocialFeedPost) {
+  const createdAt = new Date(post.created_at).getTime();
+  const updatedAt = new Date(post.updated_at).getTime();
+
+  return Number.isFinite(createdAt) && Number.isFinite(updatedAt) && updatedAt - createdAt > 1000;
 }
 
 function SocialPostActionButton({
@@ -90,11 +101,15 @@ const SocialPostCard = memo(function SocialPostCard({
   const actionMenuRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [imageViewerIndex, setImageViewerIndex] = useState<number | null>(null);
   const [optimisticLikeState, setOptimisticLikeState] = useState<SocialPostLikeState | null>(null);
   const [isDeleting, startDeleteTransition] = useTransition();
   const [isLiking, startLikeTransition] = useTransition();
-  const canDelete = currentUserId === post.author.user_id;
+  const canManage = currentUserId === post.author.user_id;
   const authorName = getAuthorName(post, t("unknownAuthor"));
+  const edited = hasPostBeenEdited(post);
   const likeState = optimisticLikeState ?? {
     count: post.like_count,
     liked: post.liked_by_current_user,
@@ -176,6 +191,16 @@ const SocialPostCard = memo(function SocialPostCard({
     });
   }
 
+  async function handleUpdatedPost() {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["social-feed"] }),
+      queryClient.invalidateQueries({ queryKey: ["profile-posts"] }),
+    ]);
+    showToast({
+      title: t("edited"),
+    });
+  }
+
   const authorContent = (
     <>
       <div className="relative size-10 shrink-0 overflow-hidden rounded-full border border-[#2a2a35] bg-[#0f0f16]">
@@ -194,6 +219,12 @@ const SocialPostCard = memo(function SocialPostCard({
           <time dateTime={post.created_at} suppressHydrationWarning>
             {formatPostDate(post.created_at, locale)}
           </time>
+          {edited && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span title={formatPostDate(post.updated_at, locale)}>{t("editedBadge")}</span>
+            </>
+          )}
         </div>
       </div>
     </>
@@ -210,7 +241,7 @@ const SocialPostCard = memo(function SocialPostCard({
           <div className="flex min-w-0 items-center gap-3">{authorContent}</div>
         )}
 
-        {canDelete && (
+        {canManage && (
           <div ref={actionMenuRef} className="relative shrink-0">
             <button
               type="button"
@@ -224,6 +255,17 @@ const SocialPostCard = memo(function SocialPostCard({
 
             {menuOpen && (
               <div className="absolute right-0 top-[calc(100%+8px)] z-20 w-44 overflow-hidden rounded border border-[#2a2a35] bg-[#0f0f16] p-1 shadow-2xl shadow-black/50">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditOpen(true);
+                    setMenuOpen(false);
+                  }}
+                  className="flex h-10 w-full items-center gap-2 rounded px-3 text-left text-sm font-bold text-[#d1d5db] transition-colors hover:bg-[#f49e0b]/10 hover:text-white"
+                >
+                  <PencilIcon className="size-4" />
+                  {t("editPost")}
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -250,7 +292,17 @@ const SocialPostCard = memo(function SocialPostCard({
         )}
       </div>
 
-      <SocialPostImages imageLayout={post.image_layout} images={post.images} />
+      <SocialPostImages
+        getImageAriaLabel={(index) =>
+          t("openImageViewer", {
+            count: post.images.length,
+            index: index + 1,
+          })
+        }
+        imageLayout={post.image_layout}
+        images={post.images}
+        onImageClick={setImageViewerIndex}
+      />
 
       <div className="px-4 sm:px-5">
         <SocialPostAnime anime={post.anime} />
@@ -266,7 +318,12 @@ const SocialPostCard = memo(function SocialPostCard({
             onClick={handleToggleLike}
             pressed={likeState.liked}
           />
-          <SocialPostActionButton icon={MessageCircleIcon} label={t("commentPost")} />
+          <SocialPostActionButton
+            count={post.comment_count}
+            icon={MessageCircleIcon}
+            label={t("commentPost")}
+            onClick={() => setCommentsOpen(true)}
+          />
           <SocialPostActionButton icon={Share2Icon} label={t("sharePost")} />
         </div>
         <SocialPostActionButton icon={BookmarkIcon} label={t("savePost")} />
@@ -301,6 +358,34 @@ const SocialPostCard = memo(function SocialPostCard({
             </div>
           </div>
         </div>
+      )}
+
+      {editOpen && (
+        <SocialPostEditorModal
+          editPost={post}
+          onClose={() => setEditOpen(false)}
+          onUpdated={handleUpdatedPost}
+        />
+      )}
+
+      {commentsOpen && (
+        <SocialPostCommentsModal
+          currentUserId={currentUserId}
+          onClose={() => setCommentsOpen(false)}
+          post={post}
+        />
+      )}
+
+      {imageViewerIndex !== null && (
+        <SocialPostImageViewer
+          currentUserId={currentUserId}
+          initialImageIndex={imageViewerIndex}
+          isLiking={isLiking}
+          likeState={likeState}
+          onClose={() => setImageViewerIndex(null)}
+          onToggleLike={handleToggleLike}
+          post={post}
+        />
       )}
     </article>
   );

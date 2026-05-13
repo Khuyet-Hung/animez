@@ -100,6 +100,10 @@ interface ProfilePostLikeSummary {
   likedByCurrentUser: boolean;
 }
 
+interface ProfilePostCommentRow {
+  post_id: string;
+}
+
 interface ProfilePostRow {
   id: string;
   caption: string;
@@ -129,6 +133,14 @@ function isMissingLikesTableError(error: { code?: string; message?: string } | n
   return (
     error?.code === "42P01" ||
     error?.message?.toLowerCase().includes("social_post_likes") ||
+    false
+  );
+}
+
+function isMissingCommentsTableError(error: { code?: string; message?: string } | null) {
+  return (
+    error?.code === "42P01" ||
+    error?.message?.toLowerCase().includes("social_post_comments") ||
     false
   );
 }
@@ -180,6 +192,27 @@ async function queryProfilePostLikes(postIds: string[]) {
   return (data ?? []) as ProfilePostLikeRow[];
 }
 
+async function queryProfilePostComments(postIds: string[]) {
+  if (postIds.length === 0) return [] as ProfilePostCommentRow[];
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("social_post_comments")
+    .select("post_id")
+    .in("post_id", postIds)
+    .is("deleted_at", null);
+
+  if (isMissingCommentsTableError(error)) {
+    return [] as ProfilePostCommentRow[];
+  }
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as ProfilePostCommentRow[];
+}
+
 function getLikeSummaries({
   currentUserId,
   likes,
@@ -211,10 +244,31 @@ function getLikeSummaries({
   return summaries;
 }
 
+function getCommentCounts({
+  comments,
+  postIds,
+}: {
+  comments: ProfilePostCommentRow[];
+  postIds: string[];
+}) {
+  const counts = new Map<string, number>();
+
+  for (const postId of postIds) {
+    counts.set(postId, 0);
+  }
+
+  for (const comment of comments) {
+    counts.set(comment.post_id, (counts.get(comment.post_id) ?? 0) + 1);
+  }
+
+  return counts;
+}
+
 function normalizeProfilePost(
   row: ProfilePostRow,
   author: SocialFeedAuthor,
-  likeSummary: ProfilePostLikeSummary | undefined
+  likeSummary: ProfilePostLikeSummary | undefined,
+  commentCount: number | undefined
 ): SocialFeedPost {
   return {
     id: row.id,
@@ -223,6 +277,7 @@ function normalizeProfilePost(
     image_layout: row.image_layout ?? "auto",
     like_count: likeSummary?.likeCount ?? 0,
     liked_by_current_user: likeSummary?.likedByCurrentUser ?? false,
+    comment_count: commentCount ?? 0,
     created_at: row.created_at,
     updated_at: row.updated_at,
     author,
@@ -269,7 +324,13 @@ async function fetchProfilePostsPage({
     likes: await queryProfilePostLikes(postIds),
     postIds,
   });
-  const items = rows.map((row) => normalizeProfilePost(row, author, likeSummaries.get(row.id)));
+  const commentCounts = getCommentCounts({
+    comments: await queryProfilePostComments(postIds),
+    postIds,
+  });
+  const items = rows.map((row) =>
+    normalizeProfilePost(row, author, likeSummaries.get(row.id), commentCounts.get(row.id))
+  );
   const loadedCount = offset + items.length;
 
   return {

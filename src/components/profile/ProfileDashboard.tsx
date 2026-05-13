@@ -22,6 +22,7 @@ import {
   updateProfileVisibilityAction,
 } from "@/app/[locale]/profile/actions";
 import { createClient } from "@/lib/supabase/client";
+import { optimizeImageFile } from "@/lib/images/client-optimization";
 import { PROFILE_AVATAR_UPDATED_EVENT } from "@/lib/profile/avatar-events";
 import {
   clampAnimeListProgress,
@@ -74,6 +75,10 @@ const INITIAL_PROFILE_AVATAR_STATE = {
 
 const ACCEPTED_AVATAR_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_AVATAR_FILE_SIZE = 3 * 1024 * 1024;
+const AVATAR_IMAGE_DIMENSION = 512;
+const AVATAR_IMAGE_TARGET_SIZE = 256 * 1024;
+const AVATAR_IMAGE_QUALITY = 0.84;
+const AVATAR_IMAGE_OUTPUT_TYPE = "image/webp";
 const PROFILE_LIST_PAGE_SIZE = 12;
 
 const STATUS_CHART_COLORS: Record<AnimeListStatus, string> = {
@@ -94,6 +99,17 @@ function formatScore(score: number) {
 
 function formatDate(value: string, locale: string) {
   return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }).format(new Date(value));
+}
+
+function optimizeAvatarImage(file: File) {
+  return optimizeImageFile(file, {
+    maxDimension: AVATAR_IMAGE_DIMENSION,
+    targetSize: AVATAR_IMAGE_TARGET_SIZE,
+    quality: AVATAR_IMAGE_QUALITY,
+    outputType: AVATAR_IMAGE_OUTPUT_TYPE,
+    resizeMode: "cover-square",
+    errorMessage: "Could not optimize avatar.",
+  });
 }
 
 function getProgressPercent(entry: PublicAnimeListEntry) {
@@ -682,6 +698,7 @@ function EditableProfileAvatar({
     INITIAL_PROFILE_AVATAR_STATE
   );
   const [clientError, setClientError] = useState<ProfileFieldErrorKey | null>(null);
+  const [avatarProcessing, setAvatarProcessing] = useState(false);
 
   useEffect(() => {
     if (state.status !== "success") return;
@@ -689,28 +706,48 @@ function EditableProfileAvatar({
     onAvatarUpdated(state.avatarUrl ?? null);
   }, [onAvatarUpdated, state.avatarUrl, state.status]);
 
-  function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.currentTarget.files?.[0];
+  async function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
     if (!file) return;
 
     if (!ACCEPTED_AVATAR_TYPES.has(file.type)) {
       setClientError("invalidAvatarFile");
-      event.currentTarget.value = "";
+      input.value = "";
       return;
     }
 
     if (file.size > MAX_AVATAR_FILE_SIZE) {
       setClientError("avatarTooLarge");
-      event.currentTarget.value = "";
+      input.value = "";
       return;
     }
 
     setClientError(null);
-    formRef.current?.requestSubmit();
+    setAvatarProcessing(true);
+
+    try {
+      const optimizedFile = await optimizeAvatarImage(file);
+
+      if (optimizedFile !== file && typeof DataTransfer !== "undefined") {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(optimizedFile);
+        input.files = dataTransfer.files;
+      }
+
+      formRef.current?.requestSubmit();
+    } catch (error) {
+      console.error("Failed to optimize profile avatar", error);
+      setClientError("avatarUploadFailed");
+      input.value = "";
+    } finally {
+      setAvatarProcessing(false);
+    }
   }
 
   const serverErrorKey = state.fieldErrors.avatar_url;
   const errorKey = clientError ?? serverErrorKey;
+  const busy = pending || avatarProcessing;
 
   return (
     <form ref={formRef} action={formAction} className="shrink-0">
@@ -728,7 +765,7 @@ function EditableProfileAvatar({
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        disabled={pending}
+        disabled={busy}
         className="group relative block size-[88px] rounded-full outline-none transition-transform hover:scale-[1.02] focus-visible:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70"
         aria-label={t("changeAvatar")}
         title={t("changeAvatar")}
@@ -736,7 +773,7 @@ function EditableProfileAvatar({
         <ProfileAvatar src={avatarSrc} name={displayName} />
         <span className="absolute inset-0 rounded-full bg-black/0 transition-colors group-hover:bg-black/45 group-focus-visible:bg-black/45" />
         <span className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-          {pending ? (
+          {busy ? (
             <Loader2Icon className="size-6 animate-spin text-white drop-shadow" />
           ) : (
             <PencilIcon className="size-6 text-white drop-shadow" />

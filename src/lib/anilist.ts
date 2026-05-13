@@ -1,29 +1,7 @@
-import { GraphQLClient } from "graphql-request";
+import "server-only";
 
 const ANILIST_URL = "https://graphql.anilist.co";
-const CACHE_TTL_MS = 5 * 60 * 1000;
-const MAX_CACHE_ENTRIES = 500;
-
-const rawClient = new GraphQLClient(ANILIST_URL, {
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
-});
-
-const cache = new Map<string, { data: unknown; expiresAt: number }>();
-
-function pruneCache(now: number) {
-  for (const [key, value] of cache) {
-    if (value.expiresAt <= now) cache.delete(key);
-  }
-
-  while (cache.size >= MAX_CACHE_ENTRIES) {
-    const oldestKey = cache.keys().next().value;
-    if (!oldestKey) break;
-    cache.delete(oldestKey);
-  }
-}
+export const ANILIST_CACHE_SECONDS = 10 * 60;
 
 async function requestWithRetry<T>(
   query: string,
@@ -31,32 +9,56 @@ async function requestWithRetry<T>(
   retries = 3,
   delayMs = 1000
 ): Promise<T> {
-  const cacheKey = JSON.stringify({ query, variables });
-  const now = Date.now();
-  pruneCache(now);
-
-  const cached = cache.get(cacheKey);
-  if (cached && cached.expiresAt > now) {
-    return cached.data as T;
-  }
-
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      const data = await rawClient.request<T>(query, variables);
-      cache.set(cacheKey, { data, expiresAt: Date.now() + CACHE_TTL_MS });
-      return data;
-    } catch (err: unknown) {
-      const status =
-        (err as { response?: { status?: number } })?.response?.status;
+      const response = await fetch(ANILIST_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ query, variables }),
+        next: {
+          revalidate: ANILIST_CACHE_SECONDS,
+        },
+      });
 
-      if (status === 429 && attempt < retries) {
-        const wait = delayMs * Math.pow(2, attempt);
-        console.warn(`AniList bị rate limit. Thử lại sau ${wait}ms...`);
-        await new Promise((r) => setTimeout(r, wait));
-        continue;
+      if (response.status === 429) {
+        const retryAfter = Number(response.headers.get("Retry-After"));
+        const wait = Number.isFinite(retryAfter)
+          ? Math.max(retryAfter * 1000, delayMs * Math.pow(2, attempt))
+          : delayMs * Math.pow(2, attempt);
+
+        if (attempt < retries) {
+          console.warn(`AniList bị rate limit. Thử lại sau ${wait}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, wait));
+          continue;
+        }
       }
 
-      throw err;
+      if (!response.ok) {
+        throw new Error(`AniList request failed with status ${response.status}`);
+      }
+
+      const result = (await response.json()) as {
+        data?: T;
+        errors?: { message?: string }[];
+      };
+
+      if (result.errors?.length) {
+        throw new Error(result.errors[0]?.message ?? "AniList GraphQL error");
+      }
+
+      if (!result.data) {
+        throw new Error("AniList response is missing data");
+      }
+
+      return result.data;
+    } catch (err: unknown) {
+      if (attempt >= retries) throw err;
+
+      const wait = delayMs * Math.pow(2, attempt);
+      await new Promise((resolve) => setTimeout(resolve, wait));
     }
   }
 

@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { defaultLocale, isAppLocale, localePathnamePattern } from "@/i18n/locales";
+import { ensureUserProfile } from "@/lib/profile/server";
 
 function getSafeNextPath(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
@@ -72,6 +73,18 @@ export async function GET(
   }
 
   if (!error) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      try {
+        await ensureUserProfile(supabase, user);
+      } catch (profileError) {
+        console.error("Failed to ensure user profile after auth callback", profileError);
+      }
+    }
+
     const hasLocale = localePathnamePattern.test(next);
     const redirectPath = hasLocale ? next : `/${locale}${next === "/" ? "" : next}`;
     return NextResponse.redirect(`${origin}${redirectPath}`);

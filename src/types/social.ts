@@ -38,6 +38,8 @@ export interface CreateSocialPostActionState {
   postId?: string;
 }
 
+export type UpdateSocialPostActionState = CreateSocialPostActionState;
+
 export interface DeleteSocialPostActionState {
   status: "success" | "error";
   messageKey: string;
@@ -50,6 +52,13 @@ export interface ToggleSocialPostLikeActionState {
   postId?: string;
   liked?: boolean;
   likeCount?: number;
+}
+
+export interface CreateSocialPostCommentActionState {
+  status: "success" | "error";
+  messageKey: string;
+  postId?: string;
+  commentId?: string;
 }
 
 export interface SocialFeedAuthor {
@@ -86,11 +95,23 @@ export interface SocialFeedPost {
   image_layout: SocialPostImageLayout;
   like_count: number;
   liked_by_current_user: boolean;
+  comment_count: number;
   created_at: string;
   updated_at: string;
   author: SocialFeedAuthor;
   anime: SocialFeedAnime[];
   images: SocialFeedImage[];
+}
+
+export interface SocialPostComment {
+  id: string;
+  post_id: string;
+  parent_id: string | null;
+  body: string;
+  created_at: string;
+  updated_at: string;
+  author: SocialFeedAuthor;
+  replies: SocialPostComment[];
 }
 
 export interface SocialFeedCursor {

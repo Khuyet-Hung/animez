@@ -1,4 +1,5 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
+import { getRandomDefaultAvatarUrl } from "@/lib/profile/default-avatars";
 import { sanitizeUsernameSeed } from "@/lib/profile/validators";
 import type { ProfileStats, PublicAnimeListEntry, UserProfile } from "@/types/profile";
 
@@ -54,6 +55,7 @@ export async function ensureUserProfile(supabase: SupabaseClient, user: User) {
 
   const displayName = getProfileDisplayName(user);
   const candidates = getDefaultUsernameCandidates(user);
+  const avatarUrl = getRandomDefaultAvatarUrl();
 
   for (const username of candidates) {
     const { data, error } = await supabase
@@ -62,6 +64,7 @@ export async function ensureUserProfile(supabase: SupabaseClient, user: User) {
         id: user.id,
         username,
         display_name: displayName,
+        avatar_url: avatarUrl,
       })
       .select("*")
       .single();

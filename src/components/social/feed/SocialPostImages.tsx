@@ -93,9 +93,13 @@ function getImageSizes(layout: ResolvedImageLayout, index: number) {
 export default function SocialPostImages({
   imageLayout = "auto",
   images,
+  getImageAriaLabel,
+  onImageClick,
 }: {
   imageLayout?: SocialPostImageLayout;
   images: SocialFeedImage[];
+  getImageAriaLabel?: (index: number) => string;
+  onImageClick?: (index: number) => void;
 }) {
   if (images.length === 0) return null;
 
@@ -105,26 +109,45 @@ export default function SocialPostImages({
 
   return (
     <div className={`grid gap-1 bg-[#0a0a0f] ${getGridClass(resolvedLayout, visibleImages.length)}`}>
-      {visibleImages.map((image, index) => (
-        <div
-          key={image.id}
-          className={`relative overflow-hidden bg-[#1a1a24] ${getImageClass(resolvedLayout, visibleImages.length, index)}`}
-        >
-          <Image
-            src={image.public_url}
-            alt=""
-            fill
-            sizes={getImageSizes(resolvedLayout, index)}
-            className="object-cover"
-            unoptimized
-          />
-          {remainingCount > 0 && index === visibleImages.length - 1 && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/65 text-2xl font-black text-white">
-              +{remainingCount}
-            </div>
-          )}
-        </div>
-      ))}
+      {visibleImages.map((image, index) => {
+        const imageContent = (
+          <>
+            <Image
+              src={image.public_url}
+              alt=""
+              fill
+              sizes={getImageSizes(resolvedLayout, index)}
+              className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              unoptimized
+            />
+            {remainingCount > 0 && index === visibleImages.length - 1 && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/65 text-2xl font-black text-white">
+                +{remainingCount}
+              </div>
+            )}
+          </>
+        );
+
+        return (
+          <div
+            key={image.id}
+            className={`relative overflow-hidden bg-[#1a1a24] ${getImageClass(resolvedLayout, visibleImages.length, index)}`}
+          >
+            {onImageClick ? (
+              <button
+                type="button"
+                aria-label={getImageAriaLabel?.(index) ?? `Ảnh ${index + 1}`}
+                onClick={() => onImageClick(index)}
+                className="group absolute inset-0 block size-full overflow-hidden text-left"
+              >
+                {imageContent}
+              </button>
+            ) : (
+              <div className="group absolute inset-0">{imageContent}</div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
