@@ -49,7 +49,6 @@ import {
   Loader2Icon,
   MoreHorizontalIcon,
   PencilIcon,
-  PlusIcon,
   SettingsIcon,
   StarIcon,
   Trash2Icon,
@@ -64,7 +63,7 @@ const STATUS_FILTERS = [
   "dropped",
 ] as const;
 
-type ContentTab = "list" | "posts" | "activity" | "settings";
+type ContentTab = "list" | "posts" | "settings";
 type StatusFilter = (typeof STATUS_FILTERS)[number];
 
 const INITIAL_PROFILE_AVATAR_STATE = {
@@ -192,7 +191,6 @@ function ProfileTabs({
   const tabs: { key: ContentTab; label: string }[] = [
     { key: "list", label: "Danh sách" },
     { key: "posts", label: "Bài đăng" },
-    { key: "activity", label: "Hoạt động" },
     { key: "settings", label: "Cài đặt hồ sơ" },
   ];
 
@@ -643,40 +641,6 @@ function OverviewCard({
   );
 }
 
-function ActivityCard({
-  entries,
-  locale,
-}: {
-  entries: PublicAnimeListEntry[];
-  locale: string;
-}) {
-  const activityEntries = entries.slice(0, 8);
-
-  return (
-    <section className="rounded border border-[#1a1a24] bg-[#111118] p-5">
-      <p className="text-xs font-bold uppercase tracking-normal text-[#5f6472]">Hoạt động gần đây</p>
-      <div className="mt-4 divide-y divide-[#1a1a24]">
-        {activityEntries.map((entry, index) => (
-          <div key={`${entry.anime_id}-${index}`} className="flex gap-3 py-3 first:pt-0 last:pb-0">
-            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#1a1a24] text-[#f49e0b]">
-              <PlusIcon className="size-3" />
-            </div>
-            <div className="min-w-0 text-sm leading-5 text-white">
-              <p className="line-clamp-2">
-                {index === 0 ? "Cập nhật" : "Thêm"}{" "}
-                <span className="font-black text-[#f49e0b]">{getEntryTitle(entry)}</span>
-              </p>
-              <p className="mt-1 text-xs font-semibold text-[#5f6472]">
-                {formatDate(entry.updated_at, locale)}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 function EditableProfileAvatar({
   avatarSrc,
   currentAvatarUrl,
@@ -1095,8 +1059,6 @@ export default function ProfileDashboard({
 
             {activeTab === "posts" && <ProfilePostsList profile={{ ...profile, avatar_url: profileAvatarUrl }} />}
 
-            {activeTab === "activity" && <ActivityCard entries={dashboardEntries} locale={locale} />}
-
             {activeTab === "settings" && (
               <div className="rounded border border-[#1a1a24] bg-[#0d0d14] px-5 py-5 md:px-6">
                 <div className="mb-5 flex items-center gap-2">
@@ -1113,7 +1075,6 @@ export default function ProfileDashboard({
 
           <div className="hidden space-y-5 xl:block">
             <OverviewCard stats={stats} labels={labels.stats} />
-            <ActivityCard entries={dashboardEntries.slice(0, 4)} locale={locale} />
           </div>
         </div>
       </div>

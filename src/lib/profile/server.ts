@@ -65,6 +65,7 @@ export async function ensureUserProfile(supabase: SupabaseClient, user: User) {
         username,
         display_name: displayName,
         avatar_url: avatarUrl,
+        is_public: true,
       })
       .select("*")
       .single();

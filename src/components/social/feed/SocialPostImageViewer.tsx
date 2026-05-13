@@ -23,7 +23,7 @@ import { useToast } from "@/components/common/ToastProvider";
 import SocialPostAnime from "@/components/social/feed/SocialPostAnime";
 import { useSocialPostComments } from "@/hooks/useSocialPostComments";
 import { createSocialPostCommentAction } from "@/lib/social/actions";
-import type { SocialFeedAuthor, SocialFeedPost, SocialPostComment } from "@/types/social";
+import type { SocialFeedAuthor, SocialFeedPostBase, SocialPostComment } from "@/types/social";
 
 const COMMENT_MAX_LENGTH = 1000;
 const EMPTY_COMMENTS: SocialPostComment[] = [];
@@ -207,7 +207,7 @@ export default function SocialPostImageViewer({
   likeState: SocialPostLikeState;
   onClose: () => void;
   onToggleLike: () => void;
-  post: SocialFeedPost;
+  post: SocialFeedPostBase;
 }) {
   const locale = useLocale();
   const t = useTranslations("feed");

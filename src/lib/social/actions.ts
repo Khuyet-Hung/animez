@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
   getSocialPostImageFiles,
+  SOCIAL_POST_CAPTION_MAX_LENGTH,
   validateCreateSocialPostInput,
   validateSocialPostImages,
 } from "@/lib/social/validators";
@@ -12,10 +13,16 @@ import {
   uploadSocialPostImage,
   type UploadedSocialPostImage,
 } from "@/lib/social/r2";
+import {
+  moderateSocialPostText,
+  moderateSocialText,
+  type SocialTextModerationResult,
+} from "@/lib/social/moderation";
 import type {
   CreateSocialPostCommentActionState,
   CreateSocialPostActionState,
   DeleteSocialPostActionState,
+  ShareSocialPostActionState,
   SocialPostAnimeDraft,
   ToggleSocialPostLikeActionState,
   UpdateSocialPostActionState,
@@ -49,6 +56,18 @@ interface SocialPostInsertPayload {
   visibility: "public";
 }
 
+function getModerationFieldErrors(result: SocialTextModerationResult): Partial<Record<"caption" | "description", string>> {
+  if (result.ok) return {};
+
+  return result.violations.reduce<Partial<Record<"caption" | "description", string>>>((errors, violation) => {
+    if (violation.field === "caption" || violation.field === "description") {
+      errors[violation.field] = "moderationBlocked";
+    }
+
+    return errors;
+  }, {});
+}
+
 function logSocialPostActionError(stage: string, error: unknown, context?: Record<string, unknown>) {
   console.error(`[createSocialPostAction] ${stage}`, {
     error,
@@ -79,6 +98,13 @@ function logToggleSocialPostLikeActionError(stage: string, error: unknown, conte
 
 function logCreateSocialPostCommentActionError(stage: string, error: unknown, context?: Record<string, unknown>) {
   console.error(`[createSocialPostCommentAction] ${stage}`, {
+    error,
+    ...context,
+  });
+}
+
+function logShareSocialPostActionError(stage: string, error: unknown, context?: Record<string, unknown>) {
+  console.error(`[shareSocialPostAction] ${stage}`, {
     error,
     ...context,
   });
@@ -234,6 +260,19 @@ export async function createSocialPostAction(
     };
   }
 
+  const moderationResult = moderateSocialPostText({
+    caption: input.value.caption,
+    description: input.value.description,
+  });
+
+  if (!moderationResult.ok) {
+    return {
+      status: "error",
+      messageKey: "validationFailed",
+      fieldErrors: getModerationFieldErrors(moderationResult),
+    };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -381,6 +420,19 @@ export async function updateSocialPostAction(
     };
   }
 
+  const moderationResult = moderateSocialPostText({
+    caption: input.value.caption,
+    description: input.value.description,
+  });
+
+  if (!moderationResult.ok) {
+    return {
+      status: "error",
+      messageKey: "validationFailed",
+      fieldErrors: getModerationFieldErrors(moderationResult),
+    };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -474,6 +526,91 @@ export async function updateSocialPostAction(
   revalidatePath(`/${locale}/anime/${input.value.primaryAnime.anime_id}`);
   revalidatePath(`/${locale}/feed`);
   revalidatePath(`/${locale}/profile`);
+
+  return {
+    status: "success",
+    messageKey: "updated",
+    fieldErrors: {},
+    postId,
+  };
+}
+
+export async function updateSocialPostShareAction(
+  postId: string,
+  caption = ""
+): Promise<UpdateSocialPostActionState> {
+  if (!UUID_PATTERN.test(postId)) {
+    return INITIAL_UPDATE_ERROR_STATE;
+  }
+
+  const trimmedCaption = caption.trim();
+  if (trimmedCaption.length > SOCIAL_POST_CAPTION_MAX_LENGTH) {
+    return {
+      status: "error",
+      messageKey: "shareCaptionTooLong",
+      fieldErrors: { caption: "captionTooLong" },
+    };
+  }
+
+  if (!moderateSocialText(trimmedCaption, "caption").ok) {
+    return {
+      status: "error",
+      messageKey: "shareModerationBlocked",
+      fieldErrors: { caption: "moderationBlocked" },
+    };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      status: "error",
+      messageKey: "shareLoginRequired",
+      fieldErrors: {},
+    };
+  }
+
+  const { data: post, error: postError } = await supabase
+    .from("social_posts")
+    .select("id, shared_post_id")
+    .eq("id", postId)
+    .eq("user_id", user.id)
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (postError || !post || !(post as { shared_post_id: string | null }).shared_post_id) {
+    logUpdateSocialPostActionError("Failed to find owned shared social post", postError, {
+      postId,
+      userId: user.id,
+    });
+
+    return {
+      status: "error",
+      messageKey: "updateNotAllowed",
+      fieldErrors: {},
+    };
+  }
+
+  const { error: updateError } = await supabase
+    .from("social_posts")
+    .update({ caption: trimmedCaption })
+    .eq("id", postId)
+    .eq("user_id", user.id);
+
+  if (updateError) {
+    logUpdateSocialPostActionError("Failed to update shared social post caption", updateError, {
+      postId,
+      userId: user.id,
+    });
+
+    return INITIAL_UPDATE_ERROR_STATE;
+  }
+
+  revalidatePath("/feed");
+  revalidatePath("/profile");
 
   return {
     status: "success",
@@ -646,6 +783,126 @@ export async function toggleSocialPostLikeAction(postId: string): Promise<Toggle
   };
 }
 
+export async function shareSocialPostAction(postId: string, caption = ""): Promise<ShareSocialPostActionState> {
+  if (!UUID_PATTERN.test(postId)) {
+    return {
+      status: "error",
+      messageKey: "shareFailed",
+    };
+  }
+
+  const trimmedCaption = caption.trim();
+  if (trimmedCaption.length > SOCIAL_POST_CAPTION_MAX_LENGTH) {
+    return {
+      status: "error",
+      messageKey: "shareCaptionTooLong",
+    };
+  }
+
+  if (!moderateSocialText(trimmedCaption, "caption").ok) {
+    return {
+      status: "error",
+      messageKey: "shareModerationBlocked",
+    };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      status: "error",
+      messageKey: "shareLoginRequired",
+    };
+  }
+
+  const { data: post, error: postError } = await supabase
+    .from("social_posts")
+    .select("id, user_id, shared_post_id")
+    .eq("id", postId)
+    .eq("visibility", "public")
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (postError || !post) {
+    logShareSocialPostActionError("Failed to find readable social post", postError, {
+      postId,
+      userId: user.id,
+    });
+
+    return {
+      status: "error",
+      messageKey: "shareFailed",
+    };
+  }
+
+  const sourcePost = post as { id: string; user_id: string; shared_post_id: string | null };
+  const originalPostId = sourcePost.shared_post_id ?? sourcePost.id;
+  const { data: originalPost, error: originalPostError } = await supabase
+    .from("social_posts")
+    .select("id, user_id")
+    .eq("id", originalPostId)
+    .eq("visibility", "public")
+    .is("deleted_at", null)
+    .maybeSingle();
+
+  if (originalPostError || !originalPost) {
+    logShareSocialPostActionError("Failed to find original social post", originalPostError, {
+      postId,
+      originalPostId,
+      userId: user.id,
+    });
+
+    return {
+      status: "error",
+      messageKey: "shareFailed",
+    };
+  }
+
+  if ((originalPost as { user_id: string }).user_id === user.id) {
+    return {
+      status: "error",
+      messageKey: "shareOwnPostNotAllowed",
+    };
+  }
+
+  const { data: sharedPost, error: shareError } = await supabase
+    .from("social_posts")
+    .insert({
+      user_id: user.id,
+      caption: trimmedCaption,
+      description: "",
+      visibility: "public",
+      shared_post_id: originalPostId,
+    })
+    .select("id")
+    .single();
+
+  if (shareError || !sharedPost) {
+    logShareSocialPostActionError("Failed to insert shared social post", shareError, {
+      postId,
+      originalPostId,
+      userId: user.id,
+    });
+
+    return {
+      status: "error",
+      messageKey: "shareFailed",
+    };
+  }
+
+  revalidatePath("/feed");
+  revalidatePath("/profile");
+
+  return {
+    status: "success",
+    messageKey: "shared",
+    postId: (sharedPost as { id: string }).id,
+  };
+}
+
 export async function createSocialPostCommentAction(
   postId: string,
   body: string,
@@ -670,6 +927,13 @@ export async function createSocialPostCommentAction(
     return {
       status: "error",
       messageKey: "commentTooLong",
+    };
+  }
+
+  if (!moderateSocialText(trimmedBody, "body").ok) {
+    return {
+      status: "error",
+      messageKey: "commentModerationBlocked",
     };
   }
 

@@ -6,6 +6,7 @@ import type {
   SocialFeedImage,
   SocialFeedPage,
   SocialFeedPost,
+  SocialSharedPost,
 } from "@/types/social";
 
 const DEFAULT_LIMIT = 12;
@@ -21,11 +22,17 @@ interface SocialFeedRpcRow {
   like_count?: number | null;
   liked_by_current_user?: boolean | null;
   comment_count?: number | null;
+  share_count?: number | null;
   created_at: string;
   updated_at: string;
   author: SocialFeedAuthor;
   anime: SocialFeedAnime[];
   images: SocialFeedImage[];
+  shared_post?: SocialFeedRpcSharedPost | null;
+}
+
+interface SocialFeedRpcSharedPost extends Omit<SocialFeedRpcRow, "shared_post"> {
+  shared_post?: null;
 }
 
 function clampLimit(value: string | null) {
@@ -51,7 +58,9 @@ function getCursor(searchParams: URLSearchParams) {
   return { cursorCreatedAt: cursorDate.toISOString(), cursorId };
 }
 
-function normalizePost(row: SocialFeedRpcRow): SocialFeedPost {
+function normalizeSharedPost(row: Omit<SocialFeedRpcRow, "shared_post"> | null | undefined): SocialSharedPost | null {
+  if (!row) return null;
+
   return {
     id: row.id,
     caption: row.caption,
@@ -60,11 +69,21 @@ function normalizePost(row: SocialFeedRpcRow): SocialFeedPost {
     like_count: row.like_count ?? 0,
     liked_by_current_user: row.liked_by_current_user ?? false,
     comment_count: row.comment_count ?? 0,
+    share_count: row.share_count ?? 0,
     created_at: row.created_at,
     updated_at: row.updated_at,
     author: row.author,
     anime: row.anime,
     images: row.images,
+  };
+}
+
+function normalizePost(row: SocialFeedRpcRow): SocialFeedPost {
+  const normalized = normalizeSharedPost(row)!;
+
+  return {
+    ...normalized,
+    shared_post: normalizeSharedPost(row.shared_post),
   };
 }
 

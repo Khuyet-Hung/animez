@@ -383,6 +383,7 @@ export function SocialPostEditorModal({
 }) {
   const t = useTranslations("social");
   const locale = useLocale();
+  const { showToast } = useToast();
   const isEditing = Boolean(editPost);
   const action = isEditing ? updateSocialPostAction : createSocialPostAction;
   const [state, formAction, actionPending] = useActionState(action, INITIAL_ACTION_STATE);
@@ -406,17 +407,30 @@ export function SocialPostEditorModal({
   );
   const [descriptionOpen, setDescriptionOpen] = useState(() => Boolean(editPost?.description));
   const [activePicker, setActivePicker] = useState<ActiveAnimePicker | null>(null);
-  const [localErrorKey, setLocalErrorKey] = useState<string | null>(null);
   const [imageProcessing, setImageProcessing] = useState(false);
   const [images, setImages] = useState<SelectedImage[]>([]);
   const imagesRef = useRef<SelectedImage[]>([]);
+  const lastActionErrorSignature = useRef<string | null>(null);
   const pending = actionPending || isDispatching;
   const actionErrorMessage =
     state.status === "error"
       ? getActionErrorMessage(t, state.fieldErrors, state.messageKey, state.fieldErrorValues)
       : null;
-  const errorMessage = localErrorKey ? t(`errors.${localErrorKey}`) : actionErrorMessage;
+  const actionErrorSignature =
+    state.status === "error"
+      ? JSON.stringify([state.messageKey, state.fieldErrors, state.fieldErrorValues ?? null])
+      : null;
   const imageLayout = editPost ? editPost.image_layout : getDefaultSocialPostImageLayout(images.length);
+
+  const showErrorToast = useCallback(
+    (errorKey: string) => {
+      showToast({
+        title: t(`errors.${errorKey}`),
+        variant: "error",
+      });
+    },
+    [showToast, t]
+  );
 
   useEffect(() => {
     if (state.status === "success") {
@@ -428,6 +442,22 @@ export function SocialPostEditorModal({
       onClose();
     }
   }, [isEditing, onClose, onPublished, onUpdated, state.status]);
+
+  useEffect(() => {
+    if (state.status !== "error") {
+      lastActionErrorSignature.current = null;
+      return;
+    }
+
+    if (!actionErrorMessage || !actionErrorSignature) return;
+    if (lastActionErrorSignature.current === actionErrorSignature) return;
+
+    lastActionErrorSignature.current = actionErrorSignature;
+    showToast({
+      title: actionErrorMessage,
+      variant: "error",
+    });
+  }, [actionErrorMessage, actionErrorSignature, showToast, state.status]);
 
   useEffect(() => {
     imagesRef.current = images;
@@ -446,7 +476,7 @@ export function SocialPostEditorModal({
 
     const imageError = getImageSelectionError(selectedFiles, images.length);
     if (imageError) {
-      setLocalErrorKey(imageError);
+      showErrorToast(imageError);
       input.value = "";
       return;
     }
@@ -464,11 +494,10 @@ export function SocialPostEditorModal({
         url: URL.createObjectURL(file),
       }));
 
-      setLocalErrorKey(null);
       setImages((current) => [...current, ...nextImages]);
     } catch (error) {
       console.error("Failed to optimize social post images", error);
-      setLocalErrorKey("uploadFailed");
+      showErrorToast("uploadFailed");
     } finally {
       setImageProcessing(false);
       input.value = "";
@@ -493,7 +522,7 @@ export function SocialPostEditorModal({
     event.preventDefault();
 
     if (!primaryAnime) {
-      setLocalErrorKey("primaryAnimeRequired");
+      showErrorToast("primaryAnimeRequired");
       setActivePicker("primary");
       return;
     }
@@ -504,7 +533,7 @@ export function SocialPostEditorModal({
         0
       );
       if (imageError) {
-        setLocalErrorKey(imageError);
+        showErrorToast(imageError);
         return;
       }
     }
@@ -520,6 +549,7 @@ export function SocialPostEditorModal({
       images.forEach((image) => formData.append("images", image.file));
     }
 
+    lastActionErrorSignature.current = null;
     startTransition(() => {
       formAction(formData);
     });
@@ -547,7 +577,6 @@ export function SocialPostEditorModal({
     if (activePicker === "primary") {
       setPrimaryAnime(nextAnime);
       setSupportingAnime((current) => current.filter((item) => item.anime_id !== nextAnime.anime_id));
-      setLocalErrorKey(null);
       setActivePicker(null);
       return;
     }
@@ -788,11 +817,6 @@ export function SocialPostEditorModal({
                 </section>
               )}
 
-              {errorMessage && (
-                <p className="rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-300">
-                  {errorMessage}
-                </p>
-              )}
             </div>
           </div>
 

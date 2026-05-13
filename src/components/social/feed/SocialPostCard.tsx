@@ -1,9 +1,8 @@
 "use client";
 
-import { memo, useEffect, useRef, useState, useTransition } from "react";
+import { memo, useCallback, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import Image from "next/image";
 import {
-  BookmarkIcon,
   ClockIcon,
   EllipsisIcon,
   HeartIcon,
@@ -13,6 +12,7 @@ import {
   Share2Icon,
   Trash2Icon,
   UserCircleIcon,
+  XIcon,
   type LucideIcon,
 } from "lucide-react";
 import clsx from "clsx";
@@ -25,13 +25,20 @@ import SocialPostAnime from "@/components/social/feed/SocialPostAnime";
 import SocialPostCommentsModal from "@/components/social/feed/SocialPostCommentsModal";
 import SocialPostImageViewer from "@/components/social/feed/SocialPostImageViewer";
 import SocialPostImages from "@/components/social/feed/SocialPostImages";
-import { deleteSocialPostAction, toggleSocialPostLikeAction } from "@/lib/social/actions";
-import type { SocialFeedPost } from "@/types/social";
+import {
+  deleteSocialPostAction,
+  shareSocialPostAction,
+  toggleSocialPostLikeAction,
+  updateSocialPostShareAction,
+} from "@/lib/social/actions";
+import type { SocialFeedAuthor, SocialFeedPost, SocialFeedPostBase } from "@/types/social";
 
 interface SocialPostLikeState {
   count: number;
   liked: boolean;
 }
+
+const SHARE_CAPTION_MAX_LENGTH = 280;
 
 function formatPostDate(value: string, locale: string) {
   const date = new Date(value);
@@ -43,7 +50,7 @@ function formatPostDate(value: string, locale: string) {
   }).format(date);
 }
 
-function getAuthorName(post: SocialFeedPost, fallbackName: string) {
+function getAuthorName(post: SocialFeedPostBase, fallbackName: string) {
   return post.author.display_name || post.author.username || fallbackName;
 }
 
@@ -87,6 +94,215 @@ function SocialPostActionButton({
   );
 }
 
+function SocialPostActionStat({
+  count,
+  icon: Icon,
+  label,
+}: {
+  count: number;
+  icon: LucideIcon;
+  label: string;
+}) {
+  return (
+    <div
+      aria-label={label}
+      className="inline-flex h-9 min-w-10 items-center justify-center rounded border border-[#2a2a35] px-3 text-sm font-black tabular-nums text-[#d1d5db]"
+    >
+      <Icon className="size-4 shrink-0" />
+      <span className="ml-1.5 min-w-3">{count}</span>
+    </div>
+  );
+}
+
+const SharedPostPreview = memo(function SharedPostPreview({
+  onImageClick,
+  post,
+}: {
+  onImageClick?: (index: number) => void;
+  post: SocialFeedPostBase;
+}) {
+  const locale = useLocale();
+  const t = useTranslations("feed");
+  const authorName = getAuthorName(post, t("unknownAuthor"));
+  const authorContent = (
+    <>
+      <div className="relative size-9 shrink-0 overflow-hidden rounded-full border border-[#2a2a35] bg-[#111118]">
+        {post.author.avatar_url ? (
+          <Image src={post.author.avatar_url} alt={authorName} fill sizes="36px" className="object-cover" unoptimized />
+        ) : (
+          <div className="flex size-full items-center justify-center text-[#6b7280]">
+            <UserCircleIcon className="size-5" />
+          </div>
+        )}
+      </div>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-black text-white">{authorName}</p>
+        <time dateTime={post.created_at} className="mt-0.5 block text-xs font-bold text-[#6b7280]" suppressHydrationWarning>
+          {formatPostDate(post.created_at, locale)}
+        </time>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="px-4 pb-4 sm:px-5">
+      <article className="overflow-hidden rounded-lg border border-[#2a2a35] bg-[#0f0f16]">
+        <div className="flex min-w-0 items-center gap-3 px-3 py-3 sm:px-4">
+          {post.author.username ? (
+            <Link href={`/u/${post.author.username}`} className="flex min-w-0 items-center gap-3">
+              {authorContent}
+            </Link>
+          ) : (
+            authorContent
+          )}
+        </div>
+
+        {(post.caption || post.description) && (
+          <div className="px-3 pb-3 sm:px-4">
+            {post.caption && (
+              <h3 className="whitespace-pre-wrap break-words text-sm font-black leading-6 text-white">
+                {post.caption}
+              </h3>
+            )}
+            {post.description && (
+              <p className="mt-1 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-[#cbd5e1]">
+                {post.description}
+              </p>
+            )}
+          </div>
+        )}
+
+        <SocialPostImages
+          getImageAriaLabel={(index) =>
+            t("openOriginalImageViewer", {
+              count: post.images.length,
+              index: index + 1,
+            })
+          }
+          imageLayout={post.image_layout}
+          images={post.images}
+          onImageClick={onImageClick}
+        />
+
+        <div className="px-3 sm:px-4">
+          <SocialPostAnime anime={post.anime} />
+        </div>
+      </article>
+    </div>
+  );
+});
+
+function SharePostModal({
+  actor,
+  initialCaption = "",
+  isPending,
+  mode,
+  onClose,
+  onSubmit,
+  post,
+}: {
+  actor?: SocialFeedAuthor;
+  initialCaption?: string;
+  isPending: boolean;
+  mode: "create" | "edit";
+  onClose: () => void;
+  onSubmit: (caption: string) => void;
+  post: SocialFeedPostBase;
+}) {
+  const t = useTranslations("feed");
+  const [caption, setCaption] = useState(initialCaption);
+  const captionLength = caption.trim().length;
+  const captionTooLong = captionLength > SHARE_CAPTION_MAX_LENGTH;
+  const isEditing = mode === "edit";
+  const actorName = actor?.display_name || actor?.username || t("shareAsCurrentUser");
+  const actorContent = (
+    <>
+      <div className="relative size-10 shrink-0 overflow-hidden rounded-full border border-[#2a2a35] bg-[#0f0f16] text-[#6b7280]">
+        {actor?.avatar_url ? (
+          <Image src={actor.avatar_url} alt={actorName} fill sizes="40px" className="object-cover" unoptimized />
+        ) : (
+          <div className="flex size-full items-center justify-center">
+            <UserCircleIcon className="size-6" />
+          </div>
+        )}
+      </div>
+      <p className="min-w-0 truncate text-sm font-black text-white">{actorName}</p>
+    </>
+  );
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isPending || captionTooLong) return;
+
+    onSubmit(caption);
+  }
+
+  return (
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+      <form
+        onSubmit={handleSubmit}
+        className="flex max-h-[min(720px,calc(100vh-32px))] w-full max-w-xl flex-col overflow-hidden rounded-lg border border-[#2a2a35] bg-[#111118] shadow-2xl shadow-black/60"
+      >
+        <div className="relative flex h-14 items-center justify-center border-b border-[#2a2a35] px-12">
+          <h2 className="truncate text-lg font-black text-white">{t(isEditing ? "editShareTitle" : "shareModalTitle")}</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isPending}
+            className="absolute right-3 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-[#171720] text-[#d1d5db] transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+            aria-label={t("closeShareModal")}
+          >
+            <XIcon className="size-5" />
+          </button>
+        </div>
+
+        <div className="min-h-0 overflow-y-auto">
+          <div className="flex items-center gap-3 px-4 py-4 sm:px-5">
+            {actor?.username ? (
+              <Link href={`/u/${actor.username}`} className="flex min-w-0 items-center gap-3">
+                {actorContent}
+              </Link>
+            ) : (
+              actorContent
+            )}
+          </div>
+
+          <div className="px-4 sm:px-5">
+            <textarea
+              value={caption}
+              onChange={(event) => setCaption(event.target.value)}
+              disabled={isPending}
+              rows={4}
+              placeholder={t("shareCaptionPlaceholder")}
+              className="block max-h-40 min-h-24 w-full resize-none border-0 bg-transparent p-0 text-base font-semibold leading-7 text-white outline-none placeholder:text-[#9ca3af] disabled:cursor-not-allowed disabled:opacity-70"
+            />
+            <div className="mt-2 flex justify-end">
+              <span className={clsx("text-xs font-bold tabular-nums", captionTooLong ? "text-red-300" : "text-[#6b7280]")}>
+                {captionLength}/{SHARE_CAPTION_MAX_LENGTH}
+              </span>
+            </div>
+          </div>
+
+          <div className="pt-1">
+            <SharedPostPreview post={post} />
+          </div>
+        </div>
+
+        <div className="flex justify-end border-t border-[#2a2a35] px-4 py-3 sm:px-5">
+          <button
+            type="submit"
+            disabled={isPending || captionTooLong}
+            className="inline-flex h-10 min-w-28 items-center justify-center gap-2 rounded-lg border border-[#f49e0b]/45 bg-[#f49e0b] px-5 text-sm font-black text-[#111118] transition-colors hover:border-[#fbbf24] hover:bg-[#fbbf24] disabled:cursor-not-allowed disabled:border-[#2a2a35] disabled:bg-[#242434] disabled:text-[#6b7280]"
+          >
+            {isPending && <Loader2Icon className="size-4 animate-spin" />}
+            {isPending ? t(isEditing ? "updatingShare" : "sharing") : t(isEditing ? "updateShare" : "shareNow")}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 const SocialPostCard = memo(function SocialPostCard({
   currentUserId,
   post,
@@ -103,16 +319,30 @@ const SocialPostCard = memo(function SocialPostCard({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [imageViewerIndex, setImageViewerIndex] = useState<number | null>(null);
+  const [sharedImageViewerIndex, setSharedImageViewerIndex] = useState<number | null>(null);
   const [optimisticLikeState, setOptimisticLikeState] = useState<SocialPostLikeState | null>(null);
+  const [sharedOptimisticLikeState, setSharedOptimisticLikeState] = useState<SocialPostLikeState | null>(null);
   const [isDeleting, startDeleteTransition] = useTransition();
   const [isLiking, startLikeTransition] = useTransition();
+  const [isSharedLiking, startSharedLikeTransition] = useTransition();
+  const [isSharing, startShareTransition] = useTransition();
+  const [isUpdatingShare, startUpdateShareTransition] = useTransition();
   const canManage = currentUserId === post.author.user_id;
+  const originalPostAuthorId = post.shared_post?.author.user_id ?? post.author.user_id;
+  const canShare = !currentUserId || (currentUserId !== post.author.user_id && currentUserId !== originalPostAuthorId);
+  const shouldShowShareAction = canShare;
+  const shouldShowShareCountOnly = !shouldShowShareAction && post.share_count > 0;
   const authorName = getAuthorName(post, t("unknownAuthor"));
   const edited = hasPostBeenEdited(post);
   const likeState = optimisticLikeState ?? {
     count: post.like_count,
     liked: post.liked_by_current_user,
+  };
+  const sharedLikeState = sharedOptimisticLikeState ?? {
+    count: post.shared_post?.like_count ?? 0,
+    liked: post.shared_post?.liked_by_current_user ?? false,
   };
 
   useEffect(() => {
@@ -190,6 +420,113 @@ const SocialPostCard = memo(function SocialPostCard({
       ]);
     });
   }
+
+  function handleToggleSharedLike() {
+    if (!post.shared_post) return;
+
+    if (!currentUserId) {
+      showToast({
+        title: t("likeLoginRequiredTitle"),
+        description: t("likeLoginRequired"),
+      });
+      return;
+    }
+
+    const previousState = sharedLikeState;
+    const nextLiked = !previousState.liked;
+    setSharedOptimisticLikeState({
+      count: Math.max(0, previousState.count + (nextLiked ? 1 : -1)),
+      liked: nextLiked,
+    });
+
+    startSharedLikeTransition(async () => {
+      const result = await toggleSocialPostLikeAction(post.shared_post!.id);
+
+      if (result.status === "error") {
+        setSharedOptimisticLikeState(previousState);
+        showToast({
+          title: t("likeFailedTitle"),
+          description: t(result.messageKey),
+        });
+        return;
+      }
+
+      setSharedOptimisticLikeState({
+        count: result.likeCount ?? 0,
+        liked: result.liked ?? false,
+      });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["social-feed"] }),
+        queryClient.invalidateQueries({ queryKey: ["profile-posts"] }),
+      ]);
+    });
+  }
+
+  const handleOpenShareModal = useCallback(() => {
+    if (!currentUserId) {
+      showToast({
+        title: t("shareLoginRequiredTitle"),
+        description: t("shareLoginRequired"),
+      });
+      return;
+    }
+
+    if (!canShare) {
+      showToast({
+        title: t("shareFailedTitle"),
+        description: t("shareOwnPostNotAllowed"),
+      });
+      return;
+    }
+
+    setShareOpen(true);
+  }, [canShare, currentUserId, showToast, t]);
+
+  const handleSharePost = useCallback((caption: string) => {
+    startShareTransition(async () => {
+      const result = await shareSocialPostAction(post.id, caption);
+
+      if (result.status === "error") {
+        showToast({
+          title: t("shareFailedTitle"),
+          description: t(result.messageKey ?? "updateFailed"),
+        });
+        return;
+      }
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["social-feed"] }),
+        queryClient.invalidateQueries({ queryKey: ["profile-posts"] }),
+      ]);
+      setShareOpen(false);
+      showToast({
+        title: t("shared"),
+      });
+    });
+  }, [post.id, queryClient, showToast, t]);
+
+  const handleUpdateSharePost = useCallback((caption: string) => {
+    startUpdateShareTransition(async () => {
+      const result = await updateSocialPostShareAction(post.id, caption);
+
+      if (result.status === "error") {
+        showToast({
+          title: t("shareFailedTitle"),
+          description: t(result.messageKey ?? "updateFailed"),
+        });
+        return;
+      }
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["social-feed"] }),
+        queryClient.invalidateQueries({ queryKey: ["profile-posts"] }),
+      ]);
+      setEditOpen(false);
+      showToast({
+        title: t("edited"),
+      });
+    });
+  }, [post.id, queryClient, showToast, t]);
 
   async function handleUpdatedPost() {
     await Promise.all([
@@ -283,14 +620,18 @@ const SocialPostCard = memo(function SocialPostCard({
         )}
       </div>
 
-      <div className="px-4 py-4 sm:px-5">
-        <h2 className="whitespace-pre-wrap break-words text-base font-black leading-6 text-white">{post.caption}</h2>
-        {post.description && (
-          <p className="mt-2 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-[#cbd5e1]">
-            {post.description}
-          </p>
-        )}
-      </div>
+      {(post.caption || post.description) && (
+        <div className="px-4 py-4 sm:px-5">
+          {post.caption && (
+            <h2 className="whitespace-pre-wrap break-words text-base font-black leading-6 text-white">{post.caption}</h2>
+          )}
+          {post.description && (
+            <p className="mt-2 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-[#cbd5e1]">
+              {post.description}
+            </p>
+          )}
+        </div>
+      )}
 
       <SocialPostImages
         getImageAriaLabel={(index) =>
@@ -308,7 +649,14 @@ const SocialPostCard = memo(function SocialPostCard({
         <SocialPostAnime anime={post.anime} />
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-t border-[#1a1a24] px-3 py-3 sm:px-4">
+      {post.shared_post && (
+        <SharedPostPreview
+          onImageClick={setSharedImageViewerIndex}
+          post={post.shared_post}
+        />
+      )}
+
+      <div className="flex items-center gap-3 border-t border-[#1a1a24] px-3 py-3 sm:px-4">
         <div className="flex min-w-0 items-center gap-1.5">
           <SocialPostActionButton
             count={likeState.count}
@@ -324,9 +672,19 @@ const SocialPostCard = memo(function SocialPostCard({
             label={t("commentPost")}
             onClick={() => setCommentsOpen(true)}
           />
-          <SocialPostActionButton icon={Share2Icon} label={t("sharePost")} />
+          {shouldShowShareAction && (
+            <SocialPostActionButton
+              count={post.share_count}
+              disabled={isSharing}
+              icon={Share2Icon}
+              label={t("sharePost")}
+              onClick={handleOpenShareModal}
+            />
+          )}
+          {shouldShowShareCountOnly && (
+            <SocialPostActionStat count={post.share_count} icon={Share2Icon} label={t("shareCount")} />
+          )}
         </div>
-        <SocialPostActionButton icon={BookmarkIcon} label={t("savePost")} />
       </div>
 
       {confirmOpen && (
@@ -361,11 +719,23 @@ const SocialPostCard = memo(function SocialPostCard({
       )}
 
       {editOpen && (
-        <SocialPostEditorModal
-          editPost={post}
-          onClose={() => setEditOpen(false)}
-          onUpdated={handleUpdatedPost}
-        />
+        post.shared_post ? (
+          <SharePostModal
+            actor={post.author}
+            initialCaption={post.caption}
+            isPending={isUpdatingShare}
+            mode="edit"
+            onClose={() => setEditOpen(false)}
+            onSubmit={handleUpdateSharePost}
+            post={post.shared_post}
+          />
+        ) : (
+          <SocialPostEditorModal
+            editPost={post}
+            onClose={() => setEditOpen(false)}
+            onUpdated={handleUpdatedPost}
+          />
+        )
       )}
 
       {commentsOpen && (
@@ -373,6 +743,17 @@ const SocialPostCard = memo(function SocialPostCard({
           currentUserId={currentUserId}
           onClose={() => setCommentsOpen(false)}
           post={post}
+        />
+      )}
+
+      {shareOpen && (
+        <SharePostModal
+          actor={post.author}
+          isPending={isSharing}
+          mode="create"
+          onClose={() => setShareOpen(false)}
+          onSubmit={handleSharePost}
+          post={post.shared_post ?? post}
         />
       )}
 
@@ -385,6 +766,18 @@ const SocialPostCard = memo(function SocialPostCard({
           onClose={() => setImageViewerIndex(null)}
           onToggleLike={handleToggleLike}
           post={post}
+        />
+      )}
+
+      {sharedImageViewerIndex !== null && post.shared_post && (
+        <SocialPostImageViewer
+          currentUserId={currentUserId}
+          initialImageIndex={sharedImageViewerIndex}
+          isLiking={isSharedLiking}
+          likeState={sharedLikeState}
+          onClose={() => setSharedImageViewerIndex(null)}
+          onToggleLike={handleToggleSharedLike}
+          post={post.shared_post}
         />
       )}
     </article>
@@ -408,13 +801,12 @@ export function SocialPostCardSkeleton() {
         <div className="h-7 w-48 rounded-full bg-[#1a1a24]" />
       </div>
       <div className="aspect-[16/10] bg-[#0a0a0f]" />
-      <div className="flex items-center justify-between border-t border-[#1a1a24] px-3 py-3 sm:px-4">
+      <div className="flex items-center border-t border-[#1a1a24] px-3 py-3 sm:px-4">
         <div className="flex gap-1.5">
           <div className="h-9 w-10 rounded bg-[#1a1a24]" />
           <div className="h-9 w-10 rounded bg-[#1a1a24]" />
           <div className="h-9 w-10 rounded bg-[#1a1a24]" />
         </div>
-        <div className="h-9 w-10 rounded bg-[#1a1a24]" />
       </div>
     </div>
   );

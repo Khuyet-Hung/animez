@@ -54,6 +54,12 @@ export interface ToggleSocialPostLikeActionState {
   likeCount?: number;
 }
 
+export interface ShareSocialPostActionState {
+  status: "success" | "error";
+  messageKey: string;
+  postId?: string;
+}
+
 export interface CreateSocialPostCommentActionState {
   status: "success" | "error";
   messageKey: string;
@@ -88,7 +94,7 @@ export interface SocialFeedImage {
   sort_order: number;
 }
 
-export interface SocialFeedPost {
+export interface SocialFeedPostBase {
   id: string;
   caption: string;
   description: string;
@@ -96,11 +102,20 @@ export interface SocialFeedPost {
   like_count: number;
   liked_by_current_user: boolean;
   comment_count: number;
+  share_count: number;
   created_at: string;
   updated_at: string;
   author: SocialFeedAuthor;
   anime: SocialFeedAnime[];
   images: SocialFeedImage[];
+}
+
+export interface SocialSharedPost extends SocialFeedPostBase {
+  shared_post?: null;
+}
+
+export interface SocialFeedPost extends SocialFeedPostBase {
+  shared_post: SocialSharedPost | null;
 }
 
 export interface SocialPostComment {

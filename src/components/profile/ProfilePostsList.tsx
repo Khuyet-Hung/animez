@@ -12,6 +12,7 @@ import type {
   SocialFeedAuthor,
   SocialFeedImage,
   SocialFeedPost,
+  SocialSharedPost,
   SocialPostImageLayout,
 } from "@/types/social";
 import type { UserProfile } from "@/types/profile";
@@ -19,6 +20,7 @@ import type { UserProfile } from "@/types/profile";
 const PROFILE_POST_PAGE_SIZE = 12;
 const PROFILE_POST_SELECT_WITH_LAYOUT = `
   id,
+  shared_post_id,
   caption,
   description,
   image_layout,
@@ -47,6 +49,7 @@ const PROFILE_POST_SELECT_WITH_LAYOUT = `
 `;
 const PROFILE_POST_SELECT_LEGACY = `
   id,
+  shared_post_id,
   caption,
   description,
   created_at,
@@ -104,8 +107,14 @@ interface ProfilePostCommentRow {
   post_id: string;
 }
 
+interface ProfilePostShareRow {
+  shared_post_id: string;
+}
+
 interface ProfilePostRow {
   id: string;
+  shared_post_id?: string | null;
+  user_id?: string;
   caption: string;
   description: string;
   image_layout?: SocialPostImageLayout | null;
@@ -113,6 +122,13 @@ interface ProfilePostRow {
   updated_at: string;
   social_post_anime: ProfilePostAnimeRow[] | null;
   social_post_images: ProfilePostImageRow[] | null;
+}
+
+interface ProfileRow {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
 }
 
 interface ProfilePostQueryResult {
@@ -213,6 +229,96 @@ async function queryProfilePostComments(postIds: string[]) {
   return (data ?? []) as ProfilePostCommentRow[];
 }
 
+async function queryProfilePostShares(postIds: string[]) {
+  if (postIds.length === 0) return [] as ProfilePostShareRow[];
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("social_posts")
+    .select("shared_post_id")
+    .in("shared_post_id", postIds)
+    .eq("visibility", "public")
+    .is("deleted_at", null);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as ProfilePostShareRow[];
+}
+
+async function querySharedPosts(postIds: string[]) {
+  if (postIds.length === 0) return [] as ProfilePostRow[];
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("social_posts")
+    .select(`
+      id,
+      user_id,
+      caption,
+      description,
+      image_layout,
+      created_at,
+      updated_at,
+      social_post_anime (
+        anime_id,
+        role,
+        episode,
+        title_romaji,
+        title_english,
+        cover_image,
+        format,
+        season_year,
+        sort_order,
+        created_at
+      ),
+      social_post_images (
+        id,
+        public_url,
+        width,
+        height,
+        sort_order,
+        created_at
+      )
+    `)
+    .in("id", postIds)
+    .eq("visibility", "public")
+    .is("deleted_at", null);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as ProfilePostRow[];
+}
+
+async function queryProfiles(userIds: string[]) {
+  if (userIds.length === 0) return new Map<string, SocialFeedAuthor>();
+
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, username, display_name, avatar_url")
+    .in("id", userIds);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return new Map(
+    ((data ?? []) as ProfileRow[]).map((profile) => [
+      profile.id,
+      {
+        user_id: profile.id,
+        username: profile.username,
+        display_name: profile.display_name,
+        avatar_url: profile.avatar_url,
+      },
+    ])
+  );
+}
+
 function getLikeSummaries({
   currentUserId,
   likes,
@@ -264,11 +370,33 @@ function getCommentCounts({
   return counts;
 }
 
+function getShareCounts({
+  postIds,
+  shares,
+}: {
+  postIds: string[];
+  shares: ProfilePostShareRow[];
+}) {
+  const counts = new Map<string, number>();
+
+  for (const postId of postIds) {
+    counts.set(postId, 0);
+  }
+
+  for (const share of shares) {
+    counts.set(share.shared_post_id, (counts.get(share.shared_post_id) ?? 0) + 1);
+  }
+
+  return counts;
+}
+
 function normalizeProfilePost(
   row: ProfilePostRow,
   author: SocialFeedAuthor,
   likeSummary: ProfilePostLikeSummary | undefined,
-  commentCount: number | undefined
+  commentCount: number | undefined,
+  shareCount: number | undefined,
+  sharedPost: SocialFeedPost["shared_post"] = null
 ): SocialFeedPost {
   return {
     id: row.id,
@@ -278,11 +406,13 @@ function normalizeProfilePost(
     like_count: likeSummary?.likeCount ?? 0,
     liked_by_current_user: likeSummary?.likedByCurrentUser ?? false,
     comment_count: commentCount ?? 0,
+    share_count: shareCount ?? 0,
     created_at: row.created_at,
     updated_at: row.updated_at,
     author,
     anime: [...(row.social_post_anime ?? [])].sort((first, second) => first.sort_order - second.sort_order),
     images: [...(row.social_post_images ?? [])].sort((first, second) => first.sort_order - second.sort_order),
+    shared_post: sharedPost,
   };
 }
 
@@ -319,18 +449,62 @@ async function fetchProfilePostsPage({
 
   const rows = (result.data ?? []) as ProfilePostRow[];
   const postIds = rows.map((row) => row.id);
+  const sharedPostIds = Array.from(
+    new Set(rows.map((row) => row.shared_post_id).filter((postId): postId is string => Boolean(postId)))
+  );
+  const sharedRows = await querySharedPosts(sharedPostIds);
+  const sharedPostIdsByRow = sharedRows.map((row) => row.id);
+  const sharedAuthorIds = Array.from(
+    new Set(sharedRows.map((row) => row.user_id).filter((userId): userId is string => Boolean(userId)))
+  );
   const likeSummaries = getLikeSummaries({
     currentUserId,
-    likes: await queryProfilePostLikes(postIds),
-    postIds,
+    likes: await queryProfilePostLikes([...postIds, ...sharedPostIdsByRow]),
+    postIds: [...postIds, ...sharedPostIdsByRow],
   });
   const commentCounts = getCommentCounts({
-    comments: await queryProfilePostComments(postIds),
-    postIds,
+    comments: await queryProfilePostComments([...postIds, ...sharedPostIdsByRow]),
+    postIds: [...postIds, ...sharedPostIdsByRow],
   });
-  const items = rows.map((row) =>
-    normalizeProfilePost(row, author, likeSummaries.get(row.id), commentCounts.get(row.id))
+  const shareCounts = getShareCounts({
+    postIds: [...postIds, ...sharedPostIdsByRow],
+    shares: await queryProfilePostShares([...postIds, ...sharedPostIdsByRow]),
+  });
+  const sharedAuthors = await queryProfiles(sharedAuthorIds);
+  const sharedPosts = new Map(
+    sharedRows.map((row) => {
+      const sharedAuthor = row.user_id ? sharedAuthors.get(row.user_id) : undefined;
+
+      if (!sharedAuthor) return [row.id, null] as const;
+
+      return [
+        row.id,
+        {
+          ...normalizeProfilePost(
+            row,
+            sharedAuthor,
+            likeSummaries.get(row.id),
+            commentCounts.get(row.id),
+            shareCounts.get(row.id),
+            null
+          ),
+          shared_post: null,
+        } satisfies SocialSharedPost,
+      ] as const;
+    })
   );
+  const items = rows.map((row) => {
+    const sharedPost = row.shared_post_id ? sharedPosts.get(row.shared_post_id) ?? null : null;
+
+    return normalizeProfilePost(
+      row,
+      author,
+      likeSummaries.get(row.id),
+      commentCounts.get(row.id),
+      shareCounts.get(row.id),
+      sharedPost
+    );
+  });
   const loadedCount = offset + items.length;
 
   return {

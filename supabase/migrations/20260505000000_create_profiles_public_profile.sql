@@ -4,7 +4,7 @@ create table if not exists public.profiles (
   display_name text not null,
   avatar_url text,
   bio text not null default '',
-  is_public boolean not null default false,
+  is_public boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint profiles_username_format_check check (username ~ '^[a-z0-9_-]{3,24}$'),
