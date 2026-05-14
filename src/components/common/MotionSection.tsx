@@ -61,12 +61,12 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center justify-between mb-6 px-1">
-      <h2 className="text-white text-2xl font-bold tracking-tight border-l-4 border-[#f49e0b] pl-3">
+      <h2 className="border-l-4 border-brand pl-3 text-2xl font-bold tracking-tight text-fg">
         {title}
       </h2>
       <Link
         href={viewAllHref}
-        className="text-sm text-[#f49e0b] hover:text-white font-bold transition-colors"
+        className="text-sm font-bold text-brand transition-colors hover:text-fg"
       >
         {viewAllLabel}
       </Link>

@@ -10,7 +10,7 @@ export default async function RecommendationsLoadingPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#0a0a0f] lg:pl-28 min-[1600px]:pl-6">
+      <main className="min-h-screen bg-bg lg:pl-28 min-[1600px]:pl-6">
         {recommendationSummary.hasActiveSession ? <LottieLoader /> : <RecommendationLoading />}
       </main>
       <Footer />

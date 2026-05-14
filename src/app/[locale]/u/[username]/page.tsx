@@ -15,6 +15,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { createSeoMetadata, truncateSeoDescription } from "@/lib/seo";
+import { AppEmptyState, AppErrorState, AppPanel, AppSectionHeader } from "@/components/ui";
 
 interface PublicProfilePageProps {
   params: Promise<{ locale: string; username: string }>;
@@ -94,8 +95,8 @@ function PublicProfilePagination({
         aria-disabled={currentPage <= 1}
         className={`inline-flex h-10 items-center gap-1 rounded border px-3 text-sm font-bold transition-colors ${
           currentPage <= 1
-            ? "pointer-events-none border-[#1a1a24] bg-[#111118] text-white opacity-40"
-            : "border-[#1a1a24] bg-[#111118] text-white hover:border-[#f49e0b]"
+            ? "pointer-events-none border-border bg-surface text-fg opacity-40"
+            : "border-border bg-surface text-fg hover:border-brand"
         }`}
       >
         <ChevronLeftIcon className="size-4" />
@@ -109,8 +110,8 @@ function PublicProfilePagination({
           aria-current={page === currentPage ? "page" : undefined}
           className={`flex size-10 items-center justify-center rounded text-sm font-black transition-colors ${
             page === currentPage
-              ? "bg-[#f49e0b] text-[#0a0a0f]"
-              : "border border-[#1a1a24] bg-[#111118] text-white hover:border-[#f49e0b]"
+              ? "bg-brand text-brand-fg"
+              : "border border-border bg-surface text-fg hover:border-brand"
           }`}
         >
           {page}
@@ -122,8 +123,8 @@ function PublicProfilePagination({
         aria-disabled={currentPage >= lastPage}
         className={`inline-flex h-10 items-center gap-1 rounded border px-3 text-sm font-bold transition-colors ${
           currentPage >= lastPage
-            ? "pointer-events-none border-[#1a1a24] bg-[#111118] text-white opacity-40"
-            : "border-[#1a1a24] bg-[#111118] text-white hover:border-[#f49e0b]"
+            ? "pointer-events-none border-border bg-surface text-fg opacity-40"
+            : "border-border bg-surface text-fg hover:border-brand"
         }`}
       >
         {labels.next}
@@ -169,11 +170,7 @@ export async function generateMetadata({ params }: PublicProfilePageProps): Prom
 function PrivateProfileState({ title, description }: { title: string; description: string }) {
   return (
     <div className="mx-auto flex min-h-[52vh] w-full max-w-lg flex-col items-center justify-center px-4 text-center">
-      <div className="flex size-14 items-center justify-center rounded-full border border-[#1a1a24] bg-[#111118] text-[#f49e0b]">
-        <LockIcon className="size-6" />
-      </div>
-      <h1 className="mt-5 text-2xl font-black text-white">{title}</h1>
-      <p className="mt-2 text-sm leading-6 text-[#9ca3af]">{description}</p>
+      <AppEmptyState title={title} description={description} icon={<LockIcon className="size-6" />} />
     </div>
   );
 }
@@ -203,7 +200,7 @@ export default async function PublicProfilePage({ params, searchParams }: Public
     return (
       <>
         <Navbar />
-        <main className="min-h-screen bg-[#0a0a0f] lg:pl-28 min-[1600px]:pl-6">
+        <main className="min-h-screen bg-bg lg:pl-28 min-[1600px]:pl-6">
           <PrivateProfileState
             title={profileT("privateProfile")}
             description={profileT("privateProfileDescription")}
@@ -236,25 +233,25 @@ export default async function PublicProfilePage({ params, searchParams }: Public
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#0a0a0f] px-4 py-8 pb-20 md:px-6 lg:pl-28 min-[1600px]:pl-6">
+      <main className="min-h-screen bg-bg px-4 py-8 pb-20 md:px-6 lg:pl-28 min-[1600px]:pl-6">
         <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-8">
-          <section className="rounded border border-[#1a1a24] bg-[#0d0d14] px-5 py-8 md:px-6">
+          <AppPanel variant="muted" className="px-5 py-8 md:px-6">
             <div className="flex flex-col gap-5 md:flex-row md:items-center">
               <ProfileAvatar src={profile.avatar_url} name={profile.display_name ?? profile.username} />
               <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-normal text-[#f49e0b]">
+                <p className="text-xs font-bold uppercase tracking-normal text-brand">
                   {profileT("publicTitle")}
                 </p>
-                <h1 className="mt-1 text-3xl font-black text-white md:text-5xl">
+                <h1 className="mt-1 text-3xl font-black text-fg md:text-5xl">
                   {profile.display_name}
                 </h1>
-                <p className="mt-2 text-sm font-semibold text-[#9ca3af]">@{profile.username}</p>
+                <p className="mt-2 text-sm font-semibold text-fg-muted">@{profile.username}</p>
                 {profile.bio && (
-                  <p className="mt-4 max-w-2xl text-sm leading-6 text-[#d1d5db]">{profile.bio}</p>
+                  <p className="mt-4 max-w-2xl text-sm leading-6 text-fg-soft">{profile.bio}</p>
                 )}
               </div>
             </div>
-          </section>
+          </AppPanel>
 
           <ProfileStats
             stats={stats}
@@ -270,12 +267,7 @@ export default async function PublicProfilePage({ params, searchParams }: Public
 
           <section>
             <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-normal text-[#f49e0b]">
-                  {profileT("publicList")}
-                </p>
-                <h2 className="mt-1 text-2xl font-black text-white">{profileT("animeList")}</h2>
-              </div>
+              <AppSectionHeader eyebrow={profileT("publicList")} title={profileT("animeList")} />
               <div className="flex flex-wrap gap-2">
                 {STATUS_FILTERS.map((filter) => (
                   <Link
@@ -283,8 +275,8 @@ export default async function PublicProfilePage({ params, searchParams }: Public
                     href={buildStatusHref(profile.username, filter)}
                     className={`rounded border px-3 py-2 text-xs font-bold transition-colors ${
                       activeStatus === filter
-                        ? "border-[#f49e0b] bg-[#f49e0b]/10 text-[#f49e0b]"
-                        : "border-[#1a1a24] bg-[#111118] text-[#9ca3af] hover:border-[#f49e0b]/60 hover:text-white"
+                        ? "border-brand bg-brand/10 text-brand"
+                        : "border-border bg-surface text-fg-muted hover:border-brand/60 hover:text-fg"
                     }`}
                   >
                     {filter === "all" ? profileT("tabs.all") : statusLabels[filter]}
@@ -294,9 +286,7 @@ export default async function PublicProfilePage({ params, searchParams }: Public
             </div>
 
             {listResult.error ? (
-              <div className="rounded border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm font-semibold text-red-300">
-                {profileT("listLoadFailed")}
-              </div>
+              <AppErrorState title={profileT("listLoadFailed")} />
             ) : (
               <ProfileAnimeList
                 entries={entries}

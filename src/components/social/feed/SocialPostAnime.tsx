@@ -22,11 +22,11 @@ export default function SocialPostAnime({ anime }: { anime: SocialFeedAnime[] })
     <section className="my-2 flex flex-wrap gap-2">
       <Link
         href={`/anime/${primary.anime_id}`}
-        className="group inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border border-[#f49e0b]/35 bg-[#f49e0b]/10 px-2 py-1.5 text-xs font-black text-[#f49e0b] transition-colors hover:border-[#f49e0b] hover:text-white"
+        className="group inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-ui-pill border border-brand/35 bg-brand/10 px-2 py-1.5 text-xs font-black text-brand transition-colors hover:border-brand hover:text-fg"
       >
         <FilmIcon className="size-3.5 shrink-0" />
         <span className="min-w-0 truncate">{title}</span>
-        {primary.episode !== null && <span className="shrink-0 text-[#f8c266]">/ {t("episode", { episode: primary.episode })}</span>}
+        {primary.episode !== null && <span className="shrink-0 text-brand-soft">/ {t("episode", { episode: primary.episode })}</span>}
       </Link>
 
       {supporting.length > 0 && (
@@ -35,10 +35,10 @@ export default function SocialPostAnime({ anime }: { anime: SocialFeedAnime[] })
             <Link
               key={`${item.anime_id}-${item.sort_order}`}
               href={`/anime/${item.anime_id}`}
-              className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border border-[#2a2a35] bg-white/5 px-3 py-1.5 text-xs font-bold text-[#cbd5e1] transition-colors hover:border-[#f49e0b] hover:text-white"
+              className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-ui-pill border border-border-strong bg-white/5 px-3 py-1.5 text-xs font-bold text-fg-soft transition-colors hover:border-brand hover:text-fg"
             >
               <span className="inline-block min-w-0 max-w-48 truncate">{getAnimeTitle(item)}</span>
-              {item.episode !== null && <span className="text-[#6b7280]"> / {t("episode", { episode: item.episode })}</span>}
+              {item.episode !== null && <span className="text-fg-subtle"> / {t("episode", { episode: item.episode })}</span>}
             </Link>
           ))}
         </>

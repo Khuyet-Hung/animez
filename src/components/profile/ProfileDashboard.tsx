@@ -16,6 +16,7 @@ import AnimeListEditor from "@/components/anime-list/AnimeListEditor";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import ProfilePostsList from "@/components/profile/ProfilePostsList";
 import ProfileSettingsForm from "@/components/profile/ProfileSettingsForm";
+import { AppAlertDialog, AppButton, AppEmptyState, AppPanel } from "@/components/ui";
 import { Link, useRouter } from "@/i18n/navigation";
 import {
   updateProfileAvatarAction,
@@ -169,16 +170,16 @@ function StatStrip({
   ];
 
   return (
-    <section className="grid grid-cols-2 border-y border-[#1a1a24] bg-[#0d0d14] md:grid-cols-3 xl:grid-cols-6">
+    <section className="grid grid-cols-2 border-y border-border bg-bg-muted md:grid-cols-3 xl:grid-cols-6">
       {items.map((item) => (
         <div
           key={item.label}
-          className="border-r border-[#1a1a24] px-4 py-4 text-center last:border-r-0 md:px-6"
+          className="border-r border-border px-4 py-4 text-center last:border-r-0 md:px-6"
         >
-          <p className={`text-xl font-black ${item.accent ? "text-[#f49e0b]" : "text-white"}`}>
+          <p className={`text-xl font-black ${item.accent ? "text-brand" : "text-fg"}`}>
             {item.value}
           </p>
-          <p className="mt-1 text-[10px] font-bold uppercase tracking-normal text-[#5f6472]">
+          <p className="mt-1 text-[10px] font-bold uppercase tracking-normal text-fg-subtle">
             {item.label}
           </p>
         </div>
@@ -202,7 +203,7 @@ function ProfileTabs({
   ];
 
   return (
-    <nav className="flex overflow-x-auto border-b border-[#1a1a24] bg-[#0d0d14] px-4 md:px-6">
+    <nav className="flex overflow-x-auto border-b border-border bg-bg-muted px-4 md:px-6">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.key;
 
@@ -213,8 +214,8 @@ function ProfileTabs({
             onClick={() => onTabChange(tab.key)}
             className={`shrink-0 border-b-2 px-4 py-4 text-sm transition-colors ${
               isActive
-                ? "border-[#f49e0b] font-black text-[#f49e0b]"
-                : "border-transparent font-semibold text-[#9ca3af] hover:text-white"
+                ? "border-brand font-black text-brand"
+                : "border-transparent font-semibold text-fg-muted hover:text-fg"
             }`}
           >
             {tab.label}
@@ -238,7 +239,7 @@ function StatusFilters({
 }) {
   const t = useTranslations("profile");
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="-mx-4 flex gap-2 overflow-x-auto hide-scrollbar px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
       {STATUS_FILTERS.map((filter) => {
         const isActive = activeStatus === filter;
         const count = filter === "all" ? stats.total_anime : getStatusCount(stats, filter);
@@ -249,10 +250,10 @@ function StatusFilters({
             key={filter}
             type="button"
             onClick={() => onStatusChange(filter)}
-            className={`rounded-full border px-3 py-2 text-xs font-bold transition-colors ${
+            className={`shrink-0 rounded-ui-pill border px-3 py-2 text-xs font-bold transition-colors ${
               isActive
-                ? "border-[#f49e0b] bg-[#f49e0b] text-[#0a0a0f]"
-                : "border-[#1a1a24] bg-[#0d0d14] text-[#9ca3af] hover:border-[#f49e0b]/60 hover:text-white"
+                ? "border-brand bg-brand text-brand-fg"
+                : "border-border bg-bg-muted text-fg-muted hover:border-brand/60 hover:text-fg"
             }`}
           >
             {label} ({count})
@@ -288,7 +289,7 @@ function PaginationControls({
         type="button"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage <= 1}
-        className="inline-flex h-10 items-center gap-1 rounded border border-[#1a1a24] bg-[#111118] px-3 text-sm font-bold text-white transition-colors hover:border-[#f49e0b] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#1a1a24]"
+        className="inline-flex h-10 items-center gap-1 rounded-ui-sm border border-border bg-surface px-3 text-sm font-bold text-fg transition-colors hover:border-brand disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border"
       >
         <ChevronLeftIcon className="size-4" />
         {labels.previous}
@@ -300,10 +301,10 @@ function PaginationControls({
           type="button"
           onClick={() => onPageChange(page)}
           aria-current={page === currentPage ? "page" : undefined}
-          className={`flex size-10 items-center justify-center rounded text-sm font-black transition-colors ${
+          className={`flex size-10 items-center justify-center rounded-ui-sm text-sm font-black transition-colors ${
             page === currentPage
-              ? "bg-[#f49e0b] text-[#0a0a0f]"
-              : "border border-[#1a1a24] bg-[#111118] text-white hover:border-[#f49e0b]"
+              ? "bg-brand text-brand-fg"
+              : "border border-border bg-surface text-fg hover:border-brand"
           }`}
         >
           {page}
@@ -314,7 +315,7 @@ function PaginationControls({
         type="button"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage >= lastPage}
-        className="inline-flex h-10 items-center gap-1 rounded border border-[#1a1a24] bg-[#111118] px-3 text-sm font-bold text-white transition-colors hover:border-[#f49e0b] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-[#1a1a24]"
+        className="inline-flex h-10 items-center gap-1 rounded-ui-sm border border-border bg-surface px-3 text-sm font-bold text-fg transition-colors hover:border-brand disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-border"
       >
         {labels.next}
         <ChevronRightIcon className="size-4" />
@@ -345,7 +346,7 @@ function VisibilityToggle({
   ];
 
   return (
-    <div className="inline-grid h-11 grid-cols-2 rounded-full p-1 bg-[#111118] border-[0.5px] border-[#2a2a35] overflow-hidden">
+    <div className="inline-grid h-11 grid-cols-2 overflow-hidden rounded-ui-pill border border-border-strong bg-surface py-1">
       {options.map(({ value, label, Icon }) => {
         const active = isPublic === value;
 
@@ -355,17 +356,17 @@ function VisibilityToggle({
             type="button"
             onClick={() => onChange(value)}
             disabled={disabled || active}
-            className={`inline-flex rounded-full cursor-pointer min-w-[108px] items-center justify-center gap-2 px-3 text-sm font-black transition-colors disabled:cursor-not-allowed ${
+            className={`inline-flex min-w-[108px] cursor-pointer items-center justify-center gap-2 rounded-ui-pill px-3 text-sm font-black transition-colors disabled:cursor-not-allowed ${
               active
-                ? "bg-[#f49e0b] text-black shadow-sm"
-                : "text-[#9ca3af] bg-[#111118]"
+                ? "bg-brand text-brand-fg shadow-sm"
+                : "bg-surface text-fg-muted"
             }`}
             aria-pressed={active}
           >
             {pendingValue === value ? (
-              <Loader2Icon className={`size-4 animate-spin ${active ? "text-black" : "text-[#f49e0b]"}`} />
+              <Loader2Icon className={`size-4 animate-spin ${active ? "text-brand-fg" : "text-brand"}`} />
             ) : (
-              <Icon className={`size-4 ${active ? "text-black" : "text-[#5f6472]"}`} />
+              <Icon className={`size-4 ${active ? "text-brand-fg" : "text-fg-subtle"}`} />
             )}
             <span>{label}</span>
           </button>
@@ -377,7 +378,7 @@ function VisibilityToggle({
 
 function AnimeCover({ entry, title }: { entry: PublicAnimeListEntry; title: string }) {
   return (
-    <div className="relative row-span-2 h-full min-h-[128px] w-20 self-stretch overflow-hidden rounded border border-[#1a1a24] bg-[#1a1a24] md:row-span-1 md:min-h-[104px] md:w-[72px]">
+    <div className="relative row-span-2 h-full min-h-[128px] w-20 self-stretch overflow-hidden rounded-ui-sm border border-border bg-border md:row-span-1 md:min-h-[104px] md:w-[72px]">
       {entry.cover_image ? (
         <Image
           src={entry.cover_image}
@@ -388,7 +389,7 @@ function AnimeCover({ entry, title }: { entry: PublicAnimeListEntry; title: stri
           unoptimized
         />
       ) : (
-        <div className="flex size-full items-center justify-center text-[#5f6472]">
+        <div className="flex size-full items-center justify-center text-fg-subtle">
           <ImageIcon className="size-4" />
         </div>
       )}
@@ -434,11 +435,7 @@ function RecentAnimeList({
   }, [openMenuAnimeId]);
 
   if (entries.length === 0) {
-    return (
-      <div className="rounded border border-[#1a1a24] bg-[#111118] px-5 py-12 text-center">
-        <p className="text-sm font-semibold text-[#9ca3af]">{emptyLabel}</p>
-      </div>
-    );
+    return <AppEmptyState title={emptyLabel} className="py-12" />;
   }
 
   return (
@@ -453,7 +450,7 @@ function RecentAnimeList({
         return (
           <div
             key={entry.anime_id}
-            className="grid grid-cols-[80px_minmax(0,1fr)_40px] gap-3 rounded border border-[#1a1a24] bg-[#111118] px-3 py-4 transition-colors sm:px-4 md:grid-cols-[72px_minmax(0,1fr)_40px] md:items-stretch"
+            className="grid grid-cols-[80px_minmax(0,1fr)_40px] gap-3 rounded-ui-sm border border-border bg-surface px-3 py-4 transition-colors sm:px-4 md:grid-cols-[72px_minmax(0,1fr)_40px] md:items-stretch"
           >
             <Link href={`/anime/${entry.anime_id}`} aria-label={title}>
               <AnimeCover entry={entry} title={title} />
@@ -463,34 +460,34 @@ function RecentAnimeList({
               <div className="flex min-w-0 items-start justify-between gap-3">
                 <Link
                   href={`/anime/${entry.anime_id}`}
-                  className="block min-w-0 flex-1 truncate text-sm font-black text-white transition-colors hover:text-[#f49e0b]"
+                  className="block min-w-0 flex-1 truncate text-sm font-black text-fg transition-colors hover:text-brand"
                 >
                   {title}
                 </Link>
-                <span className="shrink-0 text-right text-xs font-semibold text-[#5f6472]">
+                <span className="shrink-0 text-right text-xs font-semibold text-fg-subtle">
                   {formatDate(entry.updated_at, locale)}
                 </span>
               </div>
-              <p className="mt-1 text-xs font-semibold text-[#5f6472]">
+              <p className="mt-1 text-xs font-semibold text-fg-subtle">
                 {[entry.format?.replace("_", " "), entry.season_year].filter(Boolean).join(" · ") ||
                   t("animeFallback")}
               </p>
               <div className="mt-3 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                 <span
-                  className={`w-fit rounded-full border px-3 py-1 text-[11px] font-bold ${
+                  className={`w-fit rounded-ui-pill border px-3 py-1 text-[11px] font-bold ${
                     ANIME_LIST_STATUS_BADGE_CLASS[entry.status]
                   }`}
                 >
                   {labels.status[entry.status]}
                 </span>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-white">
-                    <StarIcon className="size-3 fill-[#f49e0b] text-[#f49e0b]" />
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-fg">
+                    <StarIcon className="size-3 fill-brand text-brand" />
                     {formatScore(entry.score)}
                   </span>
                 </div>
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                <div className="h-1.5 overflow-hidden rounded-full bg-[#27272f]">
+                <div className="h-1.5 overflow-hidden rounded-ui-pill bg-border-soft">
                   <div
                     className="h-full"
                     style={{
@@ -499,7 +496,7 @@ function RecentAnimeList({
                     }}
                   />
                 </div>
-                <span className="text-xs font-semibold text-[#9ca3af]">{progressLabel}</span>
+                <span className="text-xs font-semibold text-fg-muted">{progressLabel}</span>
                 </div>
               </div>
             </div>
@@ -513,7 +510,7 @@ function RecentAnimeList({
                   )
                 }
                 disabled={deleting}
-                className="inline-flex justify-center cursor-pointer text-[#d1d5db] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex cursor-pointer justify-center text-fg-soft transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                 aria-label={t("animeMenuLabel")}
                 aria-expanded={menuOpen}
                 title={t("options")}
@@ -525,16 +522,16 @@ function RecentAnimeList({
                 )}
               </button>
               {menuOpen && (
-                <div className="absolute right-0 top-6 z-20 w-36 overflow-hidden rounded border border-[#2a2a35] bg-[#0d0d14] py-1 shadow-2xl">
+                <div className="absolute right-0 top-6 z-20 w-36 overflow-hidden rounded-ui-sm border border-border-strong bg-bg-muted py-1 shadow-2xl">
                   <button
                     type="button"
                     onClick={() => {
                       setOpenMenuAnimeId(null);
                       onEdit(entry);
                     }}
-                    className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm font-bold text-[#d1d5db] transition-colors hover:bg-[#1a1a24] hover:text-white"
+                    className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm font-bold text-fg-soft transition-colors hover:bg-border hover:text-fg"
                   >
-                    <PencilIcon className="size-4 text-[#f49e0b]" />
+                    <PencilIcon className="size-4 text-brand" />
                     {t("edit")}
                   </button>
                   <button
@@ -591,24 +588,24 @@ function OverviewCard({
     chartData.length > 0 ? chartData : [{ name: t("statusSummary.noData"), value: 1, status: "completed" as const }];
 
   return (
-    <aside className="rounded border border-[#1a1a24] bg-[#111118] p-5">
-      <p className="text-xs font-bold uppercase tracking-normal text-[#5f6472]">{t("overview")}</p>
+    <aside className="rounded-ui-sm border border-border bg-surface p-5">
+      <p className="text-xs font-bold uppercase tracking-normal text-fg-subtle">{t("overview")}</p>
       <div className="mt-4 grid grid-cols-2 gap-2">
-        <div className="rounded border border-[#1a1a24] bg-[#0d0d14] p-3">
+        <div className="rounded-ui-sm border border-border bg-bg-muted p-3">
           <p className="text-xl font-black text-green-300">{stats.watching}</p>
-          <p className="mt-1 text-xs font-semibold text-[#5f6472]">{labels.watching}</p>
+          <p className="mt-1 text-xs font-semibold text-fg-subtle">{labels.watching}</p>
         </div>
-        <div className="rounded border border-[#1a1a24] bg-[#0d0d14] p-3">
-          <p className="text-xl font-black text-white">{stats.plan_to_watch}</p>
-          <p className="mt-1 text-xs font-semibold text-[#5f6472]">{labels.planToWatch}</p>
+        <div className="rounded-ui-sm border border-border bg-bg-muted p-3">
+          <p className="text-xl font-black text-fg">{stats.plan_to_watch}</p>
+          <p className="mt-1 text-xs font-semibold text-fg-subtle">{labels.planToWatch}</p>
         </div>
-        <div className="rounded border border-[#1a1a24] bg-[#0d0d14] p-3">
-          <p className="text-xl font-black text-white">{stats.completed}</p>
-          <p className="mt-1 text-xs font-semibold text-[#5f6472]">{labels.completed}</p>
+        <div className="rounded-ui-sm border border-border bg-bg-muted p-3">
+          <p className="text-xl font-black text-fg">{stats.completed}</p>
+          <p className="mt-1 text-xs font-semibold text-fg-subtle">{labels.completed}</p>
         </div>
-        <div className="rounded border border-[#1a1a24] bg-[#0d0d14] p-3">
-          <p className="text-xl font-black text-[#f49e0b]">{formatScore(stats.average_score)}</p>
-          <p className="mt-1 text-xs font-semibold text-[#5f6472]">{labels.averageScore}</p>
+        <div className="rounded-ui-sm border border-border bg-bg-muted p-3">
+          <p className="text-xl font-black text-brand">{formatScore(stats.average_score)}</p>
+          <p className="mt-1 text-xs font-semibold text-fg-subtle">{labels.averageScore}</p>
         </div>
       </div>
       <div className="mt-4 flex items-center gap-4">
@@ -632,15 +629,15 @@ function OverviewCard({
             </PieChart>
           </ResponsiveContainer>
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-sm font-black text-white">{stats.total_anime}</span>
-            <span className="text-[9px] font-semibold text-[#5f6472]">anime</span>
+            <span className="text-sm font-black text-fg">{stats.total_anime}</span>
+            <span className="text-[9px] font-semibold text-fg-subtle">anime</span>
           </div>
         </div>
-        <div className="space-y-2 text-xs font-semibold text-[#9ca3af]">
+        <div className="space-y-2 text-xs font-semibold text-fg-muted">
           {chartData.map((item) => (
             <p key={item.status}>
               <span
-                className="mr-2 inline-block size-2 rounded-full"
+                className="mr-2 inline-block size-2 rounded-ui-pill"
                 style={{ backgroundColor: STATUS_CHART_COLORS[item.status] }}
               />
               {item.name} ({item.value})
@@ -741,13 +738,13 @@ function EditableProfileAvatar({
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={busy}
-        className="group relative block size-[88px] rounded-full outline-none transition-transform hover:scale-[1.02] focus-visible:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70"
+        className="group relative block size-[88px] rounded-ui-pill outline-none transition-transform hover:scale-[1.02] focus-visible:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70"
         aria-label={t("changeAvatar")}
         title={t("changeAvatar")}
       >
         <ProfileAvatar src={avatarSrc} name={displayName} />
-        <span className="absolute inset-0 rounded-full bg-black/0 transition-colors group-hover:bg-black/45 group-focus-visible:bg-black/45" />
-        <span className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+        <span className="absolute inset-0 rounded-ui-pill bg-black/0 transition-colors group-hover:bg-black/45 group-focus-visible:bg-black/45" />
+        <span className="absolute inset-0 flex items-center justify-center rounded-ui-pill opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
           {busy ? (
             <Loader2Icon className="size-6 animate-spin text-white drop-shadow" />
           ) : (
@@ -823,6 +820,7 @@ export default function ProfileDashboard({
   const [entrySaving, setEntrySaving] = useState(false);
   const [entryError, setEntryError] = useState<string | null>(null);
   const [deletingAnimeId, setDeletingAnimeId] = useState<number | null>(null);
+  const [showRecommendationDialog, setShowRecommendationDialog] = useState(false);
   const recommendationQuotaLabel = `${recommendationSummary.remainingMonthlySessions}/${recommendationSummary.monthlySessionLimit}`;
 
   useEffect(() => {
@@ -901,16 +899,20 @@ export default function ProfileDashboard({
   }
 
   function handleCreateNewAnalysis() {
-    if (!window.confirm(t("replaceRecommendationConfirm"))) return;
+    setShowRecommendationDialog(true);
+  }
 
+  function handleConfirmCreateNewAnalysis() {
     startRecommendationTransition(async () => {
       const result = await replaceRecommendationSession(locale);
 
       if (result.status === "error") {
+        setShowRecommendationDialog(false);
         window.alert(t(`recommendationErrors.${result.messageKey}`));
         return;
       }
 
+      setShowRecommendationDialog(false);
       router.push("/profile/recommendations");
       router.refresh();
     });
@@ -990,10 +992,10 @@ export default function ProfileDashboard({
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0a0f] pb-20 lg:pl-28 min-[1600px]:pl-6">
+    <main className="min-h-screen bg-bg pb-20 lg:pl-28 min-[1600px]:pl-6">
       <div className="mx-auto flex w-full max-w-[1400px] flex-col">
-        <section className="border-b border-[#1a1a24] bg-[#0d0d14] px-4 py-6 md:px-6">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+        <section className="border-b border-border bg-bg-muted px-4 py-6 md:px-6">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between items-center">
             <div className="flex items-center gap-4">
               <EditableProfileAvatar
                 avatarSrc={resolvedAvatarSrc}
@@ -1003,20 +1005,20 @@ export default function ProfileDashboard({
                 onAvatarUpdated={handleAvatarUpdated}
               />
               <div className="min-w-0">
-                <h1 className="truncate text-2xl font-black text-white md:text-3xl">
+                <h1 className="truncate text-2xl font-black text-fg md:text-3xl">
                   {profile.display_name}
                 </h1>
-                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-[#9ca3af]">
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold text-fg-muted">
                   <span>@{profile.username}</span>
                   {userEmail && (
                     <>
-                      <span className="text-[#5f6472]">·</span>
+                      <span className="text-fg-subtle">·</span>
                       <span>{userEmail}</span>
                     </>
                   )}
                 </div>
                 {profile.bio && (
-                  <p className="mt-3 max-w-2xl text-sm leading-6 text-[#d1d5db]">{profile.bio}</p>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-fg-soft">{profile.bio}</p>
                 )}
               </div>
             </div>
@@ -1043,13 +1045,6 @@ export default function ProfileDashboard({
                   </p>
                 )}
               </div>
-              {/* <Link
-                href={`/u/${profile.username}`}
-                className="inline-flex h-10 items-center gap-2 rounded bg-[#f49e0b] px-4 text-sm font-black text-[#0a0a0f] transition-colors hover:bg-[#d68a09]"
-              >
-                {labels.viewPublicProfile}
-                <ExternalLinkIcon className="size-4" />
-              </Link> */}
             </div>
           </div>
         </section>
@@ -1065,28 +1060,27 @@ export default function ProfileDashboard({
                   <div className="flex flex-wrap items-center gap-3">
                     <Link
                       href="/profile/recommendations"
-                      className="inline-flex h-9 items-center justify-center gap-2 rounded bg-[#f49e0b] px-3 text-xs font-black text-[#0a0a0f] transition-colors hover:bg-[#d68a09]"
+                      className="inline-flex h-9 items-center justify-center gap-2 rounded-ui-sm bg-brand px-3 text-xs font-black text-brand-fg transition-colors hover:bg-brand-hover"
                     >
                       <SparklesIcon className="size-4" />
                       {recommendationSummary.hasActiveSession ? labels.viewRecommendations : labels.recommendAnime}
-                      <span className="rounded bg-[#0a0a0f]/15 px-1.5 py-0.5 tabular-nums">
+                      <span className="rounded-ui-xs bg-bg/15 px-1.5 py-0.5 tabular-nums">
                         {recommendationQuotaLabel}
                       </span>
                     </Link>
                     {recommendationSummary.hasActiveSession && (
-                      <button
+                      <AppButton
                         type="button"
+                        variant="custom"
+                        size="sm"
                         onClick={handleCreateNewAnalysis}
-                        disabled={isRecommendationPending || recommendationSummary.remainingMonthlySessions <= 0}
-                        className="inline-flex h-9 items-center justify-center gap-2 rounded border border-[#f49e0b]/40 bg-[#f49e0b]/10 px-3 text-xs font-black text-[#f49e0b] transition-colors hover:border-[#f49e0b] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                        isLoading={isRecommendationPending}
+                        disabled={recommendationSummary.remainingMonthlySessions <= 0}
+                        leftIcon={<PlusIcon className="size-4" />}
+                        className="border border-brand/40 bg-brand/10 text-brand hover:border-brand hover:text-fg"
                       >
-                        {isRecommendationPending ? (
-                          <Loader2Icon className="size-4 animate-spin" />
-                        ) : (
-                          <PlusIcon className="size-4" />
-                        )}
                         {t("createNewAnalysis")}
-                      </button>
+                      </AppButton>
                     )}
                   </div>
                   <StatusFilters
@@ -1117,16 +1111,16 @@ export default function ProfileDashboard({
             {activeTab === "posts" && <ProfilePostsList profile={{ ...profile, avatar_url: profileAvatarUrl }} />}
 
             {activeTab === "settings" && (
-              <div className="rounded border border-[#1a1a24] bg-[#0d0d14] px-5 py-5 md:px-6">
+              <AppPanel variant="muted" className="px-5 py-5 md:px-6">
                 <div className="mb-5 flex items-center gap-2">
-                  <SettingsIcon className="size-5 text-[#f49e0b]" />
-                  <h2 className="text-xl font-black text-white">{labels.settings}</h2>
+                  <SettingsIcon className="size-5 text-brand" />
+                  <h2 className="text-xl font-black text-fg">{labels.settings}</h2>
                 </div>
                 <ProfileSettingsForm
                   profile={{ ...profile, avatar_url: profileAvatarUrl, is_public: isPublic }}
                   locale={locale}
                 />
-              </div>
+              </AppPanel>
             )}
           </section>
 
@@ -1148,6 +1142,16 @@ export default function ProfileDashboard({
           onDelete={handleDeleteEntry}
         />
       )}
+      <AppAlertDialog
+        open={showRecommendationDialog}
+        title={t("createNewAnalysis")}
+        description={t("replaceRecommendationDescription")}
+        confirmLabel={t("createNewAnalysis")}
+        cancelLabel={t("cancel")}
+        onConfirm={handleConfirmCreateNewAnalysis}
+        onCancel={() => setShowRecommendationDialog(false)}
+        isConfirming={isRecommendationPending}
+      />
     </main>
   );
 }

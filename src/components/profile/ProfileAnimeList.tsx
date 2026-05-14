@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { ANIME_LIST_STATUS_BADGE_CLASS } from "@/lib/anime-list/constants";
 import type { AnimeListStatus } from "@/types/anime-list";
 import type { PublicAnimeListEntry } from "@/types/profile";
+import { AppEmptyState, AppPanel } from "@/components/ui";
 
 interface ProfileAnimeListProps {
   entries: PublicAnimeListEntry[];
@@ -26,16 +27,12 @@ function formatDate(value: string) {
 
 export default function ProfileAnimeList({ entries, emptyLabel, labels }: ProfileAnimeListProps) {
   if (entries.length === 0) {
-    return (
-      <div className="rounded border border-[#1a1a24] bg-[#111118] px-5 py-12 text-center">
-        <p className="text-sm font-semibold text-[#9ca3af]">{emptyLabel}</p>
-      </div>
-    );
+    return <AppEmptyState description={emptyLabel} />;
   }
 
   return (
-    <div className="overflow-hidden rounded border border-[#1a1a24] bg-[#111118]">
-      <div className="divide-y divide-[#1a1a24]">
+    <AppPanel className="overflow-hidden">
+      <div className="divide-y divide-border">
         {entries.map((entry) => {
           const title = getEntryTitle(entry);
           const progressLabel = `${entry.progress_episodes}/${entry.total_episodes ?? "?"}`;
@@ -44,23 +41,23 @@ export default function ProfileAnimeList({ entries, emptyLabel, labels }: Profil
             <Link
               key={entry.anime_id}
               href={`/anime/${entry.anime_id}`}
-              className="grid grid-cols-[56px_1fr] gap-3 px-4 py-3 transition-colors hover:bg-[#1a1a24]/70 md:grid-cols-[56px_1fr_auto]"
+              className="grid grid-cols-[56px_1fr] gap-3 px-4 py-3 transition-colors hover:bg-border/70 md:grid-cols-[56px_1fr_auto]"
             >
-              <div className="relative h-20 w-14 overflow-hidden rounded border border-[#1a1a24] bg-[#0f0f16]">
+              <div className="relative h-20 w-14 overflow-hidden rounded-ui-sm border border-border bg-surface-muted">
                 {entry.cover_image ? (
                   <Image src={entry.cover_image} alt={title} fill sizes="56px" className="object-cover" unoptimized />
                 ) : (
-                  <div className="flex size-full items-center justify-center text-[#5f6472]">
+                  <div className="flex size-full items-center justify-center text-fg-subtle">
                     <ImageIcon className="size-5" />
                   </div>
                 )}
               </div>
 
               <div className="min-w-0">
-                <h3 className="line-clamp-2 text-sm font-black leading-5 text-white md:text-base">
+                <h3 className="line-clamp-2 text-sm font-black leading-5 text-fg md:text-base">
                   {title}
                 </h3>
-                <p className="mt-1 text-xs font-semibold text-[#5f6472]">
+                <p className="mt-1 text-xs font-semibold text-fg-subtle">
                   {[entry.format?.replace("_", " "), entry.season_year].filter(Boolean).join(" · ") || "Anime"}
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -71,25 +68,25 @@ export default function ProfileAnimeList({ entries, emptyLabel, labels }: Profil
                   >
                     {labels.status[entry.status]}
                   </span>
-                  <span className="inline-flex items-center gap-1 rounded border border-[#1a1a24] bg-[#0f0f16] px-2 py-1 text-[11px] font-bold text-[#d1d5db]">
-                    <StarIcon className="size-3 fill-[#f49e0b] text-[#f49e0b]" />
+                  <span className="inline-flex items-center gap-1 rounded-ui-sm border border-border bg-surface-muted px-2 py-1 text-[11px] font-bold text-fg-soft">
+                    <StarIcon className="size-3 fill-brand text-brand" />
                     {labels.score}: {entry.score > 0 ? entry.score : "-"}
                   </span>
-                  <span className="rounded border border-[#1a1a24] bg-[#0f0f16] px-2 py-1 text-[11px] font-bold text-[#d1d5db]">
+                  <span className="rounded-ui-sm border border-border bg-surface-muted px-2 py-1 text-[11px] font-bold text-fg-soft">
                     {labels.progress}: {progressLabel}
                   </span>
                 </div>
               </div>
 
-              <div className="col-span-2 self-end text-xs font-semibold text-[#5f6472] md:col-span-1 md:self-center md:text-right">
+              <div className="col-span-2 self-end text-xs font-semibold text-fg-subtle md:col-span-1 md:self-center md:text-right">
                 {labels.updated}
                 <br />
-                <span className="text-[#9ca3af]">{formatDate(entry.updated_at)}</span>
+                <span className="text-fg-muted">{formatDate(entry.updated_at)}</span>
               </div>
             </Link>
           );
         })}
       </div>
-    </div>
+    </AppPanel>
   );
 }

@@ -11,6 +11,7 @@ import {
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { AppButton, AppPanel, AppSelect } from "@/components/ui";
 
 const FORMATS: { label: string; value: MediaFormat }[] = [
   { label: "TV", value: "TV" },
@@ -78,7 +79,7 @@ function FilterChip({
     <button
       type="button"
       onClick={onRemove}
-      className="group inline-flex h-8 max-w-full items-center gap-1.5 rounded-full border border-[#f49e0b]/30 bg-[#f49e0b]/10 px-3 text-xs font-bold text-[#f6b13b] transition-colors hover:border-[#f49e0b] hover:bg-[#f49e0b] hover:text-[#0a0a0f]"
+      className="group inline-flex h-8 max-w-full items-center gap-1.5 rounded-ui-pill border border-brand/30 bg-brand/10 px-3 text-xs font-bold text-brand-soft transition-colors hover:border-brand hover:bg-brand hover:text-brand-fg"
     >
       <span className="truncate">{label}</span>
       <XIcon className="size-3.5 shrink-0 transition-transform group-hover:scale-110" />
@@ -99,10 +100,10 @@ function FilterButton({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full px-3 py-1.5 text-xs font-bold transition-all ${
+      className={`rounded-ui-pill px-3 py-1.5 text-xs font-bold transition-all ${
         active
-          ? "bg-[#f49e0b] text-[#0a0a0f] shadow-[0_0_18px_rgba(244,158,11,0.18)]"
-          : "border border-[#1f1f2b] bg-[#0a0a0f] text-[#9ca3af] hover:border-[#f49e0b] hover:text-white"
+          ? "bg-brand text-brand-fg shadow-[0_0_18px_rgba(244,158,11,0.18)]"
+          : "border border-border bg-bg text-fg-muted hover:border-brand hover:text-fg"
       }`}
     >
       {children}
@@ -126,18 +127,18 @@ function FilterSection({
   const isOpen = openSections[id];
 
   return (
-    <section className="border-t border-[#1a1a24] pt-4">
+    <section className="border-t border-border pt-4">
       <button
         type="button"
         onClick={() => onToggle(id)}
         className="flex w-full items-center justify-between gap-3 text-left"
         aria-expanded={isOpen}
       >
-        <span className="text-xs font-bold uppercase tracking-wide text-[#9ca3af]">
+        <span className="text-xs font-bold uppercase tracking-wide text-fg-muted">
           {title}
         </span>
         <ChevronDownIcon
-          className={`size-4 text-[#9ca3af] transition-transform ${isOpen ? "rotate-180" : ""}`}
+          className={`size-4 text-fg-muted transition-transform ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -300,20 +301,19 @@ export default function FilterPanel() {
   const renderFilterControls = () => (
     <>
       <div>
-        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#9ca3af]">
+        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-fg-muted">
           {t("sortBy")}
         </p>
-        <select
+        <AppSelect
           value={current.sort}
           onChange={(event) => updateFilter("sort", event.target.value)}
-          className="h-10 w-full rounded border border-[#1a1a24] bg-[#0a0a0f] px-3 text-sm font-semibold text-white transition-colors focus:border-[#f49e0b] focus:outline-none"
         >
           {SORTS.map((sort) => (
             <option key={sort.value} value={sort.value}>
               {t(sort.key)}
             </option>
           ))}
-        </select>
+        </AppSelect>
       </div>
 
       <FilterSection
@@ -336,7 +336,7 @@ export default function FilterPanel() {
             <button
               type="button"
               onClick={() => setShowAllGenres(true)}
-              className="rounded-full border border-dashed border-[#f49e0b]/40 bg-[#0a0a0f] px-3 py-1.5 text-xs font-bold text-[#f6b13b] transition-colors hover:border-[#f49e0b] hover:text-white"
+              className="rounded-ui-pill border border-dashed border-brand/40 bg-bg px-3 py-1.5 text-xs font-bold text-brand-soft transition-colors hover:border-brand hover:text-fg"
             >
               +{animeGenres.length - COLLAPSED_GENRE_COUNT}
             </button>
@@ -379,10 +379,10 @@ export default function FilterPanel() {
               onClick={() =>
                 updateFilter("status", current.status === status.value ? null : status.value)
               }
-              className={`rounded px-3 py-2 text-left text-sm font-semibold transition-all ${
+              className={`rounded-ui-sm px-3 py-2 text-left text-sm font-semibold transition-all ${
                 current.status === status.value
-                  ? "border border-[#f49e0b]/30 bg-[#f49e0b]/10 text-[#f49e0b]"
-                  : "text-[#9ca3af] hover:bg-[#1a1a24] hover:text-white"
+                  ? "border border-brand/30 bg-brand/10 text-brand"
+                  : "text-fg-muted hover:bg-border hover:text-fg"
               }`}
             >
               {t(status.key)}
@@ -410,10 +410,9 @@ export default function FilterPanel() {
             </FilterButton>
           ))}
         </div>
-        <select
+        <AppSelect
           value={current.year}
           onChange={(event) => updateFilter("year", event.target.value || null)}
-          className="h-10 w-full rounded border border-[#1a1a24] bg-[#0a0a0f] px-3 text-sm font-semibold text-white transition-colors focus:border-[#f49e0b] focus:outline-none"
         >
           <option value="">{t("anyYear")}</option>
           {YEARS.map((year) => (
@@ -421,7 +420,7 @@ export default function FilterPanel() {
               {year}
             </option>
           ))}
-        </select>
+        </AppSelect>
       </FilterSection>
     </>
   );
@@ -429,16 +428,17 @@ export default function FilterPanel() {
   return (
     <>
       <div className="lg:hidden">
-        <div className="rounded border border-[#1a1a24] bg-[#111118] p-3">
+        <AppPanel className="p-3">
           <div className="flex items-center gap-2">
-            <button
+            <AppButton
               type="button"
               onClick={() => setIsDrawerOpen(true)}
-              className="inline-flex h-10 shrink-0 items-center gap-2 rounded bg-[#f49e0b] px-4 text-sm font-black text-[#0a0a0f] transition-colors hover:bg-[#d68a09]"
+              size="sm"
+              className="h-10 shrink-0 text-sm font-black"
+              leftIcon={<SlidersHorizontalIcon className="size-4" />}
             >
-              <SlidersHorizontalIcon className="size-4" />
               {t("title")}
-            </button>
+            </AppButton>
             {hasActiveFilters ? (
               <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto lg:pb-1">
                 {activeFilters.map((filter) => (
@@ -453,13 +453,13 @@ export default function FilterPanel() {
               <button
                 type="button"
                 onClick={clearAll}
-                className="ml-auto text-xs font-bold text-[#9ca3af] transition-colors hover:text-[#f49e0b]"
+                className="ml-auto text-xs font-bold text-fg-muted transition-colors hover:text-brand"
               >
                 {t("clearAll")}
               </button>
             )}
           </div>
-        </div>
+        </AppPanel>
 
         {isDrawerOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
@@ -473,17 +473,17 @@ export default function FilterPanel() {
               role="dialog"
               aria-modal="true"
               aria-label={t("title")}
-              className="absolute inset-x-0 bottom-0 max-h-[86vh] overflow-hidden rounded-t-2xl border border-[#272733] bg-[#111118] shadow-[0_-24px_70px_rgba(0,0,0,0.55)]"
+              className="absolute inset-x-0 bottom-0 max-h-[86vh] overflow-hidden rounded-t-ui-xl border border-border-soft bg-surface shadow-[0_-24px_70px_rgba(0,0,0,0.55)]"
             >
-              <div className="flex items-center justify-between border-b border-[#1a1a24] px-4 py-4">
-                <h2 className="flex items-center gap-2 text-base font-black text-white">
+              <div className="flex items-center justify-between border-b border-border px-4 py-4">
+                <h2 className="flex items-center gap-2 text-base font-black text-fg">
                   <SlidersHorizontalIcon className="size-5" />
                   {t("title")}
                 </h2>
                 <button
                   type="button"
                   onClick={() => setIsDrawerOpen(false)}
-                  className="grid size-9 place-items-center rounded-full border border-[#272733] text-[#9ca3af] transition-colors hover:border-[#f49e0b] hover:text-white"
+                  className="grid size-9 place-items-center rounded-ui-pill border border-border-soft text-fg-muted transition-colors hover:border-brand hover:text-fg"
                   aria-label={t("title")}
                 >
                   <XIcon className="size-4" />
@@ -499,16 +499,16 @@ export default function FilterPanel() {
         )}
       </div>
 
-      <aside className="hidden w-full flex-none self-start rounded border border-[#1a1a24] bg-[#111118] p-5 lg:sticky lg:top-24 lg:flex lg:w-[280px] lg:flex-col lg:gap-5">
+      <aside className="hidden w-full flex-none self-start rounded-ui-sm border border-border bg-surface p-5 lg:sticky lg:top-24 lg:flex lg:w-[280px] lg:flex-col lg:gap-5">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="flex items-center gap-2 text-base font-black text-white">
+          <h2 className="flex items-center gap-2 text-base font-black text-fg">
             <SlidersHorizontalIcon className="size-5" />
             {t("title")}
           </h2>
           <button
             type="button"
             onClick={clearAll}
-            className="text-xs font-bold text-[#9ca3af] transition-colors hover:text-[#f49e0b]"
+            className="text-xs font-bold text-fg-muted transition-colors hover:text-brand"
           >
             {t("clearAll")}
           </button>

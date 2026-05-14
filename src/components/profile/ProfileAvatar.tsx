@@ -14,12 +14,12 @@ export default function ProfileAvatar({ src, name, size = "lg" }: ProfileAvatarP
   const initials = name.trim().slice(0, 2).toUpperCase() || "AZ";
   const wrapperClassName =
     size === "lg"
-      ? "relative flex size-[88px] shrink-0 items-center justify-center rounded-full ring-2 ring-[#f49e0b] ring-offset-2 ring-offset-[#0d0d14]"
-      : "relative flex size-14 shrink-0 items-center justify-center rounded-full ring-2 ring-[#f49e0b] ring-offset-2 ring-offset-[#0d0d14]";
+      ? "relative flex size-[88px] shrink-0 items-center justify-center rounded-ui-pill ring-2 ring-brand ring-offset-2 ring-offset-bg-muted"
+      : "relative flex size-14 shrink-0 items-center justify-center rounded-ui-pill ring-2 ring-brand ring-offset-2 ring-offset-bg-muted";
   const fallbackClassName =
     size === "lg"
-      ? "flex size-full items-center justify-center rounded-full bg-[#f49e0b] text-2xl font-black text-[#0a0a0f]"
-      : "flex size-full items-center justify-center rounded-full bg-[#f49e0b] text-base font-black text-[#0a0a0f]";
+      ? "flex size-full items-center justify-center rounded-ui-pill bg-brand text-2xl font-black text-brand-fg"
+      : "flex size-full items-center justify-center rounded-ui-pill bg-brand text-base font-black text-brand-fg";
 
   if (src && failedSrc !== src) {
     return (
@@ -29,7 +29,7 @@ export default function ProfileAvatar({ src, name, size = "lg" }: ProfileAvatarP
           alt={name}
           fill
           sizes={size === "lg" ? "88px" : "56px"}
-          className="rounded-full object-cover"
+          className="rounded-ui-pill object-cover"
           onError={() => setFailedSrc(src)}
           unoptimized
         />

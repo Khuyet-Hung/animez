@@ -1,6 +1,7 @@
 import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 import RecommendationSessionPanel from "@/components/recommendations/RecommendationSessionPanel";
+import { AppErrorState } from "@/components/ui";
 import { getOrCreateRecommendationSession } from "@/lib/anime-recommendations/actions";
 import { createSeoMetadata } from "@/lib/seo";
 import { createClient } from "@/lib/supabase/server";
@@ -42,17 +43,16 @@ export default async function RecommendationsPage({ params }: RecommendationsPag
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-[#0a0a0f] px-4 py-8 pb-20 md:px-6 lg:pl-28 min-[1600px]:pl-6">
+      <main className="min-h-screen bg-bg px-4 py-8 pb-20 md:px-6 lg:pl-28 min-[1600px]:pl-6">
         <div className="mx-auto w-full max-w-5xl">
           {result.status === "success" ? (
             <RecommendationSessionPanel initialView={result.view} locale={locale} />
           ) : (
-            <div className="mx-auto mt-10 max-w-xl rounded border border-[#1a1a24] bg-[#111118] p-6 text-center">
-              <p className="text-xl font-black text-white">{t(`pageErrors.${result.messageKey}.title`)}</p>
-              <p className="mt-3 text-sm leading-6 text-[#9ca3af]">
-                {t(`pageErrors.${result.messageKey}.description`)}
-              </p>
-            </div>
+            <AppErrorState
+              title={t(`pageErrors.${result.messageKey}.title`)}
+              description={t(`pageErrors.${result.messageKey}.description`)}
+              className="mx-auto mt-10 max-w-xl"
+            />
           )}
         </div>
       </main>

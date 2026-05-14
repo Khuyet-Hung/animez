@@ -98,7 +98,7 @@ export default async function RootLayout({
 
   return (
     <html lang={lang} className={`dark ${exo2.variable}`}>
-      <body className="bg-[#0a0a0f] text-white font-sans overflow-x-hidden min-h-screen flex flex-col">
+      <body className="flex min-h-screen flex-col overflow-x-hidden bg-bg font-sans text-fg">
         {children}
         {ADSENSE_CLIENT ? (
           <Script

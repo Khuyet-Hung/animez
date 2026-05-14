@@ -107,14 +107,14 @@ function SearchBarInner() {
     <div ref={containerRef} className="relative hidden md:flex flex-col min-w-64 h-full">
       <form onSubmit={handleSubmit}>
         <motion.div
-          className="flex w-full flex-1 items-stretch rounded bg-[#111118] border border-[#1a1a24] focus-within:border-[#f49e0b] transition-colors"
+          className="flex w-full flex-1 items-stretch rounded-ui-sm border border-border bg-surface transition-colors focus-within:border-brand"
           animate={reduceMotion ? undefined : {
             scale: isFocused || showSuggestions ? 1.01 : 1,
             boxShadow: isFocused || showSuggestions ? "0 0 0 3px rgba(244, 158, 11, 0.12)" : "0 0 0 0 rgba(244, 158, 11, 0)",
           }}
           transition={{ duration: 0.2, ease: "easeOut" }}
         >
-          <div className="text-[#9ca3af] flex items-center justify-center pl-3">
+          <div className="flex items-center justify-center pl-3 text-fg-muted">
             <span className="material-symbols-outlined" style={{ fontSize: "20px" }}><SearchIcon /></span>
           </div>
           <input
@@ -125,22 +125,22 @@ function SearchBarInner() {
               if (suggestions.length > 0) setShowSuggestions(true);
             }}
             onBlur={() => setIsFocused(false)}
-            className="w-full bg-transparent border-none text-sm text-white focus:outline-none placeholder:text-[#9ca3af] px-3 py-2"
+            className="w-full border-none bg-transparent px-3 py-2 text-sm text-fg placeholder:text-fg-muted focus:outline-none"
             placeholder={t("search_placeholder")}
           />
         </motion.div>
       </form>
 
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-[#111118] border border-[#1a1a24] rounded shadow-xl z-50 overflow-hidden">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-ui-sm border border-border bg-surface shadow-xl">
           {suggestions.map((anime) => (
-            <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => setShowSuggestions(false)} className="flex items-center gap-3 px-3 py-2 hover:bg-[#1a1a24] transition-colors">
+            <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => setShowSuggestions(false)} className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-border">
               {anime.coverImage?.medium && (
-                <Image src={anime.coverImage.medium} alt={formatAnimeTitle(anime.title, locale)} width={32} height={44} className="rounded object-cover flex-none" unoptimized />
+                <Image src={anime.coverImage.medium} alt={formatAnimeTitle(anime.title, locale)} width={32} height={44} className="flex-none rounded-ui-sm object-cover" unoptimized />
               )}
               <div className="min-w-0">
-                <p className="text-white text-sm font-medium truncate">{formatAnimeTitle(anime.title, locale)}</p>
-                {anime.format && <p className="text-[#9ca3af] text-xs">{anime.format.replace("_", " ")}</p>}
+                <p className="truncate text-sm font-medium text-fg">{formatAnimeTitle(anime.title, locale)}</p>
+                {anime.format && <p className="text-xs text-fg-muted">{anime.format.replace("_", " ")}</p>}
               </div>
             </Link>
           ))}
@@ -235,28 +235,28 @@ function QuickSettingsMenu() {
         aria-label={labels.button}
         aria-expanded={open}
         onClick={toggleOpen}
-        className="flex size-9 items-center justify-center rounded text-white transition-all"
+        className="flex size-9 items-center justify-center rounded-ui-sm text-fg transition-all hover:bg-surface hover:text-brand"
       >
         <SettingsIcon className="size-5" />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-72 bg-[#111118] border border-[#1a1a24] rounded-lg shadow-xl z-50 overflow-hidden text-white">
+        <div className="absolute right-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-ui-sm border border-border bg-surface text-fg shadow-xl">
           {activePanel === "main" ? (
             <>
-              <div className="px-4 py-3 border-b border-[#1a1a24]">
-                <p className="text-white text-sm font-bold">{labels.title}</p>
+              <div className="border-b border-border px-4 py-3">
+                <p className="text-sm font-bold text-fg">{labels.title}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setActivePanel("language")}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left text-[#d1d5db] hover:text-white hover:bg-[#1a1a24] transition-colors"
+                className="flex w-full items-center gap-3 px-4 py-3 text-left text-fg-soft transition-colors hover:bg-border hover:text-fg"
               >
-                <LanguagesIcon className="size-5 flex-none text-[#f49e0b]" />
+                <LanguagesIcon className="size-5 flex-none text-brand" />
                 <span className="min-w-0 flex-1 truncate text-sm font-semibold">
                   {labels.displayLanguage}: {currentLanguage.label}
                 </span>
-                <ChevronRightIcon className="size-4 flex-none text-[#9ca3af]" />
+                <ChevronRightIcon className="size-4 flex-none text-fg-muted" />
               </button>
             </>
           ) : (
@@ -264,9 +264,9 @@ function QuickSettingsMenu() {
               <button
                 type="button"
                 onClick={() => setActivePanel("main")}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left text-white border-b border-[#1a1a24] hover:bg-[#1a1a24] transition-colors"
+                className="flex w-full items-center gap-3 border-b border-border px-4 py-3 text-left text-fg transition-colors hover:bg-border"
               >
-                <ArrowLeftIcon className="size-4 flex-none text-[#9ca3af]" />
+                <ArrowLeftIcon className="size-4 flex-none text-fg-muted" />
                 <span className="text-sm font-bold">{labels.displayLanguage}</span>
                 <span className="sr-only">{labels.back}</span>
               </button>
@@ -284,8 +284,8 @@ function QuickSettingsMenu() {
                       aria-current={selected ? "true" : undefined}
                       className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
                         selected
-                          ? "bg-[#f49e0b]/10 text-[#f49e0b]"
-                          : "text-[#d1d5db] hover:text-white hover:bg-[#1a1a24]"
+                          ? "bg-brand/10 text-brand"
+                          : "text-fg-soft hover:bg-border hover:text-fg"
                       }`}
                     >
                       <span className="flex size-5 flex-none items-center justify-center">
@@ -294,7 +294,7 @@ function QuickSettingsMenu() {
                       <span className="min-w-0 flex-1 truncate text-sm font-semibold">
                         {option.label}
                       </span>
-                      <span className="relative h-5 w-7 flex-none overflow-hidden rounded-sm border border-[#1f2937] bg-[#0a0a0f]">
+                      <span className="relative h-5 w-7 flex-none overflow-hidden rounded-ui-xs border border-border-strong bg-bg">
                         <Image
                           src={option.flag}
                           alt={option.code}
@@ -337,7 +337,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-[#1a1a24] bg-[#0a0a0f]/95 backdrop-blur-sm">
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-bg/95 backdrop-blur-sm">
         <div className="flex items-center justify-between px-3 py-4 md:px-4 w-full">
         <div className="flex items-center gap-8">
           <motion.div
@@ -345,7 +345,7 @@ export default function Navbar() {
             whileTap={reduceMotion ? undefined : { scale: 0.98 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            <Link href="/" className="flex items-center gap-3 text-white group">
+            <Link href="/" className="group flex items-center gap-3 text-fg">
               <AppLogo
                 className="h-10 w-[160px] transition-opacity group-hover:opacity-90"
                 priority
@@ -381,10 +381,10 @@ export default function Navbar() {
                 aria-current={active ? "page" : undefined}
                 aria-label={label}
                 title={label}
-                className={`group flex h-16 flex-col items-center justify-center gap-1 rounded text-xs font-bold transition-colors ${
+                className={`group flex h-16 flex-col items-center justify-center gap-1 rounded-ui-sm text-xs font-bold transition-colors ${
                   active
-                    ? "border border-[#1a1a24] bg-[#111118]/95 text-[#f49e0b] shadow-lg shadow-black/25 backdrop-blur-sm"
-                    : "bg-[#0a0a0f]/45 text-[#cbd5e1] backdrop-blur-sm hover:bg-[#111118]/90 hover:text-[#f49e0b]"
+                    ? "border border-border bg-surface/95 text-brand shadow-lg shadow-black/25 backdrop-blur-sm"
+                    : "bg-bg/45 text-fg-soft backdrop-blur-sm hover:bg-surface/90 hover:text-brand"
                 }`}
               >
                 <Icon className="size-5" />
@@ -395,7 +395,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[#1a1a24] bg-[#0a0a0f]/95 backdrop-blur-sm lg:hidden" aria-label={t("navigation")}>
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-bg/95 backdrop-blur-sm lg:hidden" aria-label={t("navigation")}>
         <div className="mx-auto grid max-w-md grid-cols-3 gap-1 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2">
           {tabs.map(({ href, label, icon: Icon }) => {
             const active = isNavTabActive(pathname, href);
@@ -405,10 +405,10 @@ export default function Navbar() {
                 key={href}
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`flex h-12 flex-col items-center justify-center gap-1 rounded text-[11px] font-bold transition-colors ${
+                className={`flex h-12 flex-col items-center justify-center gap-1 rounded-ui-sm text-[11px] font-bold transition-colors ${
                   active
-                    ? "bg-[#f49e0b]/10 text-[#f49e0b]"
-                    : "text-[#9ca3af] hover:bg-[#111118] hover:text-[#f49e0b]"
+                    ? "bg-brand/10 text-brand"
+                    : "text-fg-muted hover:bg-surface hover:text-brand"
                 }`}
               >
                 <Icon className="size-5" />

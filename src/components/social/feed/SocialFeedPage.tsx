@@ -4,6 +4,7 @@ import { RadioIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import CreatePostButton from "@/components/social/CreatePostButton";
 import SocialFeedList from "@/components/social/feed/SocialFeedList";
+import { AppBadge } from "@/components/ui";
 
 export default function SocialFeedPage() {
   const t = useTranslations("feed");
@@ -14,10 +15,10 @@ export default function SocialFeedPage() {
         <section className="min-w-0">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
-              <div className="inline-flex items-center gap-2 border border-[#2a2a35] bg-[#111118] px-3 py-1.5 text-xs font-black uppercase tracking-normal text-[#f49e0b]">
+              <AppBadge variant="brand" className="uppercase">
                 <RadioIcon className="size-3.5" />
                 {t("eyebrow")}
-              </div>
+              </AppBadge>
             </div>
           </div>
 
@@ -25,9 +26,9 @@ export default function SocialFeedPage() {
         </section>
 
         <aside className="hidden min-[1400px]:sticky min-[1400px]:top-24 min-[1400px]:block">
-          <div className="border-l border-[#1a1a24] pl-5">
-            <p className="text-xs font-black uppercase tracking-normal text-[#f49e0b]">{t("createTitle")}</p>
-            <p className="mt-2 text-sm font-semibold leading-6 text-[#9ca3af]">{t("createDescription")}</p>
+          <div className="border-l border-border pl-5">
+            <p className="text-xs font-black uppercase tracking-normal text-brand">{t("createTitle")}</p>
+            <p className="mt-2 text-sm font-semibold leading-6 text-fg-muted">{t("createDescription")}</p>
             <CreatePostButton className="mt-4 max-w-none" title={t("triggerPlaceholder")} />
           </div>
         </aside>

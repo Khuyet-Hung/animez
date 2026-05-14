@@ -32,7 +32,7 @@ export default function HorizontalScroll({
     return () => window.removeEventListener("resize", checkScroll);
   }, []);
 
-  // Check scroll when children change (e.g., dynamic content)
+  // Kiểm tra lại khi nội dung động thay đổi.
   useEffect(() => {
     checkScroll();
   }, [children]);
@@ -47,7 +47,7 @@ export default function HorizontalScroll({
         behavior: "smooth",
       });
       
-      // Update check after animation completes approximately
+      // Cập nhật lại sau khi animation cuộn gần hoàn tất.
       setTimeout(checkScroll, 350);
     }
   };
@@ -57,7 +57,7 @@ export default function HorizontalScroll({
       {canScrollLeft && (
         <button
           onClick={() => scroll("left")}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-12 rounded cursor-pointer bg-[#f49e0b] text-black flex items-center justify-center opacity-0 group-hover/scroll:opacity-100 transition-opacity hover:opacity-90 focus:opacity-100 backdrop-blur-sm shadow-md ml-2 border border-white/10"
+          className="absolute left-0 top-1/2 z-10 ml-2 flex h-12 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-ui-sm border border-white/10 bg-brand text-brand-fg opacity-0 shadow-md backdrop-blur-sm transition-opacity hover:opacity-90 focus:opacity-100 group-hover/scroll:opacity-100"
           aria-label="Scroll left"
         >
           <ChevronLeft className="w-6 h-6" />
@@ -75,7 +75,7 @@ export default function HorizontalScroll({
       {canScrollRight && (
         <button
           onClick={() => scroll("right")}
-          className="absolute right-0 top-1/2 -translate-y-[80%] z-10 w-8 h-12 rounded cursor-pointer bg-[#f49e0b] text-black flex items-center justify-center opacity-0 group-hover/scroll:opacity-100 transition-opacity hover:opacity-90 focus:opacity-100 backdrop-blur-sm shadow-md mr-2 border border-white/10"
+          className="absolute right-0 top-1/2 z-10 mr-2 flex h-12 w-8 -translate-y-[80%] cursor-pointer items-center justify-center rounded-ui-sm border border-white/10 bg-brand text-brand-fg opacity-0 shadow-md backdrop-blur-sm transition-opacity hover:opacity-90 focus:opacity-100 group-hover/scroll:opacity-100"
           aria-label="Scroll right"
         >
           <ChevronRight className="w-6 h-6" />

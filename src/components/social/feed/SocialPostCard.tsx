@@ -6,13 +6,11 @@ import {
   ClockIcon,
   EllipsisIcon,
   HeartIcon,
-  Loader2Icon,
   MessageCircleIcon,
   PencilIcon,
   Share2Icon,
   Trash2Icon,
   UserCircleIcon,
-  XIcon,
   type LucideIcon,
 } from "lucide-react";
 import clsx from "clsx";
@@ -25,6 +23,7 @@ import SocialPostAnime from "@/components/social/feed/SocialPostAnime";
 import SocialPostCommentsModal from "@/components/social/feed/SocialPostCommentsModal";
 import SocialPostImageViewer from "@/components/social/feed/SocialPostImageViewer";
 import SocialPostImages from "@/components/social/feed/SocialPostImages";
+import { AppAlertDialog, AppButton, AppDialog, AppIconButton } from "@/components/ui";
 import {
   deleteSocialPostAction,
   shareSocialPostAction,
@@ -84,8 +83,8 @@ function SocialPostActionButton({
       disabled={disabled}
       onClick={onClick}
       className={clsx(
-        "inline-flex h-9 min-w-10 items-center justify-center rounded border px-3 text-sm font-black tabular-nums transition-colors disabled:cursor-not-allowed disabled:opacity-70",
-        "border-[#2a2a35] text-[#d1d5db] hover:border-[#f49e0b] hover:text-white"
+        "inline-flex h-9 min-w-10 items-center justify-center rounded-ui-sm border px-3 text-sm font-black tabular-nums transition-colors disabled:cursor-not-allowed disabled:opacity-70",
+        "border-border-strong text-fg-soft hover:border-brand hover:text-fg"
       )}
     >
       <Icon className="size-4 shrink-0" fill={pressed ? "currentColor" : "none"} />
@@ -106,7 +105,7 @@ function SocialPostActionStat({
   return (
     <div
       aria-label={label}
-      className="inline-flex h-9 min-w-10 items-center justify-center rounded border border-[#2a2a35] px-3 text-sm font-black tabular-nums text-[#d1d5db]"
+      className="inline-flex h-9 min-w-10 items-center justify-center rounded-ui-sm border border-border-strong px-3 text-sm font-black tabular-nums text-fg-soft"
     >
       <Icon className="size-4 shrink-0" />
       <span className="ml-1.5 min-w-3">{count}</span>
@@ -126,18 +125,18 @@ const SharedPostPreview = memo(function SharedPostPreview({
   const authorName = getAuthorName(post, t("unknownAuthor"));
   const authorContent = (
     <>
-      <div className="relative size-9 shrink-0 overflow-hidden rounded-full border border-[#2a2a35] bg-[#111118]">
+      <div className="relative size-9 shrink-0 overflow-hidden rounded-ui-pill border border-border-strong bg-surface">
         {post.author.avatar_url ? (
           <Image src={post.author.avatar_url} alt={authorName} fill sizes="36px" className="object-cover" unoptimized />
         ) : (
-          <div className="flex size-full items-center justify-center text-[#6b7280]">
+          <div className="flex size-full items-center justify-center text-fg-subtle">
             <UserCircleIcon className="size-5" />
           </div>
         )}
       </div>
       <div className="min-w-0">
-        <p className="truncate text-sm font-black text-white">{authorName}</p>
-        <time dateTime={post.created_at} className="mt-0.5 block text-xs font-bold text-[#6b7280]" suppressHydrationWarning>
+        <p className="truncate text-sm font-black text-fg">{authorName}</p>
+        <time dateTime={post.created_at} className="mt-0.5 block text-xs font-bold text-fg-subtle" suppressHydrationWarning>
           {formatPostDate(post.created_at, locale)}
         </time>
       </div>
@@ -146,7 +145,7 @@ const SharedPostPreview = memo(function SharedPostPreview({
 
   return (
     <div className="px-4 pb-4 sm:px-5">
-      <article className="overflow-hidden rounded-lg border border-[#2a2a35] bg-[#0f0f16]">
+      <article className="overflow-hidden rounded-ui-sm border border-border-strong bg-bg-muted">
         <div className="flex min-w-0 items-center gap-3 px-3 py-3 sm:px-4">
           {post.author.username ? (
             <Link href={`/u/${post.author.username}`} className="flex min-w-0 items-center gap-3">
@@ -160,12 +159,12 @@ const SharedPostPreview = memo(function SharedPostPreview({
         {(post.caption || post.description) && (
           <div className="px-3 pb-3 sm:px-4">
             {post.caption && (
-              <h3 className="whitespace-pre-wrap break-words text-sm font-black leading-6 text-white">
+                <h3 className="whitespace-pre-wrap break-words text-sm font-black leading-6 text-fg">
                 {post.caption}
               </h3>
             )}
             {post.description && (
-              <p className="mt-1 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-[#cbd5e1]">
+                <p className="mt-1 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-fg-soft">
                 {post.description}
               </p>
             )}
@@ -217,7 +216,7 @@ function SharePostModal({
   const actorName = actor?.display_name || actor?.username || t("shareAsCurrentUser");
   const actorContent = (
     <>
-      <div className="relative size-10 shrink-0 overflow-hidden rounded-full border border-[#2a2a35] bg-[#0f0f16] text-[#6b7280]">
+      <div className="relative size-10 shrink-0 overflow-hidden rounded-ui-pill border border-border-strong bg-bg-muted text-fg-subtle">
         {actor?.avatar_url ? (
           <Image src={actor.avatar_url} alt={actorName} fill sizes="40px" className="object-cover" unoptimized />
         ) : (
@@ -226,7 +225,7 @@ function SharePostModal({
           </div>
         )}
       </div>
-      <p className="min-w-0 truncate text-sm font-black text-white">{actorName}</p>
+      <p className="min-w-0 truncate text-sm font-black text-fg">{actorName}</p>
     </>
   );
 
@@ -238,24 +237,32 @@ function SharePostModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-      <form
-        onSubmit={handleSubmit}
-        className="flex max-h-[min(720px,calc(100vh-32px))] w-full max-w-xl flex-col overflow-hidden rounded-lg border border-[#2a2a35] bg-[#111118] shadow-2xl shadow-black/60"
-      >
-        <div className="relative flex h-14 items-center justify-center border-b border-[#2a2a35] px-12">
-          <h2 className="truncate text-lg font-black text-white">{t(isEditing ? "editShareTitle" : "shareModalTitle")}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isPending}
-            className="absolute right-3 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-[#171720] text-[#d1d5db] transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-            aria-label={t("closeShareModal")}
+    <AppDialog
+      open
+      onClose={onClose}
+      title={t(isEditing ? "editShareTitle" : "shareModalTitle")}
+      closeLabel={t("closeShareModal")}
+      size="lg"
+      className="max-h-[min(720px,calc(100vh-32px))]"
+      footer={
+        <div className="flex justify-end">
+          <AppButton
+            type="submit"
+            form="social-share-form"
+            disabled={isPending || captionTooLong}
+            isLoading={isPending}
+            size="sm"
           >
-            <XIcon className="size-5" />
-          </button>
+            {isPending ? t(isEditing ? "updatingShare" : "sharing") : t(isEditing ? "updateShare" : "shareNow")}
+          </AppButton>
         </div>
-
+      }
+    >
+      <form
+        id="social-share-form"
+        onSubmit={handleSubmit}
+        className="flex min-h-0 flex-col overflow-hidden"
+      >
         <div className="min-h-0 overflow-y-auto">
           <div className="flex items-center gap-3 px-4 py-4 sm:px-5">
             {actor?.username ? (
@@ -274,10 +281,10 @@ function SharePostModal({
               disabled={isPending}
               rows={4}
               placeholder={t("shareCaptionPlaceholder")}
-              className="block max-h-40 min-h-24 w-full resize-none border-0 bg-transparent p-0 text-base font-semibold leading-7 text-white outline-none placeholder:text-[#9ca3af] disabled:cursor-not-allowed disabled:opacity-70"
+              className="block max-h-40 min-h-24 w-full resize-none border-0 bg-transparent p-0 text-base font-semibold leading-7 text-fg outline-none placeholder:text-fg-muted disabled:cursor-not-allowed disabled:opacity-70"
             />
             <div className="mt-2 flex justify-end">
-              <span className={clsx("text-xs font-bold tabular-nums", captionTooLong ? "text-red-300" : "text-[#6b7280]")}>
+              <span className={clsx("text-xs font-bold tabular-nums", captionTooLong ? "text-red-300" : "text-fg-subtle")}>
                 {captionLength}/{SHARE_CAPTION_MAX_LENGTH}
               </span>
             </div>
@@ -288,18 +295,8 @@ function SharePostModal({
           </div>
         </div>
 
-        <div className="flex justify-end border-t border-[#2a2a35] px-4 py-3 sm:px-5">
-          <button
-            type="submit"
-            disabled={isPending || captionTooLong}
-            className="inline-flex h-10 min-w-28 items-center justify-center gap-2 rounded-lg border border-[#f49e0b]/45 bg-[#f49e0b] px-5 text-sm font-black text-[#111118] transition-colors hover:border-[#fbbf24] hover:bg-[#fbbf24] disabled:cursor-not-allowed disabled:border-[#2a2a35] disabled:bg-[#242434] disabled:text-[#6b7280]"
-          >
-            {isPending && <Loader2Icon className="size-4 animate-spin" />}
-            {isPending ? t(isEditing ? "updatingShare" : "sharing") : t(isEditing ? "updateShare" : "shareNow")}
-          </button>
-        </div>
       </form>
-    </div>
+    </AppDialog>
   );
 }
 
@@ -540,18 +537,18 @@ const SocialPostCard = memo(function SocialPostCard({
 
   const authorContent = (
     <>
-      <div className="relative size-10 shrink-0 overflow-hidden rounded-full border border-[#2a2a35] bg-[#0f0f16]">
+      <div className="relative size-10 shrink-0 overflow-hidden rounded-ui-pill border border-border-strong bg-bg-muted">
         {post.author.avatar_url ? (
           <Image src={post.author.avatar_url} alt={authorName} fill sizes="40px" className="object-cover" unoptimized />
         ) : (
-          <div className="flex size-full items-center justify-center text-[#6b7280]">
+          <div className="flex size-full items-center justify-center text-fg-subtle">
             <UserCircleIcon className="size-6" />
           </div>
         )}
       </div>
       <div className="min-w-0">
-        <p className="truncate text-sm font-black text-white">{authorName}</p>
-        <div className="mt-0.5 flex items-center gap-1.5 text-xs font-bold text-[#6b7280]">
+        <p className="truncate text-sm font-black text-fg">{authorName}</p>
+        <div className="mt-0.5 flex items-center gap-1.5 text-xs font-bold text-fg-subtle">
           <ClockIcon className="size-3.5" />
           <time dateTime={post.created_at} suppressHydrationWarning>
             {formatPostDate(post.created_at, locale)}
@@ -568,8 +565,8 @@ const SocialPostCard = memo(function SocialPostCard({
   );
 
   return (
-    <article className="overflow-hidden rounded-lg border border-[#1a1a24] bg-[#111118]">
-      <div className="flex items-center justify-between gap-4 border-b border-[#1a1a24] bg-[#0f0f16] px-4 py-3 sm:px-5">
+    <article className="overflow-hidden rounded-ui-sm border border-border bg-surface">
+      <div className="flex items-center justify-between gap-4 border-b border-border bg-bg-muted px-4 py-3 sm:px-5">
         {post.author.username ? (
           <Link href={`/u/${post.author.username}`} className="flex min-w-0 items-center gap-3">
             {authorContent}
@@ -580,25 +577,25 @@ const SocialPostCard = memo(function SocialPostCard({
 
         {canManage && (
           <div ref={actionMenuRef} className="relative shrink-0">
-            <button
+            <AppIconButton
               type="button"
               aria-label={t("postActions")}
               aria-expanded={menuOpen}
               onClick={() => setMenuOpen((current) => !current)}
-              className="flex size-9 items-center justify-center rounded border border-[#2a2a35] text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white"
+              size="sm"
             >
               <EllipsisIcon className="size-4" />
-            </button>
+            </AppIconButton>
 
             {menuOpen && (
-              <div className="absolute right-0 top-[calc(100%+8px)] z-20 w-44 overflow-hidden rounded border border-[#2a2a35] bg-[#0f0f16] p-1 shadow-2xl shadow-black/50">
+              <div className="absolute right-0 top-[calc(100%+8px)] z-20 w-44 overflow-hidden rounded-ui-sm border border-border-strong bg-bg-muted p-1 shadow-2xl shadow-black/50">
                 <button
                   type="button"
                   onClick={() => {
                     setEditOpen(true);
                     setMenuOpen(false);
                   }}
-                  className="flex h-10 w-full items-center gap-2 rounded px-3 text-left text-sm font-bold text-[#d1d5db] transition-colors hover:bg-[#f49e0b]/10 hover:text-white"
+                  className="flex h-10 w-full items-center gap-2 rounded-ui-sm px-3 text-left text-sm font-bold text-fg-soft transition-colors hover:bg-brand/10 hover:text-fg"
                 >
                   <PencilIcon className="size-4" />
                   {t("editPost")}
@@ -609,7 +606,7 @@ const SocialPostCard = memo(function SocialPostCard({
                     setConfirmOpen(true);
                     setMenuOpen(false);
                   }}
-                  className="flex h-10 w-full items-center gap-2 rounded px-3 text-left text-sm font-bold text-red-300 transition-colors hover:bg-red-500/10 hover:text-red-200"
+                  className="flex h-10 w-full items-center gap-2 rounded-ui-sm px-3 text-left text-sm font-bold text-red-300 transition-colors hover:bg-red-500/10 hover:text-red-200"
                 >
                   <Trash2Icon className="size-4" />
                   {t("deletePost")}
@@ -623,10 +620,10 @@ const SocialPostCard = memo(function SocialPostCard({
       {(post.caption || post.description) && (
         <div className="px-4 py-4 sm:px-5">
           {post.caption && (
-            <h2 className="whitespace-pre-wrap break-words text-base font-black leading-6 text-white">{post.caption}</h2>
+            <h2 className="whitespace-pre-wrap break-words text-base font-black leading-6 text-fg">{post.caption}</h2>
           )}
           {post.description && (
-            <p className="mt-2 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-[#cbd5e1]">
+            <p className="mt-2 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-fg-soft">
               {post.description}
             </p>
           )}
@@ -656,7 +653,7 @@ const SocialPostCard = memo(function SocialPostCard({
         />
       )}
 
-      <div className="flex items-center gap-3 border-t border-[#1a1a24] px-3 py-3 sm:px-4">
+      <div className="flex items-center gap-3 border-t border-border px-3 py-3 sm:px-4">
         <div className="flex min-w-0 items-center gap-1.5">
           <SocialPostActionButton
             count={likeState.count}
@@ -687,36 +684,17 @@ const SocialPostCard = memo(function SocialPostCard({
         </div>
       </div>
 
-      {confirmOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-lg border border-[#2a2a35] bg-[#111118] p-5 shadow-2xl">
-            <h3 className="text-lg font-black text-white">{t("deleteConfirmTitle")}</h3>
-            <p className="mt-2 text-sm font-semibold leading-6 text-[#9ca3af]">
-              {t("deleteConfirmDescription")}
-            </p>
-
-            <div className="mt-5 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setConfirmOpen(false)}
-                disabled={isDeleting}
-                className="h-10 rounded border border-[#2a2a35] px-4 text-sm font-bold text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {t("cancelDelete")}
-              </button>
-              <button
-                type="button"
-                onClick={handleDeletePost}
-                disabled={isDeleting}
-                className="inline-flex h-10 items-center gap-2 rounded border border-red-400/40 bg-red-500/10 px-4 text-sm font-black text-red-200 transition-colors hover:border-red-300 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isDeleting ? <Loader2Icon className="size-4 animate-spin" /> : <Trash2Icon className="size-4" />}
-                {isDeleting ? t("deleting") : t("deletePost")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AppAlertDialog
+        open={confirmOpen}
+        title={t("deleteConfirmTitle")}
+        description={t("deleteConfirmDescription")}
+        cancelLabel={t("cancelDelete")}
+        confirmLabel={isDeleting ? t("deleting") : t("deletePost")}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={handleDeletePost}
+        isConfirming={isDeleting}
+        destructive
+      />
 
       {editOpen && (
         post.shared_post ? (
@@ -786,26 +764,26 @@ const SocialPostCard = memo(function SocialPostCard({
 
 export function SocialPostCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-lg border border-[#1a1a24] bg-[#111118]">
-      <div className="flex items-center gap-3 border-b border-[#1a1a24] bg-[#0f0f16] px-4 py-3 sm:px-5">
-        <div className="size-10 rounded-full bg-[#1a1a24]" />
+    <div className="overflow-hidden rounded-ui-sm border border-border bg-surface">
+      <div className="flex items-center gap-3 border-b border-border bg-bg-muted px-4 py-3 sm:px-5">
+        <div className="size-10 rounded-ui-pill bg-border" />
         <div className="grid flex-1 gap-2">
-          <div className="h-3 w-32 rounded bg-[#1a1a24]" />
-          <div className="h-3 w-24 rounded bg-[#1a1a24]" />
+          <div className="h-3 w-32 rounded-ui-sm bg-border" />
+          <div className="h-3 w-24 rounded-ui-sm bg-border" />
         </div>
-        <div className="size-9 rounded bg-[#1a1a24]" />
+        <div className="size-9 rounded-ui-sm bg-border" />
       </div>
       <div className="grid gap-3 px-4 py-4 sm:px-5">
-        <div className="h-4 w-11/12 rounded bg-[#1a1a24]" />
-        <div className="h-4 w-7/12 rounded bg-[#1a1a24]" />
-        <div className="h-7 w-48 rounded-full bg-[#1a1a24]" />
+        <div className="h-4 w-11/12 rounded-ui-sm bg-border" />
+        <div className="h-4 w-7/12 rounded-ui-sm bg-border" />
+        <div className="h-7 w-48 rounded-ui-pill bg-border" />
       </div>
-      <div className="aspect-[16/10] bg-[#0a0a0f]" />
-      <div className="flex items-center border-t border-[#1a1a24] px-3 py-3 sm:px-4">
+      <div className="aspect-[16/10] bg-bg" />
+      <div className="flex items-center border-t border-border px-3 py-3 sm:px-4">
         <div className="flex gap-1.5">
-          <div className="h-9 w-10 rounded bg-[#1a1a24]" />
-          <div className="h-9 w-10 rounded bg-[#1a1a24]" />
-          <div className="h-9 w-10 rounded bg-[#1a1a24]" />
+          <div className="h-9 w-10 rounded-ui-sm bg-border" />
+          <div className="h-9 w-10 rounded-ui-sm bg-border" />
+          <div className="h-9 w-10 rounded-ui-sm bg-border" />
         </div>
       </div>
     </div>

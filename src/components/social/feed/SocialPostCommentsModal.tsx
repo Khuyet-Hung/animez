@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useTransition, useState, type FormEvent, type MouseEvent } from "react";
+import { memo, useTransition, useState, type FormEvent } from "react";
 import Image from "next/image";
 import {
   HeartIcon,
@@ -8,13 +8,13 @@ import {
   MessageCircleIcon,
   SendIcon,
   UserCircleIcon,
-  XIcon,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/common/ToastProvider";
 import SocialPostAnime from "@/components/social/feed/SocialPostAnime";
 import SocialPostImages from "@/components/social/feed/SocialPostImages";
+import { AppButton, AppDialog, AppIconButton, AppTextarea } from "@/components/ui";
 import { createSocialPostCommentAction } from "@/lib/social/actions";
 import { useSocialPostComments } from "@/hooks/useSocialPostComments";
 import type { SocialFeedAuthor, SocialFeedPost, SocialPostComment } from "@/types/social";
@@ -49,11 +49,11 @@ function AuthorAvatar({
   sizeClass?: string;
 }) {
   return (
-    <div className={`relative shrink-0 overflow-hidden rounded-full border border-[#2a2a35] bg-[#0f0f16] ${sizeClass}`}>
+    <div className={`relative shrink-0 overflow-hidden rounded-ui-pill border border-border-strong bg-bg-muted ${sizeClass}`}>
       {author.avatar_url ? (
         <Image src={author.avatar_url} alt={name} fill sizes="40px" className="object-cover" unoptimized />
       ) : (
-        <div className="flex size-full items-center justify-center text-[#6b7280]">
+        <div className="flex size-full items-center justify-center text-fg-subtle">
           <UserCircleIcon className="size-5" />
         </div>
       )}
@@ -76,22 +76,22 @@ const CommentBubble = memo(function CommentBubble({
     <div className="flex gap-3">
       <AuthorAvatar author={comment.author} name={authorName} />
       <div className="min-w-0 flex-1">
-        <div className="inline-block max-w-full rounded-lg border border-[#242434] bg-[#171720] px-3 py-2">
-          <p className="truncate text-sm font-black text-white">{authorName}</p>
-          <p className="mt-1 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-[#d1d5db]">
+        <div className="inline-block max-w-full rounded-ui-sm border border-border-soft bg-surface-elevated px-3 py-2">
+          <p className="truncate text-sm font-black text-fg">{authorName}</p>
+          <p className="mt-1 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-fg-soft">
             {comment.body}
           </p>
         </div>
         <time
           dateTime={comment.created_at}
-          className="mt-1 block text-xs font-bold text-[#6b7280]"
+          className="mt-1 block text-xs font-bold text-fg-subtle"
           suppressHydrationWarning
         >
           {formatDateTime(comment.created_at, locale)}
         </time>
 
         {comment.replies.length > 0 && (
-          <div className="mt-3 grid gap-3 border-l border-[#2a2a35] pl-4">
+          <div className="mt-3 grid gap-3 border-l border-border-strong pl-4">
             {comment.replies.map((reply) => (
               <CommentBubble key={reply.id} comment={reply} fallbackName={fallbackName} locale={locale} />
             ))}
@@ -125,28 +125,29 @@ function CommentForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-end gap-3 border-t border-[#1a1a24] bg-[#0f0f16] p-3 sm:p-4">
-      <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#2a2a35] bg-[#111118] text-[#6b7280]">
+    <form onSubmit={handleSubmit} className="flex items-end gap-3 border-t border-border bg-bg-muted p-3 sm:p-4">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-ui-pill border border-border-strong bg-surface text-fg-subtle">
         <UserCircleIcon className="size-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <textarea
+        <AppTextarea
           value={body}
           onChange={(event) => setBody(event.target.value.slice(0, COMMENT_MAX_LENGTH))}
           disabled={disabled}
           rows={2}
           placeholder={currentUserId ? t("commentPlaceholder") : t("commentLoginRequired")}
-          className="block max-h-28 min-h-12 w-full resize-none rounded-lg border border-[#2a2a35] bg-[#171720] px-3 py-2 text-sm font-semibold leading-6 text-white outline-none transition-colors placeholder:text-[#6b7280] focus:border-[#f49e0b] disabled:cursor-not-allowed disabled:opacity-70"
+          className="block max-h-28 min-h-12 text-sm font-semibold leading-6"
         />
       </div>
-      <button
+      <AppIconButton
         type="submit"
         disabled={disabled || trimmedLength === 0}
-        className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-[#f49e0b]/45 bg-[#f49e0b]/10 text-[#f49e0b] transition-colors hover:border-[#f49e0b] hover:bg-[#f49e0b]/20 hover:text-white disabled:cursor-not-allowed disabled:border-[#2a2a35] disabled:bg-[#171720] disabled:text-[#6b7280]"
+        variant="brand"
         aria-label={t("sendComment")}
+        isLoading={pending}
       >
-        {pending ? <Loader2Icon className="size-4 animate-spin" /> : <SendIcon className="size-4" />}
-      </button>
+        <SendIcon className="size-4" />
+      </AppIconButton>
     </form>
   );
 }
@@ -168,12 +169,6 @@ export default function SocialPostCommentsModal({
   const authorName = getAuthorName(post.author, t("unknownAuthor"));
   const { data: comments = [], isError, isLoading, refetch } = useSocialPostComments(post.id, true);
   const displayedCommentCount = Math.max(post.comment_count, countComments(comments));
-
-  function handleBackdropMouseDown(event: MouseEvent<HTMLDivElement>) {
-    if (event.target === event.currentTarget) {
-      onClose();
-    }
-  }
 
   function handleSubmitComment(body: string) {
     if (!currentUserId) {
@@ -205,39 +200,26 @@ export default function SocialPostCommentsModal({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 px-0 py-0 backdrop-blur-sm sm:px-4 sm:py-6"
-      onMouseDown={handleBackdropMouseDown}
+    <AppDialog
+      open
+      onClose={onClose}
+      titleId="social-comments-title"
+      title={t("commentsModalTitle", { name: authorName })}
+      closeLabel={t("closeComments")}
+      closeOnOverlay
+      size="full"
+      className="sm:max-w-3xl"
     >
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="social-comments-title"
-        className="flex h-full w-full flex-col overflow-hidden border border-[#2a2a35] bg-[#111118] shadow-2xl shadow-black/60 sm:h-[min(92vh,900px)] sm:max-w-3xl sm:rounded-lg"
-      >
-        <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#2a2a35] bg-[#0f0f16] px-4 sm:h-16 sm:px-5">
-          <h2 id="social-comments-title" className="min-w-0 truncate text-lg font-black text-white sm:text-xl">
-            {t("commentsModalTitle", { name: authorName })}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[#2a2a35] text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white"
-            aria-label={t("closeComments")}
-          >
-            <XIcon className="size-5" />
-          </button>
-        </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="border-b border-[#1a1a24]">
+          <div className="border-b border-border">
             <div className="flex items-start gap-3 px-4 py-4 sm:px-5">
               <AuthorAvatar author={post.author} name={authorName} sizeClass="size-10" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-black text-white">{authorName}</p>
+                <p className="truncate text-sm font-black text-fg">{authorName}</p>
                 <time
                   dateTime={post.created_at}
-                  className="mt-0.5 block text-xs font-bold text-[#6b7280]"
+                  className="mt-0.5 block text-xs font-bold text-fg-subtle"
                   suppressHydrationWarning
                 >
                   {formatDateTime(post.created_at, locale)}
@@ -246,11 +228,11 @@ export default function SocialPostCommentsModal({
             </div>
 
             <div className="px-4 pb-4 sm:px-5">
-              <h3 className="whitespace-pre-wrap break-words text-base font-black leading-6 text-white">
+              <h3 className="whitespace-pre-wrap break-words text-base font-black leading-6 text-fg">
                 {post.caption}
               </h3>
               {post.description && (
-                <p className="mt-2 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-[#cbd5e1]">
+                <p className="mt-2 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-fg-soft">
                   {post.description}
                 </p>
               )}
@@ -262,7 +244,7 @@ export default function SocialPostCommentsModal({
               <SocialPostAnime anime={post.anime} />
             </div>
 
-            <div className="flex items-center gap-4 border-t border-[#1a1a24] px-4 py-3 text-sm font-bold text-[#9ca3af] sm:px-5">
+            <div className="flex items-center gap-4 border-t border-border px-4 py-3 text-sm font-bold text-fg-muted sm:px-5">
               <span className="inline-flex items-center gap-1.5">
                 <HeartIcon className="size-4" />
                 {post.like_count}
@@ -276,29 +258,31 @@ export default function SocialPostCommentsModal({
 
           <div className="grid gap-4 px-4 py-4 sm:px-5">
             {isLoading && (
-              <div className="flex items-center justify-center gap-2 py-8 text-sm font-bold text-[#9ca3af]">
-                <Loader2Icon className="size-4 animate-spin text-[#f49e0b]" />
+              <div className="flex items-center justify-center gap-2 py-8 text-sm font-bold text-fg-muted">
+                <Loader2Icon className="size-4 animate-spin text-brand" />
                 {t("loadingComments")}
               </div>
             )}
 
             {isError && (
-              <div className="rounded-lg border border-red-500/25 bg-red-500/10 p-4">
+              <div className="rounded-ui-sm border border-red-500/25 bg-red-500/10 p-4">
                 <p className="text-sm font-bold text-red-100">{t("commentsLoadFailed")}</p>
-                <button
+                <AppButton
                   type="button"
                   onClick={() => void refetch()}
-                  className="mt-3 h-9 rounded border border-red-400/40 px-3 text-sm font-black text-red-100 transition-colors hover:border-red-300 hover:text-white"
+                  variant="danger"
+                  size="sm"
+                  className="mt-3"
                 >
                   {t("retry")}
-                </button>
+                </AppButton>
               </div>
             )}
 
             {!isLoading && !isError && comments.length === 0 && (
-              <div className="rounded-lg border border-dashed border-[#2a2a35] bg-[#0f0f16] p-5 text-center">
-                <p className="text-sm font-black text-white">{t("emptyCommentsTitle")}</p>
-                <p className="mt-1 text-sm font-semibold text-[#9ca3af]">{t("emptyCommentsDescription")}</p>
+              <div className="rounded-ui-sm border border-dashed border-border-strong bg-bg-muted p-5 text-center">
+                <p className="text-sm font-black text-fg">{t("emptyCommentsTitle")}</p>
+                <p className="mt-1 text-sm font-semibold text-fg-muted">{t("emptyCommentsDescription")}</p>
               </div>
             )}
 
@@ -316,7 +300,6 @@ export default function SocialPostCommentsModal({
         </div>
 
         <CommentForm currentUserId={currentUserId} onSubmit={handleSubmitComment} pending={isSubmitting} />
-      </section>
-    </div>
+    </AppDialog>
   );
 }

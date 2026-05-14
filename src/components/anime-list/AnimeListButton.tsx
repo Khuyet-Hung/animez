@@ -22,6 +22,8 @@ import { useAnimeListEntry } from "@/hooks/useAnimeListEntry";
 import type { AnimeMedia } from "@/types/anime";
 import type { AnimeListScore, AnimeListStatus } from "@/types/anime-list";
 import AnimeListEditor from "@/components/anime-list/AnimeListEditor";
+import { AppButton, AppDialog, AppIconButton, AppSelect } from "@/components/ui";
+import { cn } from "@/lib/cn";
 
 const SCORE_SELECT_OPTIONS = ANIME_LIST_SCORE_OPTIONS.filter((option) => option > 0);
 
@@ -150,87 +152,93 @@ export default function AnimeListButton({
 
   const Icon = saving || loading ? Loader2Icon : entry ? CheckIcon : ListPlusIcon;
   const baseClasses =
-    "inline-flex items-center justify-center gap-2 rounded font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60";
+    "inline-flex items-center justify-center gap-2 rounded-ui-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-60";
   const variantClasses = isCard
-    ? `size-10 border bg-black/70 text-white backdrop-blur-sm hover:border-[#f49e0b] hover:text-[#f49e0b] ${
+    ? `size-10 border bg-black/70 text-fg backdrop-blur-sm hover:border-brand hover:text-brand ${
         entry ? ANIME_LIST_STATUS_BADGE_CLASS[entry.status] : "border-white/15"
       }`
     : entry
-      ? `h-10 px-3 border ${ANIME_LIST_STATUS_BADGE_CLASS[entry.status]} hover:border-[#f49e0b]`
-      : "h-10 px-3 bg-[#f49e0b] text-[#0a0a0f] hover:bg-[#d68a09]";
+      ? `h-10 px-3 border ${ANIME_LIST_STATUS_BADGE_CLASS[entry.status]} hover:border-brand`
+      : "h-10 px-3 bg-brand text-brand-fg hover:bg-brand-hover";
 
-  const loginPrompt = loginPromptOpen ? (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-      <div className="w-full max-w-sm rounded-lg border border-[#1a1a24] bg-[#111118] p-5 shadow-2xl">
-        <h2 className="text-lg font-black text-white">{t("loginRequiredTitle")}</h2>
-        <p className="mt-2 text-sm leading-6 text-[#9ca3af]">
-          {t("loginRequiredDescription")}
-        </p>
-        <div className="mt-5 flex justify-end gap-3">
-          <button
+  const loginPrompt = (
+    <AppDialog
+      open={loginPromptOpen}
+      onClose={() => setLoginPromptOpen(false)}
+      title={t("loginRequiredTitle")}
+      closeLabel={t("cancel")}
+      size="sm"
+      footer={
+        <div className="flex justify-end gap-3">
+          <AppButton
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={() => setLoginPromptOpen(false)}
-            className="h-10 rounded border border-[#1a1a24] px-4 text-sm font-bold text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white"
           >
             {t("cancel")}
-          </button>
+          </AppButton>
           <Link
             href={loginHref}
-            className="inline-flex h-10 items-center rounded bg-[#f49e0b] px-4 text-sm font-black text-[#0a0a0f] transition-colors hover:bg-[#d68a09]"
+            className="inline-flex h-9 items-center rounded-ui-sm bg-brand px-4 text-sm font-black text-brand-fg transition-colors hover:bg-brand-hover"
           >
             {t("goToLogin")}
           </Link>
         </div>
-      </div>
-    </div>
-  ) : null;
+      }
+    >
+      <p className="px-5 py-4 text-sm leading-6 text-fg-muted">
+        {t("loginRequiredDescription")}
+      </p>
+    </AppDialog>
+  );
 
   if (!isCard && entry) {
     return (
       <>
-        <div className={`flex flex-wrap items-center gap-2 ${className}`}>
-          <label className="relative inline-flex h-10 min-w-[150px] items-center overflow-hidden rounded border border-[#2a2a35] bg-[#1a1a24] text-sm font-bold text-white shadow-sm transition-colors focus-within:border-[#f49e0b] hover:border-[#f49e0b]/70">
+        <div className={cn("flex flex-wrap items-center gap-2", className)}>
+          <label className="relative inline-flex h-10 min-w-[150px] items-center overflow-hidden rounded-ui-sm border border-border-strong bg-border text-sm font-bold text-fg shadow-sm transition-colors focus-within:border-brand hover:border-brand/70">
             <span className="sr-only">{t("status.label")}</span>
-            <select
+            <AppSelect
               value={entry.status}
               onChange={handleStatusChange}
               disabled={quickControlsDisabled}
-              className="h-full w-full appearance-none bg-transparent py-0 pr-9 pl-3 text-sm font-bold text-white outline-none disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-full appearance-none border-0 bg-transparent py-0 pr-9 pl-3 font-bold"
             >
               {ANIME_LIST_STATUSES.map((option) => (
-                <option key={option} value={option} className="bg-[#111118] text-white">
+                <option key={option} value={option} className="bg-surface text-fg">
                   {t(`status.${option}`)}
                 </option>
               ))}
-            </select>
-            <ChevronDownIcon className="pointer-events-none absolute right-2.5 size-4 text-[#d1d5db]" />
+            </AppSelect>
+            <ChevronDownIcon className="pointer-events-none absolute right-2.5 size-4 text-fg-soft" />
           </label>
 
-          <label className="relative inline-flex h-10 min-w-[150px] items-center overflow-hidden rounded border border-[#2a2a35] bg-[#1a1a24] text-sm font-bold text-white shadow-sm transition-colors focus-within:border-[#f49e0b] hover:border-[#f49e0b]/70">
+          <label className="relative inline-flex h-10 min-w-[150px] items-center overflow-hidden rounded-ui-sm border border-border-strong bg-border text-sm font-bold text-fg shadow-sm transition-colors focus-within:border-brand hover:border-brand/70">
             <span className="sr-only">{t("score")}</span>
-            <select
+            <AppSelect
               value={entry.score || 0}
               onChange={handleScoreChange}
               disabled={quickControlsDisabled}
-              className="h-full w-full appearance-none bg-transparent py-0 pr-16 pl-3 text-sm font-bold text-white outline-none disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-full appearance-none border-0 bg-transparent py-0 pr-16 pl-3 font-bold"
             >
-              <option value={0} className="bg-[#111118] text-white">
+              <option value={0} className="bg-surface text-fg">
                 {t("unscored")}
               </option>
               {SCORE_SELECT_OPTIONS.map((option) => (
-                <option key={option} value={option} className="bg-[#111118] text-white">
+                <option key={option} value={option} className="bg-surface text-fg">
                   {formatAnimeListScoreLabel(option, t("unscored"))}
                 </option>
               ))}
-            </select>
+            </AppSelect>
             <div className="pointer-events-none absolute right-2.5 flex items-center gap-2">
-              <StarIcon className="size-4 fill-[#f49e0b] text-[#f49e0b]" />
-              <ChevronDownIcon className="size-4 text-[#d1d5db]" />
+              <StarIcon className="size-4 fill-brand text-brand" />
+              <ChevronDownIcon className="size-4 text-fg-soft" />
             </div>
           </label>
 
-          <div className="inline-flex h-10 min-w-[170px] items-center rounded border border-[#2a2a35] bg-[#1a1a24] px-3 text-sm shadow-sm">
-            <span className="font-bold text-white">{detailT("episodes")}:</span>
+          <div className="inline-flex h-10 min-w-[170px] items-center rounded-ui-sm border border-border-strong bg-border px-3 text-sm shadow-sm">
+            <span className="font-bold text-fg">{detailT("episodes")}:</span>
             <input
               key={`${entry.id}-${entry.progress_episodes}`}
               type="number"
@@ -262,27 +270,23 @@ export default function AnimeListButton({
                 quickControlsDisabled ||
                 (typeof totalEpisodes === "number" && entry.progress_episodes >= totalEpisodes)
               }
-              className="ml-1.5 inline-flex size-5 items-center justify-center rounded-full bg-[#5f6472] text-white transition-colors hover:bg-[#f49e0b] hover:text-[#0a0a0f] disabled:cursor-not-allowed disabled:opacity-45"
+              className="ml-1.5 inline-flex size-5 items-center justify-center rounded-ui-pill bg-fg-subtle text-fg transition-colors hover:bg-brand hover:text-brand-fg disabled:cursor-not-allowed disabled:opacity-45"
               aria-label={t("progress")}
             >
               <PlusIcon className="size-3.5" />
             </button>
           </div>
 
-          <button
+          <AppIconButton
             type="button"
             onClick={handleEditClick}
             disabled={quickControlsDisabled}
-            className="inline-flex size-10 items-center justify-center rounded border border-[#2a2a35] bg-[#111118] text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
             aria-label={t("editListEntry")}
             title={t("editListEntry")}
+            isLoading={quickControlsDisabled}
           >
-            {quickControlsDisabled ? (
-              <Loader2Icon className="size-4 animate-spin" />
-            ) : (
-              <PencilIcon className="size-4" />
-            )}
-          </button>
+            <PencilIcon className="size-4" />
+          </AppIconButton>
         </div>
 
         {loginPrompt}
@@ -308,7 +312,7 @@ export default function AnimeListButton({
         type="button"
         onClick={handleClick}
         disabled={saving || loading}
-        className={`${baseClasses} ${variantClasses} ${className}`}
+        className={cn(baseClasses, variantClasses, className)}
         aria-label={isCard ? label : undefined}
         title={isCard ? label : undefined}
       >

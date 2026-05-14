@@ -52,8 +52,8 @@ const TOAST_VARIANT_STYLES: Record<
 > = {
   success: {
     icon: CheckCircle2Icon,
-    iconClassName: "border-[#22c55e]/35 bg-[#22c55e]/10 text-[#22c55e]",
-    progressClassName: "bg-[#22c55e]",
+    iconClassName: "border-green-500/35 bg-green-500/10 text-green-400",
+    progressClassName: "bg-green-500",
     role: "status",
   },
   error: {
@@ -70,8 +70,8 @@ const TOAST_VARIANT_STYLES: Record<
   },
   warning: {
     icon: AlertTriangleIcon,
-    iconClassName: "border-[#f49e0b]/35 bg-[#f49e0b]/10 text-[#f49e0b]",
-    progressClassName: "bg-[#f49e0b]",
+    iconClassName: "border-brand/35 bg-brand/10 text-brand",
+    progressClassName: "bg-brand",
     role: "alert",
   },
 };
@@ -93,29 +93,29 @@ const ToastItem = memo(function ToastItem({
   return (
     <div
       role={variantStyle.role}
-      className="pointer-events-auto grid grid-cols-[auto_1fr_auto] gap-3 overflow-hidden rounded-lg border border-[#2a2a35] bg-[#111118]/95 p-3 text-left shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur animate-[toast-pop_180ms_ease-out]"
+      className="pointer-events-auto grid grid-cols-[auto_1fr_auto] gap-3 overflow-hidden rounded-ui-sm border border-border-strong bg-surface/95 p-3 text-left shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur animate-[toast-pop_180ms_ease-out]"
     >
-      <div className={`flex size-9 items-center justify-center rounded-full border ${variantStyle.iconClassName}`}>
+      <div className={`flex size-9 items-center justify-center rounded-ui-pill border ${variantStyle.iconClassName}`}>
         <ToastIcon className="size-4" />
       </div>
 
       <div className="min-w-0 self-center">
-        <p className="text-sm font-black leading-tight text-white">{toast.title}</p>
+        <p className="text-sm font-black leading-tight text-fg">{toast.title}</p>
         {toast.description && (
-          <p className="mt-1 text-xs font-semibold leading-5 text-[#9ca3af]">{toast.description}</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-fg-muted">{toast.description}</p>
         )}
       </div>
 
       <button
         type="button"
         onClick={() => onDismiss(toast.id)}
-        className="flex size-8 items-center justify-center rounded border border-transparent text-[#9ca3af] transition-colors hover:border-[#2a2a35] hover:text-white"
+        className="flex size-8 items-center justify-center rounded-ui-sm border border-transparent text-fg-muted transition-colors hover:border-border-strong hover:text-fg"
         aria-label="Đóng thông báo"
       >
         <XIcon className="size-4" />
       </button>
 
-      <div className="col-span-3 h-px overflow-hidden bg-[#1a1a24]">
+      <div className="col-span-3 h-px overflow-hidden bg-border">
         <div
           className={`h-full w-full origin-left animate-[toast-progress_4200ms_linear_forwards] ${variantStyle.progressClassName}`}
         />

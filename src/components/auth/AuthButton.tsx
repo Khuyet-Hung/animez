@@ -10,6 +10,7 @@ import { createGravatarUrl } from "@/lib/gravatar";
 import { PROFILE_AVATAR_UPDATED_EVENT } from "@/lib/profile/avatar-events";
 import { Link } from "@/i18n/navigation";
 import { LogOutIcon, ChevronDownIcon, UserIcon } from "lucide-react";
+import { AppSkeleton } from "@/components/ui";
 
 function AvatarCircle({
   src,
@@ -26,12 +27,12 @@ function AvatarCircle({
   const dimension = size === "sm" ? 24 : 32;
   const className =
     size === "sm"
-      ? "w-6 h-6 rounded-full object-cover bg-[#f49e0b]"
-      : "w-8 h-8 rounded-full object-cover bg-[#f49e0b] flex-none";
+      ? "h-6 w-6 rounded-ui-pill bg-brand object-cover"
+      : "h-8 w-8 flex-none rounded-ui-pill bg-brand object-cover";
   const fallbackClassName =
     size === "sm"
-      ? "w-6 h-6 rounded-full bg-[#f49e0b] text-[#0a0a0f] text-xs font-black flex items-center justify-center"
-      : "w-8 h-8 rounded-full bg-[#f49e0b] text-[#0a0a0f] text-xs font-black flex items-center justify-center flex-none";
+      ? "flex h-6 w-6 items-center justify-center rounded-ui-pill bg-brand text-xs font-black text-brand-fg"
+      : "flex h-8 w-8 flex-none items-center justify-center rounded-ui-pill bg-brand text-xs font-black text-brand-fg";
 
   if (src && failedSrc !== src) {
     return (
@@ -150,7 +151,7 @@ export default function AuthButton() {
 
   if (loading) {
     return (
-      <div className="h-9 w-28 rounded bg-[#111118] border border-[#1a1a24] animate-pulse" />
+      <AppSkeleton className="h-9 w-28 border border-border bg-surface" />
     );
   }
 
@@ -158,7 +159,7 @@ export default function AuthButton() {
     return (
       <Link
         href="/login"
-        className="flex h-9 items-center justify-center gap-2 rounded px-4 bg-[#f49e0b] hover:bg-[#d68a09] text-[#0a0a0f] text-sm font-bold transition-colors"
+        className="flex h-9 items-center justify-center gap-2 rounded-ui-sm bg-brand px-4 text-sm font-bold text-brand-fg transition-colors hover:bg-brand-hover"
       >
         <UserIcon className="size-4" />
         {t("login")}
@@ -183,20 +184,20 @@ export default function AuthButton() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 h-9 px-3 rounded bg-[#111118] border border-[#1a1a24] hover:border-[#f49e0b] text-white text-sm font-bold transition-all"
+        className="flex h-9 items-center gap-2 rounded-ui-sm border border-border bg-surface px-3 text-sm font-bold text-fg transition-all hover:border-brand"
       >
         <AvatarCircle src={avatarUrl} initials={initials} name={displayName} size="sm" />
-        <ChevronDownIcon className="w-4 h-4 text-[#9ca3af]" />
+        <ChevronDownIcon className="h-4 w-4 text-fg-muted" />
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-52 bg-[#111118] border border-[#1a1a24] rounded-lg shadow-xl z-50 overflow-hidden">
-          <div className="px-4 py-3 border-b border-[#1a1a24]">
+        <div className="absolute right-0 top-full z-50 mt-1 w-52 overflow-hidden rounded-ui-sm border border-border bg-surface shadow-xl">
+          <div className="border-b border-border px-4 py-3">
             <div className="flex items-center gap-2">
               <AvatarCircle src={avatarUrl} initials={initials} name={displayName} size="md" />
               <div className="min-w-0">
-                <p className="text-white text-sm font-semibold truncate">{displayName}</p>
-                <p className="text-[#9ca3af] text-xs truncate">{user.email}</p>
+                <p className="truncate text-sm font-semibold text-fg">{displayName}</p>
+                <p className="truncate text-xs text-fg-muted">{user.email}</p>
               </div>
             </div>
           </div>
@@ -204,7 +205,7 @@ export default function AuthButton() {
           <Link
             href="/profile"
             onClick={() => setOpen(false)}
-            className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#9ca3af] hover:text-white hover:bg-[#1a1a24] transition-colors"
+            className="flex items-center gap-3 px-4 py-2.5 text-sm text-fg-muted transition-colors hover:bg-border hover:text-fg"
           >
             <UserIcon className="w-4 h-4" />
             {profileT("settings")}
@@ -212,7 +213,7 @@ export default function AuthButton() {
 
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
           >
             <LogOutIcon className="w-4 h-4" />
             {t("logout")}

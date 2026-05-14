@@ -12,12 +12,41 @@
   --color-text-main: #ffffff;
   --color-text-secondary: #9ca3af;
 
+  --color-bg: #0a0a0f;
+  --color-bg-muted: #0d0d14;
+  --color-surface: #111118;
+  --color-surface-muted: #0f0f16;
+  --color-surface-elevated: #171720;
+  --color-border: #1a1a24;
+  --color-border-strong: #2a2a35;
+  --color-border-soft: #242432;
+  --color-fg: #ffffff;
+  --color-fg-soft: #d1d5db;
+  --color-fg-muted: #9ca3af;
+  --color-fg-subtle: #5f6472;
+  --color-fg-disabled: #4a4a5a;
+  --color-brand: #f49e0b;
+  --color-brand-hover: #d68a09;
+  --color-brand-soft: #f6b13b;
+  --color-brand-fg: #0a0a0f;
+
   --font-sans: var(--font-exo-2), sans-serif;
 
   --radius: 0.125rem;
   --radius-lg: 0.25rem;
   --radius-xl: 0.5rem;
-  /* --radius-full: 0.75rem; */
+  
+  --radius-ui-none: 0;
+  --radius-ui-xs: 0.125rem;
+  --radius-ui-sm: 0.25rem;
+  --radius-ui-md: 0.5rem;
+  --radius-ui-lg: 0.75rem;
+  --radius-ui-xl: 1rem;
+  --radius-ui-pill: 9999px;
+
+  --shadow-panel: 0 18px 60px rgba(0, 0, 0, 0.45);
+  --shadow-modal: 0 24px 70px rgba(0, 0, 0, 0.55);
+  --shadow-brand: 0 18px 44px rgba(244, 158, 11, 0.18);
 }
 
 /* ===== BASE ===== */
@@ -26,8 +55,8 @@
 html { color-scheme: dark; scroll-behavior: smooth; }
 
 body {
-  background-color: #0a0a0f;
-  color: #ffffff;
+  background-color: var(--color-bg);
+  color: var(--color-fg);
   font-family: var(--font-exo-2), sans-serif;
   overflow-x: hidden;
   min-height: 100vh;
@@ -99,7 +128,7 @@ button {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background-color: #0a0a0f;
+  background-color: var(--color-bg);
   display: flex;
   justify-content: center;
   align-items: center;

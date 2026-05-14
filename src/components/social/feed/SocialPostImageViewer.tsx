@@ -21,6 +21,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@/i18n/navigation";
 import { useToast } from "@/components/common/ToastProvider";
 import SocialPostAnime from "@/components/social/feed/SocialPostAnime";
+import { AppButton, AppIconButton, AppTextarea } from "@/components/ui";
 import { useSocialPostComments } from "@/hooks/useSocialPostComments";
 import { createSocialPostCommentAction } from "@/lib/social/actions";
 import type { SocialFeedAuthor, SocialFeedPostBase, SocialPostComment } from "@/types/social";
@@ -61,11 +62,11 @@ function AuthorAvatar({
   sizeClass?: string;
 }) {
   return (
-    <div className={`relative shrink-0 overflow-hidden rounded-full border border-[#2a2a35] bg-[#0f0f16] ${sizeClass}`}>
+    <div className={`relative shrink-0 overflow-hidden rounded-ui-pill border border-border-strong bg-bg-muted ${sizeClass}`}>
       {author.avatar_url ? (
         <Image src={author.avatar_url} alt={name} fill sizes="40px" className="object-cover" unoptimized />
       ) : (
-        <div className="flex size-full items-center justify-center text-[#6b7280]">
+        <div className="flex size-full items-center justify-center text-fg-subtle">
           <UserCircleIcon className="size-5" />
         </div>
       )}
@@ -96,8 +97,8 @@ function ViewerActionButton({
       disabled={disabled}
       onClick={onClick}
       className={clsx(
-        "inline-flex h-9 min-w-10 items-center justify-center rounded border px-3 text-sm font-black tabular-nums transition-colors disabled:cursor-not-allowed disabled:opacity-70",
-        "border-[#2a2a35] text-[#d1d5db] hover:border-[#f49e0b] hover:text-white"
+        "inline-flex h-9 min-w-10 items-center justify-center rounded-ui-sm border px-3 text-sm font-black tabular-nums transition-colors disabled:cursor-not-allowed disabled:opacity-70",
+        "border-border-strong text-fg-soft hover:border-brand hover:text-fg"
       )}
     >
       <Icon className="size-4 shrink-0" fill={pressed ? "currentColor" : "none"} />
@@ -121,18 +122,18 @@ const CommentBubble = memo(function CommentBubble({
     <div className="flex gap-3">
       <AuthorAvatar author={comment.author} name={authorName} />
       <div className="min-w-0 flex-1">
-        <div className="inline-block max-w-full rounded-lg border border-[#242434] bg-[#171720] px-3 py-2">
-          <p className="truncate text-sm font-black text-white">{authorName}</p>
-          <p className="mt-1 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-[#d1d5db]">
+        <div className="inline-block max-w-full rounded-ui-sm border border-border-soft bg-surface-elevated px-3 py-2">
+          <p className="truncate text-sm font-black text-fg">{authorName}</p>
+          <p className="mt-1 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-fg-soft">
             {comment.body}
           </p>
         </div>
-        <time dateTime={comment.created_at} className="mt-1 block text-xs font-bold text-[#6b7280]" suppressHydrationWarning>
+        <time dateTime={comment.created_at} className="mt-1 block text-xs font-bold text-fg-subtle" suppressHydrationWarning>
           {formatDateTime(comment.created_at, locale)}
         </time>
 
         {comment.replies.length > 0 && (
-          <div className="mt-3 grid gap-3 border-l border-[#2a2a35] pl-4">
+          <div className="mt-3 grid gap-3 border-l border-border-strong pl-4">
             {comment.replies.map((reply) => (
               <CommentBubble key={reply.id} comment={reply} fallbackName={fallbackName} locale={locale} />
             ))}
@@ -166,28 +167,29 @@ function CommentForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-end gap-3 border-t border-[#1a1a24] bg-[#0f0f16] p-3 sm:p-4">
-      <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#2a2a35] bg-[#111118] text-[#6b7280]">
+    <form onSubmit={handleSubmit} className="flex items-end gap-3 border-t border-border bg-bg-muted p-3 sm:p-4">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-ui-pill border border-border-strong bg-surface text-fg-subtle">
         <UserCircleIcon className="size-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <textarea
+        <AppTextarea
           value={body}
           onChange={(event) => setBody(event.target.value.slice(0, COMMENT_MAX_LENGTH))}
           disabled={disabled}
           rows={2}
           placeholder={currentUserId ? t("commentPlaceholder") : t("commentLoginRequired")}
-          className="block max-h-28 min-h-12 w-full resize-none rounded-lg border border-[#2a2a35] bg-[#171720] px-3 py-2 text-sm font-semibold leading-6 text-white outline-none transition-colors placeholder:text-[#6b7280] focus:border-[#f49e0b] disabled:cursor-not-allowed disabled:opacity-70"
+          className="block max-h-28 min-h-12 text-sm font-semibold leading-6"
         />
       </div>
-      <button
+      <AppIconButton
         type="submit"
         disabled={disabled || trimmedLength === 0}
-        className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-[#f49e0b]/45 bg-[#f49e0b]/10 text-[#f49e0b] transition-colors hover:border-[#f49e0b] hover:bg-[#f49e0b]/20 hover:text-white disabled:cursor-not-allowed disabled:border-[#2a2a35] disabled:bg-[#171720] disabled:text-[#6b7280]"
         aria-label={t("sendComment")}
+        variant="brand"
+        isLoading={pending}
       >
-        {pending ? <Loader2Icon className="size-4 animate-spin" /> : <SendIcon className="size-4" />}
-      </button>
+        <SendIcon className="size-4" />
+      </AppIconButton>
     </form>
   );
 }
@@ -305,14 +307,16 @@ export default function SocialPostImageViewer({
 
   return (
     <div role="dialog" aria-modal="true" aria-labelledby="social-image-viewer-title" className="fixed inset-0 z-[130] flex flex-col bg-black md:flex-row">
-      <button
+      <AppIconButton
         type="button"
         onClick={onClose}
-        className="absolute left-3 top-3 z-30 flex size-11 items-center justify-center rounded-full border border-white/15 bg-black/70 text-white shadow-2xl shadow-black/50 transition-colors hover:border-[#f49e0b] hover:text-[#f49e0b]"
         aria-label={t("closeImageViewer")}
+        variant="default"
+        size="lg"
+        className="absolute left-3 top-3 z-30 border-white/15 bg-black/70 text-fg shadow-2xl shadow-black/50 hover:border-brand hover:text-brand"
       >
         <XIcon className="size-6" />
-      </button>
+      </AppIconButton>
 
       <div className="relative flex h-[42vh] shrink-0 items-center justify-center bg-black md:h-auto md:min-h-0 md:flex-1">
         <Image
@@ -330,7 +334,7 @@ export default function SocialPostImageViewer({
             <button
               type="button"
               onClick={goToPreviousImage}
-              className="absolute left-3 top-1/2 z-20 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/60 text-white shadow-xl shadow-black/40 transition-colors hover:border-[#f49e0b] hover:text-[#f49e0b] sm:left-5"
+              className="absolute left-3 top-1/2 z-20 flex size-11 -translate-y-1/2 items-center justify-center rounded-ui-pill border border-white/15 bg-black/60 text-fg shadow-xl shadow-black/40 transition-colors hover:border-brand hover:text-brand sm:left-5"
               aria-label={t("previousImage")}
             >
               <ChevronLeftIcon className="size-6" />
@@ -338,30 +342,30 @@ export default function SocialPostImageViewer({
             <button
               type="button"
               onClick={goToNextImage}
-              className="absolute right-3 top-1/2 z-20 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-black/60 text-white shadow-xl shadow-black/40 transition-colors hover:border-[#f49e0b] hover:text-[#f49e0b] sm:right-5"
+              className="absolute right-3 top-1/2 z-20 flex size-11 -translate-y-1/2 items-center justify-center rounded-ui-pill border border-white/15 bg-black/60 text-fg shadow-xl shadow-black/40 transition-colors hover:border-brand hover:text-brand sm:right-5"
               aria-label={t("nextImage")}
             >
               <ChevronRightIcon className="size-6" />
             </button>
-            <div className="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/15 bg-black/70 px-3 py-1 text-xs font-black text-white">
+            <div className="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-ui-pill border border-white/15 bg-black/70 px-3 py-1 text-xs font-black text-fg">
               {t("imageCounter", { index: imageIndex + 1, count: imageCount })}
             </div>
           </>
         )}
       </div>
 
-      <aside className="flex h-[58vh] min-h-0 w-full flex-col border-t border-[#2a2a35] bg-[#111118] md:h-full md:w-[420px] md:border-l md:border-t-0 lg:w-[460px]">
+      <aside className="flex h-[58vh] min-h-0 w-full flex-col border-t border-border-strong bg-surface md:h-full md:w-[420px] md:border-l md:border-t-0 lg:w-[460px]">
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <article className="border-b border-[#1a1a24]">
+          <article className="border-b border-border">
             <div className="flex items-start gap-3 px-4 py-4 sm:px-5">
               {post.author.username ? (
                 <Link href={`/u/${post.author.username}`} className="flex min-w-0 items-center gap-3">
                   <AuthorAvatar author={post.author} name={authorName} sizeClass="size-10" />
                   <div className="min-w-0">
-                    <h2 id="social-image-viewer-title" className="truncate text-sm font-black text-white">
+                    <h2 id="social-image-viewer-title" className="truncate text-sm font-black text-fg">
                       {authorName}
                     </h2>
-                    <time dateTime={post.created_at} className="mt-0.5 block text-xs font-bold text-[#6b7280]" suppressHydrationWarning>
+                    <time dateTime={post.created_at} className="mt-0.5 block text-xs font-bold text-fg-subtle" suppressHydrationWarning>
                       {formatDateTime(post.created_at, locale)}
                     </time>
                   </div>
@@ -370,10 +374,10 @@ export default function SocialPostImageViewer({
                 <>
                   <AuthorAvatar author={post.author} name={authorName} sizeClass="size-10" />
                   <div className="min-w-0">
-                    <h2 id="social-image-viewer-title" className="truncate text-sm font-black text-white">
+                    <h2 id="social-image-viewer-title" className="truncate text-sm font-black text-fg">
                       {authorName}
                     </h2>
-                    <time dateTime={post.created_at} className="mt-0.5 block text-xs font-bold text-[#6b7280]" suppressHydrationWarning>
+                    <time dateTime={post.created_at} className="mt-0.5 block text-xs font-bold text-fg-subtle" suppressHydrationWarning>
                       {formatDateTime(post.created_at, locale)}
                     </time>
                   </div>
@@ -382,11 +386,11 @@ export default function SocialPostImageViewer({
             </div>
 
             <div className="px-4 pb-4 sm:px-5">
-              <h3 className="whitespace-pre-wrap break-words text-base font-black leading-6 text-white">
+              <h3 className="whitespace-pre-wrap break-words text-base font-black leading-6 text-fg">
                 {post.caption}
               </h3>
               {post.description && (
-                <p className="mt-2 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-[#cbd5e1]">
+                <p className="mt-2 whitespace-pre-wrap break-words text-sm font-semibold leading-6 text-fg-soft">
                   {post.description}
                 </p>
               )}
@@ -396,7 +400,7 @@ export default function SocialPostImageViewer({
               <SocialPostAnime anime={post.anime} />
             </div>
 
-            <div className="flex items-center justify-between gap-3 border-t border-[#1a1a24] px-3 py-3 sm:px-4">
+            <div className="flex items-center justify-between gap-3 border-t border-border px-3 py-3 sm:px-4">
               <div className="flex min-w-0 items-center gap-1.5">
                 <ViewerActionButton
                   count={likeState.count}
@@ -414,34 +418,36 @@ export default function SocialPostImageViewer({
           </article>
 
           <section aria-labelledby="image-viewer-comments-title" className="grid gap-4 px-4 py-4 sm:px-5">
-            <h3 id="image-viewer-comments-title" className="text-sm font-black uppercase tracking-[0.08em] text-[#9ca3af]">
+            <h3 id="image-viewer-comments-title" className="text-sm font-black uppercase tracking-[0.08em] text-fg-muted">
               {t("commentsHeading")}
             </h3>
 
             {commentsQuery.isLoading && (
-              <div className="flex items-center justify-center gap-2 py-8 text-sm font-bold text-[#9ca3af]">
-                <Loader2Icon className="size-4 animate-spin text-[#f49e0b]" />
+              <div className="flex items-center justify-center gap-2 py-8 text-sm font-bold text-fg-muted">
+                <Loader2Icon className="size-4 animate-spin text-brand" />
                 {t("loadingComments")}
               </div>
             )}
 
             {commentsQuery.isError && (
-              <div className="rounded-lg border border-red-500/25 bg-red-500/10 p-4">
+              <div className="rounded-ui-sm border border-red-500/25 bg-red-500/10 p-4">
                 <p className="text-sm font-bold text-red-100">{t("commentsLoadFailed")}</p>
-                <button
+                <AppButton
                   type="button"
                   onClick={() => void commentsQuery.refetch()}
-                  className="mt-3 h-9 rounded border border-red-400/40 px-3 text-sm font-black text-red-100 transition-colors hover:border-red-300 hover:text-white"
+                  variant="danger"
+                  size="sm"
+                  className="mt-3"
                 >
                   {t("retry")}
-                </button>
+                </AppButton>
               </div>
             )}
 
             {!commentsQuery.isLoading && !commentsQuery.isError && comments.length === 0 && (
-              <div className="rounded-lg border border-dashed border-[#2a2a35] bg-[#0f0f16] p-5 text-center">
-                <p className="text-sm font-black text-white">{t("emptyCommentsTitle")}</p>
-                <p className="mt-1 text-sm font-semibold text-[#9ca3af]">{t("emptyCommentsDescription")}</p>
+              <div className="rounded-ui-sm border border-dashed border-border-strong bg-bg-muted p-5 text-center">
+                <p className="text-sm font-black text-fg">{t("emptyCommentsTitle")}</p>
+                <p className="mt-1 text-sm font-semibold text-fg-muted">{t("emptyCommentsDescription")}</p>
               </div>
             )}
 

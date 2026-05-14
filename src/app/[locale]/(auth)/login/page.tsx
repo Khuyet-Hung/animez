@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import AppLogo from "@/components/common/AppLogo";
 import type { Metadata } from "next";
 import { createSeoMetadata } from "@/lib/seo";
+import { AppPanel } from "@/components/ui/AppPanel";
 
 interface Props {
   params: Promise<{ locale: string }>;
@@ -29,29 +30,29 @@ export default async function LoginPage({ searchParams }: Props) {
   const nextPath = safeNext.replace(/^\/(en|vi|ja)(?=\/|$)/, "") || "/";
 
   return (
-    <main className="min-h-screen bg-[#0a0a0f] flex items-center justify-center px-4 py-12">
+    <main className="flex min-h-screen items-center justify-center bg-bg px-4 py-12">
       {/* Background glow */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#f49e0b]/5 rounded-full blur-3xl" />
+        <div className="absolute left-1/2 top-1/4 size-[600px] -translate-x-1/2 -translate-y-1/2 rounded-ui-pill bg-brand/5 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-md">
         {/* Logo */}
-        <Link href="/" className="flex flex-col items-center mb-8 hover:opacity-80 transition-opacity">
+        <Link href="/" className="mb-8 flex flex-col items-center transition-opacity hover:opacity-80">
           <AppLogo className="mb-4 h-24 w-36" priority sizes="144px" />
-          <p className="text-[#9ca3af] text-sm mt-1">{t("welcome")}</p>
+          <p className="mt-1 text-sm text-fg-muted">{t("welcome")}</p>
         </Link>
 
         {/* Card */}
-        <div className="bg-[#0d0d14] border border-[#1a1a24] rounded-2xl p-8 shadow-2xl">
-          <h2 className="text-white text-xl font-bold mb-6">{t("login")}</h2>
+        <AppPanel variant="muted" className="rounded-ui-xl p-8 shadow-2xl">
+          <h2 className="mb-6 text-xl font-bold text-fg">{t("login")}</h2>
           {error === "invalid_reset_link" && (
-            <div className="mb-5 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+            <div className="mb-5 rounded-ui-sm border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
               {t("resetPasswordError")}
             </div>
           )}
           <LoginForm nextPath={nextPath} />
-        </div>
+        </AppPanel>
       </div>
     </main>
   );

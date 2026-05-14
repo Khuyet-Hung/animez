@@ -1,4 +1,5 @@
 import type { ProfileStats as ProfileStatsType } from "@/types/profile";
+import { AppPanel } from "@/components/ui/AppPanel";
 
 interface ProfileStatsProps {
   stats: ProfileStatsType;
@@ -29,10 +30,10 @@ export default function ProfileStats({ stats, labels }: ProfileStatsProps) {
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
       {items.map((item) => (
-        <div key={item.label} className="rounded border border-[#1a1a24] bg-[#111118] px-4 py-4">
-          <p className="text-xs font-bold uppercase tracking-normal text-[#5f6472]">{item.label}</p>
-          <p className="mt-2 text-2xl font-black text-white">{item.value}</p>
-        </div>
+        <AppPanel key={item.label} className="px-4 py-4">
+          <p className="text-xs font-bold uppercase tracking-normal text-fg-subtle">{item.label}</p>
+          <p className="mt-2 text-2xl font-black text-fg">{item.value}</p>
+        </AppPanel>
       ))}
     </div>
   );

@@ -7,6 +7,8 @@ import { useRouter } from "@/i18n/navigation";
 import { updateProfileAction } from "@/app/[locale]/profile/actions";
 import type { ProfileSettingsActionState } from "@/app/[locale]/profile/actions";
 import type { UserProfile } from "@/types/profile";
+import { cn } from "@/lib/cn";
+import { AppButton, AppInput, AppTextarea } from "@/components/ui";
 
 interface ProfileSettingsFormProps {
   profile: UserProfile;
@@ -50,11 +52,12 @@ export default function ProfileSettingsForm({ profile, locale }: ProfileSettings
 
       {state.messageKey && (
         <p
-          className={`rounded border px-3 py-2 text-sm font-semibold ${
+          className={cn(
+            "rounded-ui-sm border px-3 py-2 text-sm font-semibold",
             state.status === "success"
               ? "border-green-500/30 bg-green-500/10 text-green-300"
               : "border-red-500/30 bg-red-500/10 text-red-300"
-          }`}
+          )}
         >
           {t(state.messageKey)}
         </p>
@@ -62,14 +65,13 @@ export default function ProfileSettingsForm({ profile, locale }: ProfileSettings
 
       <div className="grid gap-4 md:grid-cols-2">
         <label className="flex flex-col gap-2">
-          <span className="text-xs font-bold uppercase tracking-normal text-[#9ca3af]">
+          <span className="text-xs font-bold uppercase tracking-normal text-fg-muted">
             {t("username")}
           </span>
-          <input
+          <AppInput
             name="username"
             value={username}
             onChange={(event) => setUsername(event.target.value)}
-            className="h-11 rounded border border-[#1a1a24] bg-[#111118] px-3 text-sm font-bold text-white outline-none transition-colors placeholder:text-[#5f6472] focus:border-[#f49e0b]"
             placeholder="anime-fan"
             required
           />
@@ -77,13 +79,12 @@ export default function ProfileSettingsForm({ profile, locale }: ProfileSettings
         </label>
 
         <label className="flex flex-col gap-2">
-          <span className="text-xs font-bold uppercase tracking-normal text-[#9ca3af]">
+          <span className="text-xs font-bold uppercase tracking-normal text-fg-muted">
             {t("displayName")}
           </span>
-          <input
+          <AppInput
             name="display_name"
             defaultValue={profile.display_name}
-            className="h-11 rounded border border-[#1a1a24] bg-[#111118] px-3 text-sm font-bold text-white outline-none transition-colors placeholder:text-[#5f6472] focus:border-[#f49e0b]"
             required
           />
           {fieldError("display_name")}
@@ -91,28 +92,26 @@ export default function ProfileSettingsForm({ profile, locale }: ProfileSettings
       </div>
 
       <label className="flex flex-col gap-2">
-        <span className="text-xs font-bold uppercase tracking-normal text-[#9ca3af]">
+        <span className="text-xs font-bold uppercase tracking-normal text-fg-muted">
           {t("bio")}
         </span>
-        <textarea
+        <AppTextarea
           name="bio"
           defaultValue={profile.bio}
           rows={4}
           maxLength={160}
-          className="resize-none rounded border border-[#1a1a24] bg-[#111118] px-3 py-3 text-sm font-medium text-white outline-none transition-colors placeholder:text-[#5f6472] focus:border-[#f49e0b]"
           placeholder={t("bioPlaceholder")}
         />
         {fieldError("bio")}
       </label>
 
-      <button
+      <AppButton
         type="submit"
-        disabled={pending}
-        className="inline-flex h-11 items-center justify-center gap-2 rounded bg-[#f49e0b] px-5 text-sm font-black text-[#0a0a0f] transition-colors hover:bg-[#d68a09] disabled:cursor-not-allowed disabled:opacity-60"
+        isLoading={pending}
+        leftIcon={<SaveIcon className="size-4" />}
       >
-        <SaveIcon className="size-4" />
         {pending ? t("saving") : t("save")}
-      </button>
+      </AppButton>
     </form>
   );
 }

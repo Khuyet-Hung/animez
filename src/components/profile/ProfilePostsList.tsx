@@ -2,9 +2,9 @@
 
 import { useMemo } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Loader2Icon, RefreshCcwIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import SocialPostCard, { SocialPostCardSkeleton } from "@/components/social/feed/SocialPostCard";
+import { AppButton, AppEmptyState, AppErrorState } from "@/components/ui";
 import { useAuth } from "@/hooks/useAuth";
 import { createClient } from "@/lib/supabase/client";
 import type {
@@ -570,29 +570,17 @@ export default function ProfilePostsList({ profile }: ProfilePostsListProps) {
 
   if (isError) {
     return (
-      <div className="rounded border border-red-500/30 bg-red-500/10 px-5 py-5">
-        <h2 className="text-lg font-black text-white">{t("postsLoadFailed")}</h2>
-        <p className="mt-2 text-sm font-semibold leading-6 text-red-200">
-          {error instanceof Error ? error.message : t("postsLoadFailed")}
-        </p>
-        <button
-          type="button"
-          onClick={() => void refetch()}
-          className="mt-4 inline-flex h-10 items-center gap-2 rounded border border-red-400/40 px-4 text-sm font-black text-red-100 transition-colors hover:border-red-300 hover:text-white"
-        >
-          <RefreshCcwIcon className="size-4" />
-          {t("retry")}
-        </button>
-      </div>
+      <AppErrorState
+        title={t("postsLoadFailed")}
+        description={error instanceof Error ? error.message : t("postsLoadFailed")}
+        retryLabel={t("retry")}
+        onRetry={() => void refetch()}
+      />
     );
   }
 
   if (posts.length === 0) {
-    return (
-      <div className="rounded border border-[#1a1a24] bg-[#111118] px-5 py-12 text-center">
-        <p className="text-sm font-semibold text-[#9ca3af]">{t("emptyPosts")}</p>
-      </div>
-    );
+    return <AppEmptyState title={t("emptyPosts")} className="py-12" />;
   }
 
   return (
@@ -603,15 +591,15 @@ export default function ProfilePostsList({ profile }: ProfilePostsListProps) {
 
       {hasNextPage && (
         <div className="flex justify-center pt-2">
-          <button
+          <AppButton
             type="button"
             onClick={() => void fetchNextPage()}
-            disabled={isFetchingNextPage}
-            className="inline-flex h-10 items-center gap-2 rounded border border-[#1a1a24] bg-[#111118] px-4 text-sm font-black text-white transition-colors hover:border-[#f49e0b] disabled:cursor-not-allowed disabled:opacity-60"
+            variant="secondary"
+            size="sm"
+            isLoading={isFetchingNextPage}
           >
-            {isFetchingNextPage && <Loader2Icon className="size-4 animate-spin text-[#f49e0b]" />}
             {t("loadMorePosts")}
-          </button>
+          </AppButton>
         </div>
       )}
     </div>

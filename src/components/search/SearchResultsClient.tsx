@@ -1,6 +1,7 @@
 "use client";
 
 import AnimeCard from "@/components/anime/AnimeCard";
+import { AppSkeleton } from "@/components/ui";
 import { Link } from "@/i18n/navigation";
 import { requestAniList, AniListRateLimitError } from "@/lib/anilist-browser";
 import { SEARCH_QUERY } from "@/lib/queries";
@@ -52,9 +53,9 @@ interface SearchResultsClientProps {
 function SkeletonCard() {
   return (
     <div className="animate-pulse">
-      <div className="mb-3 aspect-2/3 w-full rounded bg-[#1a1a24]" />
-      <div className="mb-2 h-4 rounded bg-[#1a1a24]" />
-      <div className="h-3 w-2/3 rounded bg-[#1a1a24]" />
+      <AppSkeleton className="mb-3 aspect-2/3 w-full" />
+      <AppSkeleton className="mb-2 h-4" />
+      <AppSkeleton className="h-3 w-2/3" />
     </div>
   );
 }
@@ -143,17 +144,17 @@ export default function SearchResultsClient({
 
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
-        <RefreshCwIcon className="size-14 text-[#1a1a24]" />
-        <h3 className="mt-4 text-xl font-bold text-white">
+        <RefreshCwIcon className="size-14 text-border" />
+        <h3 className="mt-4 text-xl font-bold text-fg">
           {isRateLimited ? t("rate_limited") : t("load_failed")}
         </h3>
-        <p className="mt-2 max-w-md text-sm text-[#9ca3af]">
+        <p className="mt-2 max-w-md text-sm text-fg-muted">
           {isRateLimited ? t("rate_limited_hint") : t("no_results_hint")}
         </p>
         <button
           type="button"
           onClick={() => searchQuery.refetch()}
-          className="mt-6 rounded bg-[#f49e0b] px-5 py-2 text-sm font-bold text-[#0a0a0f] transition-colors hover:bg-[#d68a09]"
+          className="mt-6 rounded-ui-sm bg-brand px-5 py-2 text-sm font-bold text-brand-fg transition-colors hover:bg-brand-hover"
         >
           {t("retry")}
         </button>
@@ -167,14 +168,14 @@ export default function SearchResultsClient({
   if (animeList.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
-        <span className="material-symbols-outlined text-[#1a1a24]" style={{ fontSize: "80px" }}>
+        <span className="material-symbols-outlined text-border" style={{ fontSize: "80px" }}>
           search_off
         </span>
-        <h3 className="mt-4 text-xl font-bold text-white">{t("no_results")}</h3>
-        <p className="mt-2 text-sm text-[#9ca3af]">{t("no_results_hint")}</p>
+        <h3 className="mt-4 text-xl font-bold text-fg">{t("no_results")}</h3>
+        <p className="mt-2 text-sm text-fg-muted">{t("no_results_hint")}</p>
         <Link
           href="/search"
-          className="mt-6 rounded bg-[#f49e0b] px-5 py-2 text-sm font-bold text-[#0a0a0f] transition-colors hover:bg-[#d68a09]"
+          className="mt-6 rounded-ui-sm bg-brand px-5 py-2 text-sm font-bold text-brand-fg transition-colors hover:bg-brand-hover"
         >
           {t("clear_filters")}
         </Link>
@@ -184,7 +185,7 @@ export default function SearchResultsClient({
 
   return (
     <div>
-      <p className="mb-4 text-sm text-[#9ca3af]">
+      <p className="mb-4 text-sm text-fg-muted">
         {pageInfo.total > 0 && t("results_count", { count: pageInfo.total.toLocaleString() })}
         {normalized.searchQuery && <> {t("results_for", { query: normalized.searchQuery })}</>}
       </p>
@@ -200,7 +201,7 @@ export default function SearchResultsClient({
           {normalized.currentPage > 1 && (
             <Link
               href={buildPageUrl(normalized.currentPage - 1)}
-              className="flex items-center gap-1 rounded border border-[#1a1a24] bg-[#111118] px-3 py-2 text-sm font-semibold text-white transition-all hover:border-[#f49e0b]"
+              className="flex items-center gap-1 rounded-ui-sm border border-border bg-surface px-3 py-2 text-sm font-semibold text-fg transition-all hover:border-brand"
             >
               <ArrowLeftIcon />
               {t("prev")}
@@ -220,10 +221,10 @@ export default function SearchResultsClient({
               <Link
                 key={pageNumber}
                 href={buildPageUrl(pageNumber)}
-                className={`flex size-9 items-center justify-center rounded text-sm font-bold transition-all ${
+                className={`flex size-9 items-center justify-center rounded-ui-sm text-sm font-bold transition-all ${
                   pageNumber === normalized.currentPage
-                    ? "bg-[#f49e0b] text-[#0a0a0f]"
-                    : "border border-[#1a1a24] bg-[#111118] text-white hover:border-[#f49e0b]"
+                    ? "bg-brand text-brand-fg"
+                    : "border border-border bg-surface text-fg hover:border-brand"
                 }`}
               >
                 {pageNumber}
@@ -233,7 +234,7 @@ export default function SearchResultsClient({
           {pageInfo.hasNextPage && (
             <Link
               href={buildPageUrl(normalized.currentPage + 1)}
-              className="flex items-center gap-1 rounded border border-[#1a1a24] bg-[#111118] px-3 py-2 text-sm font-semibold text-white transition-all hover:border-[#f49e0b]"
+              className="flex items-center gap-1 rounded-ui-sm border border-border bg-surface px-3 py-2 text-sm font-semibold text-fg transition-all hover:border-brand"
             >
               {t("next")}
               <ArrowRightIcon />

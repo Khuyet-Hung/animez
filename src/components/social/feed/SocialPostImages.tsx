@@ -108,7 +108,7 @@ export default function SocialPostImages({
   const resolvedLayout = resolveImageLayout(visibleImages.length, imageLayout);
 
   return (
-    <div className={`grid gap-1 bg-[#0a0a0f] ${getGridClass(resolvedLayout, visibleImages.length)}`}>
+    <div className={`grid gap-1 bg-bg ${getGridClass(resolvedLayout, visibleImages.length)}`}>
       {visibleImages.map((image, index) => {
         const imageContent = (
           <>
@@ -121,7 +121,7 @@ export default function SocialPostImages({
               unoptimized
             />
             {remainingCount > 0 && index === visibleImages.length - 1 && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/65 text-2xl font-black text-white">
+              <div className="absolute inset-0 flex items-center justify-center bg-black/65 text-2xl font-black text-fg">
                 +{remainingCount}
               </div>
             )}
@@ -131,7 +131,7 @@ export default function SocialPostImages({
         return (
           <div
             key={image.id}
-            className={`relative overflow-hidden bg-[#1a1a24] ${getImageClass(resolvedLayout, visibleImages.length, index)}`}
+            className={`relative overflow-hidden bg-border ${getImageClass(resolvedLayout, visibleImages.length, index)}`}
           >
             {onImageClick ? (
               <button

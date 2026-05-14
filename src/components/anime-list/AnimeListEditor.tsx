@@ -25,6 +25,15 @@ import type {
   AnimeListScore,
   AnimeListStatus,
 } from "@/types/anime-list";
+import {
+  AppButton,
+  AppDialog,
+  AppIconButton,
+  AppInput,
+  AppPanel,
+  AppTextarea,
+} from "@/components/ui";
+import { cn } from "@/lib/cn";
 
 interface AnimeListEditorProps {
   anime: AnimeMedia;
@@ -142,35 +151,40 @@ export default function AnimeListEditor({
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 px-4 py-4 backdrop-blur-sm md:items-center">
-      <div className="w-full max-w-2xl overflow-hidden rounded-lg border border-[#1a1a24] bg-[#0f0f16] shadow-2xl">
-        <div className="relative flex items-center gap-4 border-b border-[#1a1a24] bg-[#111118] px-5 py-4 pr-14">
-          <div className="relative flex h-20 w-14 shrink-0 overflow-hidden rounded border border-[#f49e0b]/50 bg-[#1a1a24]">
+    <AppDialog
+      open={open}
+      onClose={onClose}
+      closeLabel={t("cancel")}
+      size="lg"
+      className="bg-bg-muted"
+    >
+      <div className="relative flex items-center gap-4 border-b border-border bg-surface px-5 py-4 pr-14">
+          <div className="relative flex h-20 w-14 shrink-0 overflow-hidden rounded-ui-sm border border-brand/50 bg-border">
             {coverImage ? (
               <Image src={coverImage} alt={title} fill sizes="56px" className="object-cover" unoptimized />
             ) : (
-              <div className="flex size-full items-center justify-center text-[#f49e0b]">
+              <div className="flex size-full items-center justify-center text-brand">
                 <ImageIcon className="size-5" />
               </div>
             )}
           </div>
           <div className="min-w-0">
-            <h2 className="mt-1 line-clamp-2 text-lg font-black leading-tight text-white">{title}</h2>
+            <h2 className="mt-1 line-clamp-2 text-lg font-black leading-tight text-fg">{title}</h2>
           </div>
-          <button
+          <AppIconButton
             type="button"
             onClick={onClose}
-            className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full border border-[#1a1a24] bg-black/20 text-[#9ca3af] transition-colors hover:text-white"
+            className="absolute right-3 top-3 bg-black/20"
             aria-label={t("cancel")}
           >
             <XIcon className="size-4" />
-          </button>
+          </AppIconButton>
         </div>
 
         <form onSubmit={handleSubmit} className="max-h-[78vh] overflow-y-auto px-5 py-5">
           <div className="space-y-5">
             <section className="space-y-3">
-              <span className="text-xs font-bold uppercase tracking-normal text-[#9ca3af]">
+              <span className="text-xs font-bold uppercase tracking-normal text-fg-muted">
                 {t("status.label")}
               </span>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
@@ -179,11 +193,12 @@ export default function AnimeListEditor({
                     key={option}
                     type="button"
                     onClick={() => handleStatusChange(option)}
-                    className={`h-9 rounded-lg border px-3 text-xs font-bold transition-colors ${
+                    className={cn(
+                      "h-9 rounded-ui-sm border px-3 text-xs font-bold transition-colors",
                       status === option
-                        ? "border-[#f49e0b] bg-[#f49e0b]/10 text-[#f49e0b]"
-                        : "border-[#1a1a24] bg-[#111118] text-[#9ca3af] hover:border-[#f49e0b]/60 hover:text-white"
-                    }`}
+                        ? "border-brand bg-brand/10 text-brand"
+                        : "border-border bg-surface text-fg-muted hover:border-brand/60 hover:text-fg"
+                    )}
                   >
                     {t(`status.${option}`)}
                   </button>
@@ -193,10 +208,10 @@ export default function AnimeListEditor({
 
             <section className="space-y-3">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-xs font-bold uppercase tracking-normal text-[#9ca3af]">
+                <span className="text-xs font-bold uppercase tracking-normal text-fg-muted">
                   {t("score")}
                 </span>
-                <span className="text-sm font-black text-[#9ca3af]">
+                <span className="text-sm font-black text-fg-muted">
                   {score > 0 ? `${score}/10` : t("unscored")}
                 </span>
               </div>
@@ -206,9 +221,10 @@ export default function AnimeListEditor({
                     key={option}
                     type="button"
                     onClick={() => setScore((score === option ? 0 : option) as AnimeListScore)}
-                    className={`rounded p-0.5 transition-colors ${
-                      score >= option ? "text-[#f49e0b]" : "text-[#3a3a46] hover:text-[#9ca3af]"
-                    }`}
+                    className={cn(
+                      "rounded-ui-xs p-0.5 transition-colors",
+                      score >= option ? "text-brand" : "text-fg-disabled hover:text-fg-muted"
+                    )}
                     aria-label={formatAnimeListScoreLabel(option as AnimeListScore, t("unscored"))}
                   >
                     <StarIcon className="size-5 fill-current" />
@@ -219,97 +235,96 @@ export default function AnimeListEditor({
 
             <section className="space-y-3">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-xs font-bold uppercase tracking-normal text-[#9ca3af]">
+                <span className="text-xs font-bold uppercase tracking-normal text-fg-muted">
                   {t("progress")}
                 </span>
                 {progressPercent === 100 && (
-                  <span className="rounded bg-[#f49e0b]/15 px-2 py-1 text-[11px] font-bold text-[#f49e0b]">
+                  <span className="rounded-ui-sm bg-brand/15 px-2 py-1 text-[11px] font-bold text-brand">
                     {t("status.completed")}
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <input
+                <AppInput
                   type="number"
                   min={0}
                   max={totalEpisodes ?? undefined}
                   value={progress}
                   onChange={(event) => setProgress(Number(event.target.value))}
-                  className="h-11 w-24 rounded border border-[#1a1a24] bg-[#111118] px-3 text-base font-black text-white outline-none transition-colors focus:border-[#f49e0b]"
+                  className="w-24 text-base font-black"
                 />
-                <span className="min-w-0 text-sm font-bold text-[#9ca3af]">
-                  <span className="text-[#f49e0b]">/ {totalEpisodes ?? "?"}</span>
+                <span className="min-w-0 text-sm font-bold text-fg-muted">
+                  <span className="text-brand">/ {totalEpisodes ?? "?"}</span>
                 </span>
               </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-[#1a1a24]">
+              <div className="h-1.5 overflow-hidden rounded-ui-pill bg-border">
                 <div
-                  className="h-full rounded-full bg-[#f49e0b] transition-[width]"
+                  className="h-full rounded-ui-pill bg-brand transition-[width]"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
-              <p className="text-right text-xs font-bold text-[#5f6472]">{progressPercent}%</p>
+              <p className="text-right text-xs font-bold text-fg-subtle">{progressPercent}%</p>
             </section>
 
-            <div className="grid gap-4 border-t border-[#1a1a24] pt-5 md:grid-cols-2">
+            <div className="grid gap-4 border-t border-border pt-5 md:grid-cols-2">
               <label className="flex flex-col gap-2">
-                <span className="text-xs font-bold uppercase tracking-normal text-[#9ca3af]">
+                <span className="text-xs font-bold uppercase tracking-normal text-fg-muted">
                   {t("startedAt")}
                 </span>
-                <span className="flex h-11 items-center gap-2 rounded border border-[#1a1a24] bg-[#111118] px-3 transition-colors focus-within:border-[#f49e0b]">
-                  <CalendarIcon className="size-4 shrink-0 text-[#5f6472]" />
+                <span className="flex h-11 items-center gap-2 rounded-ui-sm border border-border bg-surface px-3 transition-colors focus-within:border-brand">
+                  <CalendarIcon className="size-4 shrink-0 text-fg-subtle" />
                   <input
                     type="date"
                     value={startedAt}
                     onChange={(event) => setStartedAt(event.target.value)}
-                    className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-white outline-none"
+                    className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-fg outline-none"
                   />
                 </span>
               </label>
 
               <label className="flex flex-col gap-2">
-                <span className="text-xs font-bold uppercase tracking-normal text-[#9ca3af]">
+                <span className="text-xs font-bold uppercase tracking-normal text-fg-muted">
                   {t("finishedAt")}
                 </span>
-                <span className="flex h-11 items-center gap-2 rounded border border-[#1a1a24] bg-[#111118] px-3 transition-colors focus-within:border-[#f49e0b]">
-                  <CalendarIcon className="size-4 shrink-0 text-[#5f6472]" />
+                <span className="flex h-11 items-center gap-2 rounded-ui-sm border border-border bg-surface px-3 transition-colors focus-within:border-brand">
+                  <CalendarIcon className="size-4 shrink-0 text-fg-subtle" />
                   <input
                     type="date"
                     value={finishedAt}
                     onChange={(event) => setFinishedAt(event.target.value)}
-                    className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-white outline-none"
+                    className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-fg outline-none"
                   />
                 </span>
               </label>
             </div>
 
             <label className="flex flex-col gap-2">
-              <span className="text-xs font-bold uppercase tracking-normal text-[#9ca3af]">
+              <span className="text-xs font-bold uppercase tracking-normal text-fg-muted">
                 {t("notes")}
               </span>
-              <textarea
+              <AppTextarea
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
                 rows={3}
-                className="resize-none rounded border border-[#1a1a24] bg-[#111118] px-3 py-3 text-sm font-medium text-white outline-none transition-colors placeholder:text-[#5f6472] focus:border-[#f49e0b]"
                 placeholder={t("notesPlaceholder")}
               />
             </label>
 
-            <section className="rounded border border-[#1a1a24] bg-[#111118]">
-              <div className="flex items-center justify-between gap-3 border-b border-[#1a1a24] px-4 py-3">
-                <label className="flex items-center gap-3 text-sm font-bold text-[#d1d5db]">
+            <AppPanel className="overflow-hidden">
+              <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+                <label className="flex items-center gap-3 text-sm font-bold text-fg-soft">
                   <input
                     type="checkbox"
                     checked={isRewatching}
                     onChange={(event) => setIsRewatching(event.target.checked)}
                     className="peer sr-only"
                   />
-                  <span className="flex h-5 w-9 items-center rounded-full border border-[#1a1a24] bg-[#27272f] p-0.5 transition-colors peer-checked:border-[#f49e0b] peer-checked:bg-[#f49e0b] peer-checked:[&>span]:translate-x-4">
-                    <span className="size-4 rounded-full bg-white transition-transform" />
+                  <span className="flex h-5 w-9 items-center rounded-ui-pill border border-border bg-border-soft p-0.5 transition-colors peer-checked:border-brand peer-checked:bg-brand peer-checked:[&>span]:translate-x-4">
+                    <span className="size-4 rounded-ui-pill bg-fg transition-transform" />
                   </span>
                   {t("isRewatching")}
                 </label>
-                <div className="flex items-center gap-1 text-xs font-bold text-[#5f6472]">
+                <div className="flex items-center gap-1 text-xs font-bold text-fg-subtle">
                   <span>
                     {t("rewatch")} {rewatchCount}
                   </span>
@@ -320,14 +335,14 @@ export default function AnimeListEditor({
               {isRewatching && (
                 <div className="grid gap-4 px-4 py-4 md:grid-cols-2">
                   <label className="flex flex-col gap-2">
-                    <span className="text-xs font-bold uppercase tracking-normal text-[#9ca3af]">
+                    <span className="text-xs font-bold uppercase tracking-normal text-fg-muted">
                       {t("rewatchCount")}
                     </span>
-                    <div className="flex h-8 overflow-hidden rounded border border-[#1a1a24] bg-[#0f0f16] focus-within:border-[#f49e0b]">
+                    <div className="flex h-8 overflow-hidden rounded-ui-sm border border-border bg-bg-muted focus-within:border-brand">
                       <button
                         type="button"
                         onClick={() => setRewatchCount((current) => Math.max(0, current - 1))}
-                        className="flex w-8 items-center justify-center border-r border-[#1a1a24] text-[#9ca3af] transition-colors hover:text-white"
+                        className="flex w-8 items-center justify-center border-r border-border text-fg-muted transition-colors hover:text-fg"
                         aria-label="-"
                       >
                         <MinusIcon className="size-4" />
@@ -337,12 +352,12 @@ export default function AnimeListEditor({
                         min={0}
                         value={rewatchCount}
                         onChange={(event) => setRewatchCount(Number(event.target.value))}
-                        className="min-w-0 flex-1 bg-transparent text-center text-sm font-black text-white outline-none"
+                        className="min-w-0 flex-1 bg-transparent text-center text-sm font-black text-fg outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => setRewatchCount((current) => current + 1)}
-                        className="flex w-8 items-center justify-center border-l border-[#1a1a24] text-[#9ca3af] transition-colors hover:text-white"
+                        className="flex w-8 items-center justify-center border-l border-border text-fg-muted transition-colors hover:text-fg"
                         aria-label="+"
                       >
                         <PlusIcon className="size-4" />
@@ -351,7 +366,7 @@ export default function AnimeListEditor({
                   </label>
 
                   <div className="flex flex-col gap-2">
-                    <span className="text-xs font-bold uppercase tracking-normal text-[#9ca3af]">
+                    <span className="text-xs font-bold uppercase tracking-normal text-fg-muted">
                       {t("rewatchValue")}
                     </span>
                     <div className="grid grid-cols-3 gap-2">
@@ -360,11 +375,12 @@ export default function AnimeListEditor({
                           key={option}
                           type="button"
                           onClick={() => setRewatchValue(option)}
-                          className={`h-8 rounded border px-3 text-xs font-bold transition-colors ${
+                          className={cn(
+                            "h-8 rounded-ui-sm border px-3 text-xs font-bold transition-colors",
                             rewatchValue === option
-                              ? "border-[#f49e0b] bg-[#f49e0b]/10 text-[#f49e0b]"
-                              : "border-[#1a1a24] bg-[#0f0f16] text-[#9ca3af] hover:border-[#f49e0b]/60 hover:text-white"
-                          }`}
+                              ? "border-brand bg-brand/10 text-brand"
+                              : "border-border bg-bg-muted text-fg-muted hover:border-brand/60 hover:text-fg"
+                          )}
                         >
                           {t(`rewatchValueLabel.${option}`)}
                         </button>
@@ -373,7 +389,7 @@ export default function AnimeListEditor({
                   </div>
                 </div>
               )}
-            </section>
+            </AppPanel>
 
             {(validationError || error) && (
               <p className="rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-300">
@@ -382,28 +398,28 @@ export default function AnimeListEditor({
             )}
 
             <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
-              <button
+              <AppButton
                 type="button"
+                variant="danger"
+                size="sm"
                 onClick={handleDelete}
                 disabled={saving || !entry}
-                className="h-10 rounded border border-red-500/30 px-4 text-sm font-bold text-red-300 transition-colors hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {t("delete")}
-              </button>
+              </AppButton>
 
               <div className="flex gap-3">
-                <button
+                <AppButton
                   type="submit"
+                  size="sm"
                   disabled={saving}
-                  className="h-10 rounded bg-[#f49e0b] px-5 text-sm font-black text-[#0a0a0f] transition-colors hover:bg-[#d68a09] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {saving ? t("saving") : t("save")}
-                </button>
+                </AppButton>
               </div>
             </div>
           </div>
         </form>
-      </div>
-    </div>
+    </AppDialog>
   );
 }

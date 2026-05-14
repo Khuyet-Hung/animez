@@ -5,6 +5,8 @@ import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { Link } from "@/i18n/navigation";
+import { AppButton } from "@/components/ui/AppButton";
+import { AppInput } from "@/components/ui/AppInput";
 
 export default function ResetPasswordForm() {
   const t = useTranslations("auth");
@@ -46,9 +48,9 @@ export default function ResetPasswordForm() {
   if (success) {
     return (
       <div className="flex flex-col items-center gap-5 py-4">
-        <div className="w-20 h-20 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center">
+        <div className="flex size-20 items-center justify-center rounded-ui-pill border border-green-500/30 bg-green-500/10">
           <svg
-            className="w-10 h-10 text-green-400"
+            className="size-10 text-green-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -62,10 +64,10 @@ export default function ResetPasswordForm() {
           </svg>
         </div>
         <div className="text-center">
-          <p className="text-white font-semibold text-base">
+          <p className="text-base font-semibold text-fg">
             {t("resetPasswordSuccess")}
           </p>
-          <p className="text-[#9ca3af] text-sm mt-1.5">
+          <p className="mt-1.5 text-sm text-fg-muted">
             {t("backToLogin")}...
           </p>
         </div>
@@ -76,28 +78,27 @@ export default function ResetPasswordForm() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       {error && (
-        <div className="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+        <div className="rounded-ui-sm border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           {error}
         </div>
       )}
 
-      <p className="text-[#9ca3af] text-sm -mt-1">{t("resetPasswordDesc")}</p>
+      <p className="-mt-1 text-sm text-fg-muted">{t("resetPasswordDesc")}</p>
 
       <div className="flex flex-col gap-2">
         <label
           htmlFor="newPassword"
-          className="text-sm font-semibold text-[#9ca3af]"
+          className="text-sm font-semibold text-fg-muted"
         >
           {t("newPassword")}
         </label>
-        <input
+        <AppInput
           id="newPassword"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
           autoComplete="new-password"
-          className="w-full bg-[#111118] border border-[#1a1a24] rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-[#f49e0b] transition-colors placeholder:text-[#4a4a5a]"
           placeholder="••••••••"
         />
       </div>
@@ -105,43 +106,35 @@ export default function ResetPasswordForm() {
       <div className="flex flex-col gap-2">
         <label
           htmlFor="confirmNewPassword"
-          className="text-sm font-semibold text-[#9ca3af]"
+          className="text-sm font-semibold text-fg-muted"
         >
           {t("confirmNewPassword")}
         </label>
-        <input
+        <AppInput
           id="confirmNewPassword"
           type="password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
           autoComplete="new-password"
-          className="w-full bg-[#111118] border border-[#1a1a24] rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-[#f49e0b] transition-colors placeholder:text-[#4a4a5a]"
           placeholder="••••••••"
         />
       </div>
 
-      <button
+      <AppButton
         type="submit"
-        disabled={loading}
-        className="w-full h-11 bg-[#f49e0b] hover:bg-[#d68a09] disabled:opacity-50 disabled:cursor-not-allowed text-[#0a0a0f] text-sm font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+        fullWidth
+        isLoading={loading}
       >
-        {loading ? (
-          <>
-            <span className="inline-block w-4 h-4 border-2 border-[#0a0a0f]/30 border-t-[#0a0a0f] rounded-full animate-spin" />
-            {t("resetPasswordButton")}
-          </>
-        ) : (
-          t("resetPasswordButton")
-        )}
-      </button>
+        {t("resetPasswordButton")}
+      </AppButton>
 
       <Link
         href="/login"
-        className="text-center text-sm text-[#9ca3af] hover:text-white transition-colors flex items-center justify-center gap-1.5"
+        className="flex items-center justify-center gap-1.5 text-center text-sm text-fg-muted transition-colors hover:text-fg"
       >
         <svg
-          className="w-3.5 h-3.5"
+          className="size-3.5"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

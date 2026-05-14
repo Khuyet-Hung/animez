@@ -33,6 +33,13 @@ import {
   SOCIAL_POST_MAX_SUPPORTING_ANIME,
 } from "@/lib/social/validators";
 import { formatAnimeTitle } from "@/lib/anime-title";
+import { cn } from "@/lib/cn";
+import {
+  AppButton,
+  AppDialog,
+  AppIconButton,
+  AppTextarea,
+} from "@/components/ui";
 import type { AnimeMedia } from "@/types/anime";
 import type { CreateSocialPostActionState, SocialFeedAnime, SocialFeedPost, SocialPostAnimeDraft } from "@/types/social";
 
@@ -204,30 +211,30 @@ function AnimePicker({
 
   return (
     <div className="relative z-20">
-      <div className="flex h-11 overflow-hidden rounded border border-[#f49e0b] bg-[#111118] shadow-[0_0_0_1px_rgba(244,158,11,0.25)] transition-colors">
-        <div className="flex w-10 items-center justify-center text-[#6b7280]">
+      <div className="flex h-11 overflow-hidden rounded-ui-sm border border-brand bg-surface shadow-[0_0_0_1px_rgba(244,158,11,0.25)] transition-colors">
+        <div className="flex w-10 items-center justify-center text-fg-subtle">
           <SearchIcon className="size-4" />
         </div>
         <input
           ref={inputRef}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          className="min-w-0 flex-1 bg-transparent px-2 text-sm font-semibold text-white outline-none placeholder:text-[#5f6472]"
+          className="min-w-0 flex-1 bg-transparent px-2 text-sm font-semibold text-fg outline-none placeholder:text-fg-subtle"
           placeholder={t("animeSearchPlaceholder")}
         />
-        <div className="flex w-11 items-center justify-center text-[#f49e0b]">
+        <div className="flex w-11 items-center justify-center text-brand">
           {loading ? <Loader2Icon className="size-4 animate-spin" /> : <SearchIcon className="size-4" />}
         </div>
       </div>
 
       {error && (
-        <p className="absolute left-0 right-0 top-[calc(100%+8px)] z-30 rounded border border-red-500/30 bg-[#2a1015] px-3 py-2 text-xs font-semibold text-red-300 shadow-2xl shadow-black/60">
+        <p className="absolute left-0 right-0 top-[calc(100%+8px)] z-30 rounded-ui-sm border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-300 shadow-2xl shadow-black/60">
           {t("errors.animeSearchFailed")}
         </p>
       )}
 
       {results.length > 0 && (
-        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-30 grid max-h-72 gap-2 overflow-y-auto rounded border border-[#1a1a24] bg-[#0f0f16] p-2 shadow-2xl shadow-black/60">
+        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-30 grid max-h-72 gap-2 overflow-y-auto rounded-ui-sm border border-border bg-bg-muted p-2 shadow-2xl shadow-black/60">
           {results.map((anime) => {
             const title = formatAnimeTitle(anime.title, locale);
             const cover = getAnimeCover(anime);
@@ -242,20 +249,20 @@ function AnimePicker({
                   setQuery("");
                   setResults([]);
                 }}
-                className="flex items-center gap-3 rounded border border-[#1a1a24] bg-[#111118] p-2 text-left transition-colors hover:border-[#f49e0b]/70"
+                className="flex items-center gap-3 rounded-ui-sm border border-border bg-surface p-2 text-left transition-colors hover:border-brand/70"
               >
-                <div className="relative h-14 w-10 shrink-0 overflow-hidden rounded bg-[#1a1a24]">
+                <div className="relative h-14 w-10 shrink-0 overflow-hidden rounded-ui-sm bg-border">
                   {cover ? (
                     <Image src={cover} alt={title} fill sizes="40px" className="object-cover" unoptimized />
                   ) : (
-                    <div className="flex size-full items-center justify-center text-[#5f6472]">
+                    <div className="flex size-full items-center justify-center text-fg-subtle">
                       <FilmIcon className="size-4" />
                     </div>
                   )}
                 </div>
                 <div className="min-w-0">
-                  <p className="line-clamp-1 text-sm font-bold text-white">{title}</p>
-                  <p className="mt-0.5 text-xs font-semibold text-[#6b7280]">
+                  <p className="line-clamp-1 text-sm font-bold text-fg">{title}</p>
+                  <p className="mt-0.5 text-xs font-semibold text-fg-subtle">
                     {[anime.format, anime.seasonYear].filter(Boolean).join(" · ") || `#${anime.id}`}
                   </p>
                 </div>
@@ -297,13 +304,14 @@ function AnimeSelectionSlot({
         <button
           type="button"
           onClick={onClick}
-          className={`group relative aspect-[2/3] w-full overflow-hidden rounded border bg-[#111118] text-left transition-colors ${
+          className={cn(
+            "group relative aspect-[2/3] w-full overflow-hidden rounded-ui-sm border bg-surface text-left transition-colors",
             active
-              ? "border-[#f49e0b] shadow-[0_0_0_1px_rgba(244,158,11,0.35)]"
+              ? "border-brand shadow-[0_0_0_1px_rgba(244,158,11,0.35)]"
               : anime
-                ? "border-[#1a1a24] hover:border-[#f49e0b]/70"
-                : "border-dashed border-[#2a2a35] hover:border-[#f49e0b]"
-          }`}
+                ? "border-border hover:border-brand/70"
+                : "border-dashed border-border-strong hover:border-brand"
+          )}
           aria-label={anime ? `${t("changeAnime")}: ${title}` : label}
         >
           {anime?.cover_image ? (
@@ -316,21 +324,21 @@ function AnimeSelectionSlot({
               unoptimized
             />
           ) : (
-            <div className="flex size-full flex-col items-center justify-center gap-3 px-3 text-center text-[#9ca3af]">
+            <div className="flex size-full flex-col items-center justify-center gap-3 px-3 text-center text-fg-muted">
               {placeholder === "plus" ? (
-                <PlusIcon className="size-8 text-white" />
+                <PlusIcon className="size-8 text-fg" />
               ) : (
-                <FilmIcon className="size-8 text-[#f49e0b]" />
+                <FilmIcon className="size-8 text-brand" />
               )}
-              <span className="text-sm font-black text-white">{label}</span>
+              <span className="text-sm font-black text-fg">{label}</span>
             </div>
           )}
 
           {anime && (
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/80 to-transparent px-3 pb-3 pt-10">
-              <p className="text-[10px] font-bold uppercase tracking-normal text-[#f49e0b]">{label}</p>
-              <h3 className="mt-1 line-clamp-2 text-sm font-black leading-tight text-white">{title}</h3>
-              <p className="mt-1 line-clamp-1 text-[11px] font-semibold text-[#cbd5e1]">
+              <p className="text-[10px] font-bold uppercase tracking-normal text-brand">{label}</p>
+              <h3 className="mt-1 line-clamp-2 text-sm font-black leading-tight text-fg">{title}</h3>
+              <p className="mt-1 line-clamp-1 text-[11px] font-semibold text-fg-soft">
                 {[anime.format, anime.season_year].filter(Boolean).join(" · ") || `#${anime.anime_id}`}
               </p>
             </div>
@@ -338,20 +346,22 @@ function AnimeSelectionSlot({
         </button>
 
         {anime && onRemove && (
-          <button
+          <AppIconButton
             type="button"
             onClick={onRemove}
-            className="absolute right-2 top-2 flex size-8 items-center justify-center rounded-full bg-black/75 text-white transition-colors hover:bg-red-500"
             aria-label={t("removeAnime")}
+            variant="danger"
+            size="sm"
+            className="absolute right-2 top-2 bg-black/75"
           >
             <XIcon className="size-4" />
-          </button>
+          </AppIconButton>
         )}
       </div>
 
       {anime && onEpisodeChange && (
-        <label className="mt-2 flex h-9 items-center gap-2 rounded border border-[#2a2a35] bg-[#0f0f16] px-2 focus-within:border-[#f49e0b]">
-          <span className="text-[11px] font-bold text-[#9ca3af]">{t("episode")}</span>
+        <label className="mt-2 flex h-9 items-center gap-2 rounded-ui-sm border border-border-strong bg-bg-muted px-2 focus-within:border-brand">
+          <span className="text-[11px] font-bold text-fg-muted">{t("episode")}</span>
           <input
             type="number"
             min={0}
@@ -360,7 +370,7 @@ function AnimeSelectionSlot({
               const value = event.target.value;
               onEpisodeChange(value ? Math.max(0, Math.trunc(Number(value))) : null);
             }}
-            className="min-w-0 flex-1 bg-transparent text-right text-sm font-black text-white outline-none"
+            className="min-w-0 flex-1 bg-transparent text-right text-sm font-black text-fg outline-none"
           />
         </label>
       )}
@@ -597,37 +607,36 @@ export function SocialPostEditorModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 px-4 py-4 backdrop-blur-sm md:items-center">
-      <div className="flex w-full max-w-3xl max-h-[86vh] flex-col overflow-hidden rounded-lg border border-[#1a1a24] bg-[#0f0f16] shadow-2xl">
+    <AppDialog open onClose={onClose} size="xl" closeLabel={t("cancel")} className="max-h-[86vh] bg-bg-muted">
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <input type="hidden" name="locale" value={locale} />
           <input type="hidden" name="description" value={description} />
           <input type="hidden" name="image_layout" value={imageLayout} />
 
-          <div className="flex items-center justify-between gap-4 border-b border-[#1a1a24] bg-[#111118] px-5 py-4">
+          <div className="flex items-center justify-between gap-4 border-b border-border bg-surface px-5 py-4">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="flex size-12 shrink-0 items-center justify-center rounded-full border border-[#2a2a35] bg-[#0f0f16] text-[#f49e0b]">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-ui-pill border border-border-strong bg-bg-muted text-brand">
                 <FilmIcon className="size-5" />
               </div>
               <div className="min-w-0">
-                <h2 className="line-clamp-1 text-lg font-black leading-tight text-white">
+                <h2 className="line-clamp-1 text-lg font-black leading-tight text-fg">
                   {t(isEditing ? "editPost" : "createPost")}
                 </h2>
-                <p className="mt-1 line-clamp-1 text-sm font-semibold text-[#9ca3af]">
+                <p className="mt-1 line-clamp-1 text-sm font-semibold text-fg-muted">
                   {t(isEditing ? "editPostTitle" : "createPostTitle")}
                 </p>
               </div>
             </div>
 
             <div className="flex shrink-0 items-center gap-2">
-              <button
+              <AppIconButton
                 type="button"
                 onClick={onClose}
-                className="flex size-9 items-center justify-center rounded-full border border-[#1a1a24] bg-black/20 text-[#9ca3af] transition-colors hover:text-white"
+                className="bg-black/20"
                 aria-label={t("cancel")}
               >
                 <XIcon className="size-4" />
-              </button>
+              </AppIconButton>
             </div>
           </div>
 
@@ -635,21 +644,21 @@ export function SocialPostEditorModal({
             <div className="space-y-6">
               <label className="flex flex-col gap-2">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="inline-flex items-center gap-2 text-sm font-bold text-[#d1d5db]">
-                    <span className="size-2 rounded-full bg-[#f49e0b]" />
+                  <span className="inline-flex items-center gap-2 text-sm font-bold text-fg-soft">
+                    <span className="size-2 rounded-ui-pill bg-brand" />
                     {t("caption")}
                   </span>
-                  <span className="text-xs font-bold text-[#5f6472]">
+                  <span className="text-xs font-bold text-fg-subtle">
                     {caption.length}/{SOCIAL_POST_CAPTION_MAX_LENGTH}
                   </span>
                 </div>
-                <textarea
+                <AppTextarea
                   name="caption"
                   value={caption}
                   onChange={(event) => setCaption(event.target.value)}
                   maxLength={SOCIAL_POST_CAPTION_MAX_LENGTH}
                   rows={4}
-                  className="min-h-[100px] resize-none rounded border border-[#1a1a24] bg-[#111118] px-3 py-3 text-sm font-medium text-white outline-none transition-colors placeholder:text-[#5f6472] focus:border-[#f49e0b]"
+                  className="min-h-[100px]"
                   placeholder={t("captionPlaceholder")}
                 />
               </label>
@@ -657,33 +666,33 @@ export function SocialPostEditorModal({
               <div className="-mt-3 space-y-3">
                 {!descriptionOpen && !description && (
                   <div className="flex justify-end">
-                    <button
+                    <AppButton
                       type="button"
                       onClick={() => setDescriptionOpen(true)}
-                      className="inline-flex cursor-pointer items-center gap-1.5 text-sm font-bold text-blue-400 transition-colors hover:text-blue-300"
+                      variant="link"
+                      size="sm"
+                      leftIcon={<PlusIcon className="size-4" />}
                     >
-                      <PlusIcon className="size-4" />
                       {t("addDescription")}
-                    </button>
+                    </AppButton>
                   </div>
                 )}
 
                 {(descriptionOpen || description) && (
                   <label className="flex flex-col gap-2">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-xs font-bold uppercase tracking-normal text-[#9ca3af]">
+                      <span className="text-xs font-bold uppercase tracking-normal text-fg-muted">
                         {t("description")}
                       </span>
-                      <span className="text-xs font-bold text-[#5f6472]">
+                      <span className="text-xs font-bold text-fg-subtle">
                         {description.length}/{SOCIAL_POST_DESCRIPTION_MAX_LENGTH}
                       </span>
                     </div>
-                    <textarea
+                    <AppTextarea
                       value={description}
                       onChange={(event) => setDescription(event.target.value)}
                       maxLength={SOCIAL_POST_DESCRIPTION_MAX_LENGTH}
                       rows={4}
-                      className="resize-none rounded border border-[#1a1a24] bg-[#111118] px-3 py-3 text-sm font-medium text-white outline-none transition-colors placeholder:text-[#5f6472] focus:border-[#f49e0b]"
                       placeholder={t("descriptionPlaceholder")}
                     />
                   </label>
@@ -773,7 +782,7 @@ export function SocialPostEditorModal({
                   {editPost.images.map((image) => (
                     <div
                       key={image.id}
-                      className="group relative aspect-square overflow-hidden rounded border border-[#1a1a24] bg-[#111118]"
+                      className="group relative aspect-square overflow-hidden rounded-ui-sm border border-border bg-surface"
                     >
                       <Image
                         src={image.public_url}
@@ -793,25 +802,27 @@ export function SocialPostEditorModal({
                   {images.map((image) => (
                     <div
                       key={image.id}
-                      className="group relative aspect-square overflow-hidden rounded border border-[#1a1a24] bg-[#111118]"
+                      className="group relative aspect-square overflow-hidden rounded-ui-sm border border-border bg-surface"
                     >
                       <div
                         className="size-full bg-cover bg-center"
                         style={{ backgroundImage: `url(${image.url})` }}
                         aria-label={image.file.name}
                       />
-                      <div className="absolute inset-x-0 bottom-0 bg-black/65 px-2 py-1.5 text-[11px] font-bold text-white">
+                      <div className="absolute inset-x-0 bottom-0 bg-black/65 px-2 py-1.5 text-[11px] font-bold text-fg">
                         <p className="truncate">{image.file.name}</p>
-                        <p className="text-[#9ca3af]">{formatBytes(image.file.size)}</p>
+                        <p className="text-fg-muted">{formatBytes(image.file.size)}</p>
                       </div>
-                      <button
+                      <AppIconButton
                         type="button"
                         onClick={() => removeImage(image.id)}
-                        className="absolute right-2 top-2 flex size-8 items-center justify-center rounded-full bg-black/70 text-white opacity-100 transition-colors hover:bg-red-500 md:opacity-0 md:group-hover:opacity-100"
                         aria-label={t("removeImage")}
+                        variant="danger"
+                        size="sm"
+                        className="absolute right-2 top-2 bg-black/70 opacity-100 md:opacity-0 md:group-hover:opacity-100"
                       >
                         <Trash2Icon className="size-4" />
-                      </button>
+                      </AppIconButton>
                     </div>
                   ))}
                 </section>
@@ -820,11 +831,11 @@ export function SocialPostEditorModal({
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-3 border-t border-[#1a1a24] bg-[#111118] px-5 py-4">
+          <div className="flex items-center justify-between gap-3 border-t border-border bg-surface px-5 py-4">
             <div className="flex items-center gap-2">
               {!isEditing && (
                 <label
-                  className="flex size-10 cursor-pointer items-center justify-center rounded border border-[#2a2a35] text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50"
+                  className="flex size-10 cursor-pointer items-center justify-center rounded-ui-sm border border-border-strong text-fg-soft transition-colors hover:border-brand hover:text-fg has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50"
                   title={t("chooseImages")}
                 >
                   <ImagePlusIcon className="size-4" />
@@ -839,36 +850,35 @@ export function SocialPostEditorModal({
                   />
                 </label>
               )}
-              <button
+              <AppIconButton
                 type="button"
-                className="flex size-10 items-center justify-center rounded border border-[#2a2a35] text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white"
                 aria-label="Hashtag"
                 title="Hashtag"
               >
                 <HashIcon className="size-4" />
-              </button>
-              <button
+              </AppIconButton>
+              <AppIconButton
                 type="button"
-                className="flex size-10 items-center justify-center rounded border border-[#2a2a35] text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white"
                 aria-label="Emoji"
                 title="Emoji"
               >
                 <SmileIcon className="size-4" />
-              </button>
+              </AppIconButton>
             </div>
 
-            <button
+            <AppButton
               type="submit"
               disabled={pending || imageProcessing}
-              className="inline-flex h-10 items-center gap-2 rounded border border-[#2a2a35] px-4 text-sm font-black text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              variant="secondary"
+              size="sm"
+              isLoading={pending || imageProcessing}
+              leftIcon={<SendIcon className="size-4" />}
             >
-              {pending || imageProcessing ? <Loader2Icon className="size-4 animate-spin" /> : <SendIcon className="size-4" />}
               {pending ? t(isEditing ? "updating" : "publishing") : t(isEditing ? "updatePost" : "publish")}
-            </button>
+            </AppButton>
           </div>
         </form>
-      </div>
-    </div>
+    </AppDialog>
   );
 }
 
@@ -904,7 +914,10 @@ export default function CreatePostButton({ initialAnime, className = "", variant
         type="button"
         disabled={loading}
         onClick={handleClick}
-        className={`fixed bottom-20 right-4 z-40 inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#f49e0b]/45 bg-[#f49e0b] px-4 text-sm font-black text-[#0a0a0f] shadow-[0_18px_48px_rgba(0,0,0,0.45)] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 lg:bottom-6 ${className}`}
+        className={cn(
+          "fixed bottom-20 right-4 z-40 inline-flex h-12 items-center justify-center gap-2 rounded-ui-pill border border-brand/45 bg-brand px-4 text-sm font-black text-brand-fg shadow-[0_18px_48px_rgba(0,0,0,0.45)] transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 lg:bottom-6",
+          className
+        )}
         aria-label={t("createPost")}
         title={t("createPost")}
       >
@@ -915,10 +928,13 @@ export default function CreatePostButton({ initialAnime, className = "", variant
       <button
         type="button"
         disabled={loading}
-        className={`group mt-4 cursor-default! w-full max-w-md flex min-h-16 items-center gap-3 rounded-lg border border-[#1a1a24] bg-[#1a1a24] px-4 py-3 text-left disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-14 ${className}`}
+        className={cn(
+          "group mt-4 flex min-h-16 w-full max-w-md cursor-default! items-center gap-3 rounded-ui-sm border border-border bg-border px-4 py-3 text-left disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-14",
+          className
+        )}
         aria-label={t("createPost")}
       >
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-[#2a2a35] bg-[#1a1a24] text-[#9ca3af] transition-colors">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-ui-pill border border-border-strong bg-border text-fg-muted transition-colors">
           {loading ? (
             <Loader2Icon className="size-4 animate-spin" />
           ) : (
@@ -927,17 +943,17 @@ export default function CreatePostButton({ initialAnime, className = "", variant
               alt=""
               width={36}
               height={36}
-              className="size-full rounded-full object-cover"
+              className="size-full rounded-ui-pill object-cover"
               unoptimized
             />
           )}
         </span>
-        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[#6b7280] transition-colors">
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-fg-subtle transition-colors">
           {title || t("triggerPlaceholder")}
         </span>
         <span
           onClick={handleClick}
-          className="inline-flex cursor-pointer h-10 shrink-0 items-center justify-center gap-1.5 rounded border text-black bg-[#f49e0b] px-3 text-sm font-black  transition-colors sm:px-4"
+          className="inline-flex h-10 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-ui-sm border border-brand bg-brand px-3 text-sm font-black text-brand-fg transition-colors hover:bg-brand-hover sm:px-4"
         >
           <MessageSquarePlusIcon className="size-4" />
           <span>{t("publish")}</span>
@@ -949,31 +965,30 @@ export default function CreatePostButton({ initialAnime, className = "", variant
     <>
       {trigger}
 
-      {loginPromptOpen && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-lg border border-[#1a1a24] bg-[#111118] p-5 shadow-2xl">
-            <h2 className="text-lg font-black text-white">{t("loginRequiredTitle")}</h2>
-            <p className="mt-2 text-sm leading-6 text-[#9ca3af]">
-              {t("loginRequiredDescription")}
-            </p>
-            <div className="mt-5 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setLoginPromptOpen(false)}
-                className="h-10 rounded border border-[#1a1a24] px-4 text-sm font-bold text-[#d1d5db] transition-colors hover:border-[#f49e0b] hover:text-white"
-              >
-                {t("cancel")}
-              </button>
-              <Link
-                href={loginHref}
-                className="inline-flex h-10 items-center rounded bg-[#f49e0b] px-4 text-sm font-black text-[#0a0a0f] transition-colors hover:bg-[#d68a09]"
-              >
-                {t("goToLogin")}
-              </Link>
-            </div>
+      <AppDialog
+        open={loginPromptOpen}
+        onClose={() => setLoginPromptOpen(false)}
+        title={t("loginRequiredTitle")}
+        closeLabel={t("cancel")}
+        size="sm"
+        footer={
+          <div className="flex justify-end gap-3">
+            <AppButton type="button" variant="secondary" size="sm" onClick={() => setLoginPromptOpen(false)}>
+              {t("cancel")}
+            </AppButton>
+            <Link
+              href={loginHref}
+              className="inline-flex h-9 items-center rounded-ui-sm bg-brand px-4 text-sm font-black text-brand-fg transition-colors hover:bg-brand-hover"
+            >
+              {t("goToLogin")}
+            </Link>
           </div>
-        </div>
-      )}
+        }
+      >
+        <p className="px-5 py-4 text-sm leading-6 text-fg-muted">
+          {t("loginRequiredDescription")}
+        </p>
+      </AppDialog>
 
       {modalOpen && (
         <SocialPostEditorModal

@@ -9,6 +9,7 @@ import { FaStar } from "react-icons/fa";
 import { useLocale, useTranslations } from "next-intl";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import { AppBadge } from "@/components/ui";
 import {
   heroContentItemVariants,
   heroContentVariants,
@@ -40,7 +41,7 @@ export default function HeroSection({ anime }: HeroSectionProps) {
   return (
     <motion.section
       ref={sectionRef}
-      className="relative w-full mt-6 rounded-lg overflow-hidden min-h-[500px] lg:min-h-[600px] flex items-end"
+      className="relative mt-6 flex min-h-[500px] w-full items-end overflow-hidden rounded-ui-sm lg:min-h-[600px]"
       initial={reduceMotion ? false : "hidden"}
       animate="visible"
     >
@@ -57,15 +58,15 @@ export default function HeroSection({ anime }: HeroSectionProps) {
         </motion.div>
       ) : (
         <motion.div
-          className="absolute inset-0 bg-[#111118]"
-          style={{ backgroundColor: anime.coverImage?.color || "#111118" }}
+          className="absolute inset-0 bg-surface"
+          style={anime.coverImage?.color ? { backgroundColor: anime.coverImage.color } : undefined}
           variants={heroImageVariants}
         />
       )}
 
       <motion.div className="absolute inset-0" variants={heroOverlayVariants}>
-        <div className="absolute inset-0 bg-linear-to-t from-[#0a0a0f] via-[#0a0a0f]/60 to-transparent" />
-        <div className="absolute inset-0 bg-linear-to-r from-[#0a0a0f]/90 via-[#0a0a0f]/40 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-bg via-bg/60 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-bg/90 via-bg/40 to-transparent" />
       </motion.div>
 
       <motion.div
@@ -73,22 +74,22 @@ export default function HeroSection({ anime }: HeroSectionProps) {
         variants={heroContentVariants}
       >
         <motion.div className="flex flex-wrap gap-2 items-center" variants={heroContentItemVariants}>
-          <span className="bg-[#f49e0b] text-[#0a0a0f] text-xs font-bold px-2 py-1 rounded">
+          <AppBadge variant="brand" className="border-brand bg-brand text-brand">
             {t("trending_badge")}
-          </span>
+          </AppBadge>
           {score && (
-            <span className="text-[#f49e0b] flex items-center gap-1 text-sm font-bold">
+            <span className="flex items-center gap-1 text-sm font-bold text-brand">
               <FaStar className="w-[18px] h-[18px]" />
               <span>{score}</span>
             </span>
           )}
           {genres && (
-            <span className="text-[#9ca3af] text-sm">{"\u2022"} {genres}</span>
+            <span className="text-sm text-fg-muted">{"\u2022"} {genres}</span>
           )}
         </motion.div>
 
         <motion.h1
-          className="text-white text-4xl md:text-6xl lg:text-[64px] font-black leading-[1.1] tracking-tight"
+          className="text-4xl font-black leading-[1.1] tracking-tight text-fg md:text-6xl lg:text-[64px]"
           variants={heroContentItemVariants}
         >
           {title}
@@ -96,7 +97,7 @@ export default function HeroSection({ anime }: HeroSectionProps) {
 
         {anime.description && (
           <motion.p
-            className="text-gray-300 text-sm md:text-base max-w-xl line-clamp-3"
+            className="line-clamp-3 max-w-xl text-sm text-fg-soft md:text-base"
             variants={heroContentItemVariants}
           >
             {anime.description.replace(/<[^>]*>/g, "")}
@@ -110,9 +111,9 @@ export default function HeroSection({ anime }: HeroSectionProps) {
           >
             <Link
               href={`/anime/${anime.id}`}
-              className="flex items-center gap-2 h-12 px-6 bg-[#f49e0b] hover:bg-[#d68a09] text-[#0a0a0f] text-base font-bold rounded transition-colors"
+              className="flex h-12 items-center gap-2 rounded-ui-sm bg-brand px-6 text-base font-bold text-brand-fg transition-colors hover:bg-brand-hover"
             >
-              <span className="material-symbols-outlined"><PlayIcon /></span>
+              <PlayIcon className="size-5" />
               {t("viewDetails")}
             </Link>
           </motion.div>

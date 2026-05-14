@@ -53,15 +53,15 @@ export default function AnimeCard({
     >
       <Link href={`/anime/${anime.id}`} className="block h-full">
         <div
-          className={`relative w-full overflow-hidden mb-3 border border-transparent group-hover:border-[#f49e0b]/80 transition-all duration-300 shadow-lg group-hover:shadow-[0_18px_44px_rgba(244,158,11,0.18)] ${
-            variant === "compact" ? "rounded" : "rounded"
+          className={`relative mb-3 w-full overflow-hidden rounded-ui-sm border border-transparent shadow-lg transition-all duration-300 group-hover:border-brand/80 group-hover:shadow-[0_18px_44px_rgba(244,158,11,0.18)] ${
+            variant === "compact" ? "rounded-ui-sm" : "rounded-ui-sm"
           }`}
           style={{ aspectRatio: "2/3" }}
         >
           {score && (
-            <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-sm px-1.5 py-0.5 rounded flex items-center gap-1 z-10">
-              <span className="material-symbols-outlined text-[#f49e0b]" style={{ fontSize: "14px" }}><FaStar /></span>
-              <span className="text-white text-xs font-bold">{score}</span>
+            <div className="absolute right-2 top-2 z-10 flex items-center gap-1 rounded-ui-sm bg-black/80 px-1.5 py-0.5 backdrop-blur-sm">
+              <FaStar className="size-3.5 text-brand" />
+              <span className="text-xs font-bold text-fg">{score}</span>
             </div>
           )}
 
@@ -76,25 +76,25 @@ export default function AnimeCard({
                 unoptimized
               />
             ) : (
-              <div className="w-full h-full bg-[#1a1a24] flex items-center justify-center">
-                <span className="material-symbols-outlined text-[#9ca3af]" style={{ fontSize: "48px" }}>movie</span>
+              <div className="flex h-full w-full items-center justify-center bg-border">
+                <span className="material-symbols-outlined text-5xl text-fg-muted">movie</span>
               </div>
             )}
           </div>
 
-          <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3">
-            <div className="w-full py-2 bg-[#f49e0b] text-[#0a0a0f] font-bold text-xs rounded uppercase tracking-wide text-center translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+          <div className="absolute inset-0 flex items-end bg-linear-to-t from-black/90 via-black/20 to-transparent p-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+            <div className="w-full translate-y-2 rounded-ui-sm bg-brand py-2 text-center text-xs font-bold uppercase tracking-wide text-brand-fg transition-transform duration-300 group-hover:translate-y-0">
               {t("viewDetails")}
             </div>
           </div>
         </div>
 
         <div>
-          <h3 className="text-white font-bold truncate group-hover:text-[#f49e0b] transition-colors text-sm">
+          <h3 className="truncate text-sm font-bold text-fg transition-colors group-hover:text-brand">
             {title}
           </h3>
           {genres && (
-            <p className="text-[#9ca3af] text-xs mt-1">{genres}</p>
+            <p className="mt-1 text-xs text-fg-muted">{genres}</p>
           )}
         </div>
       </Link>
