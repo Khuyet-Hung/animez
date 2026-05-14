@@ -17,7 +17,13 @@ import HorizontalScroll from "@/components/common/HorizontalScroll";
 import TrailerModalButton from "@/components/anime/TrailerModalButton";
 import AnimeListButton from "@/components/anime-list/AnimeListButton";
 import CreatePostButton from "@/components/social/CreatePostButton";
-import { createSeoMetadata, stripHtml, truncateSeoDescription } from "@/lib/seo";
+import {
+  createSeoMetadata,
+  getAbsoluteUrl,
+  stripHtml,
+  toJsonLd,
+  truncateSeoDescription,
+} from "@/lib/seo";
 import { AppBadge, AppPanel, AppSectionHeader } from "@/components/ui";
 
 interface DetailData {
@@ -113,9 +119,60 @@ export default async function AnimeDetailPage({ params }: PageProps) {
     HIATUS: t("status_hiatus"),
   };
   const formatStatus = (s?: string | null) => s ? (statusMap[s] || s) : "Unknown";
+  const animeUrl = getAbsoluteUrl(`/${locale}/anime/${anime.id}`);
+  const imageUrl = anime.bannerImage || anime.coverImage?.extraLarge || anime.coverImage?.large || undefined;
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: getAbsoluteUrl(`/${locale}`),
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Anime",
+        item: getAbsoluteUrl(`/${locale}/search`),
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: title,
+        item: animeUrl,
+      },
+    ],
+  };
+  const animeJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "TVSeries",
+    name: title,
+    url: animeUrl,
+    image: imageUrl ? [imageUrl] : undefined,
+    description: synopsis || undefined,
+    genre: anime.genres?.length ? anime.genres : undefined,
+    numberOfEpisodes: anime.episodes ?? undefined,
+    datePublished: anime.seasonYear ? `${anime.seasonYear}` : undefined,
+    productionCompany: studio
+      ? {
+          "@type": "Organization",
+          name: studio,
+        }
+      : undefined,
+  };
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toJsonLd(breadcrumbJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: toJsonLd(animeJsonLd) }}
+      />
       <Navbar />
       <main className="flex-1 pb-20">
         {/* Hero Banner */}

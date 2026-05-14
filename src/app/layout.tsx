@@ -8,11 +8,26 @@ import {
   SEO_THEME_COLOR,
   SITE_NAME,
   SITE_URL,
+  toJsonLd,
 } from "@/lib/seo";
 import { APP_LOGOS } from "@/lib/branding";
 import "./globals.css";
 
 const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_CLIENT;
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE_NAME,
+  url: SITE_URL,
+  description: DEFAULT_SEO_DESCRIPTION,
+  inLanguage: ["en", "vi", "ja"],
+  potentialAction: {
+    "@type": "SearchAction",
+    target: `${SITE_URL}/en/search?q={search_term_string}`,
+    "query-input": "required name=search_term_string",
+  },
+};
+
 const exo2 = Exo_2({
   subsets: ["latin", "latin-ext"],
   variable: "--font-exo-2",
@@ -99,6 +114,10 @@ export default async function RootLayout({
   return (
     <html lang={lang} className={`dark ${exo2.variable}`}>
       <body className="flex min-h-screen flex-col overflow-x-hidden bg-bg font-sans text-fg">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: toJsonLd(websiteJsonLd) }}
+        />
         {children}
         {ADSENSE_CLIENT ? (
           <Script

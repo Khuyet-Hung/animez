@@ -48,6 +48,10 @@ export function getAbsoluteUrl(path = "") {
   return new URL(path || "/", SITE_URL).toString();
 }
 
+export function toJsonLd(value: unknown) {
+  return JSON.stringify(value).replace(/</g, "\\u003c");
+}
+
 export function getLocalizedAlternates(path = ""): NonNullable<Metadata["alternates"]> {
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   const normalizedPath = cleanPath === "/" ? "" : cleanPath;

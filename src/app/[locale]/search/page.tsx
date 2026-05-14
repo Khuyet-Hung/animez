@@ -28,19 +28,22 @@ export async function generateMetadata({
   searchParams,
 }: SearchPageProps): Promise<Metadata> {
   const { locale } = await params;
-  const { q: rawQuery } = await searchParams;
+  const resolvedParams = await searchParams;
+  const { q: rawQuery, genre, format, status, season, year, sort, page } = resolvedParams;
   const q = normalizeSearchQuery(rawQuery);
   const t = await getTranslations({ locale, namespace: "search" });
   const title = q ? t("title_query", { query: q }) : t("title");
   const description = q
     ? `${title} on Animez.`
     : "Browse anime by title, genre, format, status, season, and release year on Animez.";
+  const hasActiveFilters = Boolean(q || genre || format || status || season || year || sort || page);
 
   return createSeoMetadata({
     locale,
     path: "/search",
     title,
     description,
+    noIndex: hasActiveFilters,
   });
 }
 
