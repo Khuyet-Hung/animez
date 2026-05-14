@@ -228,6 +228,17 @@
     "avatarTooLarge": "Ảnh đại diện tối đa 3MB.",
     "avatarUploadFailed": "Không thể tải ảnh đại diện lên. Vui lòng thử lại.",
     "recentList": "Cập nhật gần đây",
+    "recommendAnime": "Gợi ý anime",
+    "viewRecommendations": "Xem gợi ý",
+    "createNewAnalysis": "Tạo phân tích mới",
+    "replaceRecommendationConfirm": "Tạo phân tích mới sẽ xóa phiên gợi ý hiện tại và thay bằng kết quả mới. Bạn có muốn tiếp tục?",
+    "visibilityUpdateFailed": "Không thể cập nhật trạng thái hồ sơ.",
+    "animeFallback": "Anime",
+    "animeMenuLabel": "Mở menu anime",
+    "options": "Tùy chọn",
+    "edit": "Sửa",
+    "delete": "Xóa",
+    "overview": "Tổng quan",
     "publicPreview": "Xem trước danh sách công khai",
     "publicList": "Danh sách anime",
     "animeList": "Các mục trong danh sách",
@@ -248,11 +259,69 @@
       "watchedEpisodes": "Tập đã xem"
     },
     "pagination": {
+      "label": "Phân trang",
       "previous": "Trước",
       "next": "Tiếp"
     },
     "tabs": {
+      "list": "Danh sách",
+      "posts": "Bài đăng",
+      "settings": "Cài đặt hồ sơ",
       "all": "Tất cả"
+    },
+    "statusSummary": {
+      "onHold": "Tạm dừng",
+      "dropped": "Đã bỏ",
+      "noData": "Chưa có dữ liệu"
+    },
+    "recommendationErrors": {
+      "loginRequired": "Vui lòng đăng nhập để dùng gợi ý anime.",
+      "quotaExceeded": "Bạn đã dùng hết lượt phân tích trong tháng này.",
+      "noCandidatesLeft": "Phiên này không còn ứng viên phù hợp.",
+      "recommendationFailed": "Không thể xử lý gợi ý lúc này. Vui lòng thử lại."
+    }
+  },
+  "recommendations": {
+    "metadataTitle": "Gợi ý anime",
+    "backToProfile": "Profile",
+    "score": "Score",
+    "unscored": "Chưa có điểm",
+    "episodes": "{count} tập",
+    "updating": "Đang cập nhật",
+    "markedCompleted": "Đã xem rồi",
+    "notInterested": "Không hợp gu",
+    "addToPlan": "Thêm vào dự định xem",
+    "loadingTitle": "Đang phân tích gu anime",
+    "loadingDescription": "Animez đang đọc danh sách của bạn và xếp hạng các ứng viên phù hợp.",
+    "fit": {
+      "veryHigh": "Phù hợp rất cao",
+      "high": "Phù hợp cao",
+      "possible": "Có thể hợp gu",
+      "discovery": "Khám phá mới"
+    },
+    "errors": {
+      "loginRequired": "Vui lòng đăng nhập để dùng gợi ý anime.",
+      "quotaExceeded": "Bạn đã dùng hết lượt phân tích trong tháng này.",
+      "noCandidatesLeft": "Phiên này không còn ứng viên phù hợp.",
+      "recommendationFailed": "Không thể xử lý gợi ý lúc này. Vui lòng thử lại."
+    },
+    "pageErrors": {
+      "loginRequired": {
+        "title": "Cần đăng nhập",
+        "description": "Vui lòng đăng nhập để tạo phiên gợi ý anime cá nhân."
+      },
+      "quotaExceeded": {
+        "title": "Hết lượt phân tích",
+        "description": "Bạn đã dùng hết lượt tạo phân tích trong tháng này."
+      },
+      "noCandidatesLeft": {
+        "title": "Chưa có ứng viên phù hợp",
+        "description": "Animez không tìm được ứng viên mới sau khi loại trừ danh sách hiện tại của bạn."
+      },
+      "recommendationFailed": {
+        "title": "Không thể tạo gợi ý",
+        "description": "Website đang không phản hồi như mong đợi. Vui lòng thử lại sau."
+      }
     }
   },
   "social": {

@@ -228,6 +228,17 @@
     "avatarTooLarge": "Avatar image must be 3MB or smaller.",
     "avatarUploadFailed": "Could not upload avatar. Please try again.",
     "recentList": "Recently updated",
+    "recommendAnime": "Recommend anime",
+    "viewRecommendations": "View recommendations",
+    "createNewAnalysis": "Create new analysis",
+    "replaceRecommendationConfirm": "Creating a new analysis will delete your current recommendation session and replace it with new results. Continue?",
+    "visibilityUpdateFailed": "Could not update profile visibility.",
+    "animeFallback": "Anime",
+    "animeMenuLabel": "Open anime menu",
+    "options": "Options",
+    "edit": "Edit",
+    "delete": "Delete",
+    "overview": "Overview",
     "publicPreview": "Public list preview",
     "publicList": "Anime list",
     "animeList": "List entries",
@@ -248,11 +259,69 @@
       "watchedEpisodes": "Episodes watched"
     },
     "pagination": {
+      "label": "Pagination",
       "previous": "Prev",
       "next": "Next"
     },
     "tabs": {
+      "list": "List",
+      "posts": "Posts",
+      "settings": "Profile settings",
       "all": "All"
+    },
+    "statusSummary": {
+      "onHold": "On hold",
+      "dropped": "Dropped",
+      "noData": "No data yet"
+    },
+    "recommendationErrors": {
+      "loginRequired": "Please log in to use anime recommendations.",
+      "quotaExceeded": "You have used all analysis runs for this month.",
+      "noCandidatesLeft": "This session has no matching candidates left.",
+      "recommendationFailed": "Could not process recommendations right now. Please try again."
+    }
+  },
+  "recommendations": {
+    "metadataTitle": "Anime recommendations",
+    "backToProfile": "Profile",
+    "score": "Score",
+    "unscored": "No score yet",
+    "episodes": "{count} episodes",
+    "updating": "Updating",
+    "markedCompleted": "Already watched",
+    "notInterested": "Not my taste",
+    "addToPlan": "Add to plan to watch",
+    "loadingTitle": "Analyzing your anime taste",
+    "loadingDescription": "Animez is reading your list and ranking candidates that fit your taste.",
+    "fit": {
+      "veryHigh": "Very strong match",
+      "high": "Strong match",
+      "possible": "Possible match",
+      "discovery": "New discovery"
+    },
+    "errors": {
+      "loginRequired": "Please log in to use anime recommendations.",
+      "quotaExceeded": "You have used all analysis runs for this month.",
+      "noCandidatesLeft": "This session has no matching candidates left.",
+      "recommendationFailed": "Could not process recommendations right now. Please try again."
+    },
+    "pageErrors": {
+      "loginRequired": {
+        "title": "Login required",
+        "description": "Please log in to create a personal anime recommendation session."
+      },
+      "quotaExceeded": {
+        "title": "Analysis limit reached",
+        "description": "You have used all analysis runs for this month."
+      },
+      "noCandidatesLeft": {
+        "title": "No matching candidates",
+        "description": "Animez could not find new candidates after excluding anime already in your list."
+      },
+      "recommendationFailed": {
+        "title": "Could not create recommendations",
+        "description": "The site is not responding as expected. Please try again later."
+      }
     }
   },
   "social": {

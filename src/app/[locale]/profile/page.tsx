@@ -4,6 +4,7 @@ import ProfileDashboard from "@/components/profile/ProfileDashboard";
 import { calculateProfileStats, ensureUserProfile } from "@/lib/profile/server";
 import { createGravatarUrl } from "@/lib/gravatar";
 import { createClient } from "@/lib/supabase/server";
+import { getRecommendationProfileSummary } from "@/lib/anime-recommendations/actions";
 import type { AnimeListStatus } from "@/types/anime-list";
 import type { UserAnimeListEntry } from "@/types/profile";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -68,6 +69,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const stats = calculateProfileStats(entries);
   const gravatarUrl = await createGravatarUrl(user.email, 176);
   const avatarSrc = profile.avatar_url ?? gravatarUrl;
+  const recommendationSummary = await getRecommendationProfileSummary();
 
   return (
     <>
@@ -79,9 +81,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         profile={profile}
         stats={stats}
         userEmail={user.email ?? null}
+        recommendationSummary={recommendationSummary}
         labels={{
           emptyList: profileT("emptyList"),
-          recentList: profileT("recentList"),
+          recommendAnime: profileT("recommendAnime"),
+          viewRecommendations: profileT("viewRecommendations"),
           settings: profileT("settings"),
           privateStatus: profileT("privateStatus"),
           publicStatus: profileT("publicStatus"),

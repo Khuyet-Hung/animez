@@ -228,6 +228,17 @@
     "avatarTooLarge": "アバター画像は3MB以下にしてください。",
     "avatarUploadFailed": "アバターをアップロードできませんでした。もう一度お試しください。",
     "recentList": "最近の更新",
+    "recommendAnime": "おすすめアニメ",
+    "viewRecommendations": "おすすめを見る",
+    "createNewAnalysis": "新しい分析を作成",
+    "replaceRecommendationConfirm": "新しい分析を作成すると、現在のおすすめセッションは削除され、新しい結果に置き換わります。続行しますか？",
+    "visibilityUpdateFailed": "プロフィールの公開設定を更新できませんでした。",
+    "animeFallback": "アニメ",
+    "animeMenuLabel": "アニメメニューを開く",
+    "options": "オプション",
+    "edit": "編集",
+    "delete": "削除",
+    "overview": "概要",
     "publicPreview": "公開リストのプレビュー",
     "publicList": "アニメリスト",
     "animeList": "リスト項目",
@@ -247,8 +258,70 @@
       "averageScore": "平均スコア",
       "watchedEpisodes": "視聴済み話数"
     },
+    "pagination": {
+      "label": "ページネーション",
+      "previous": "前へ",
+      "next": "次へ"
+    },
     "tabs": {
+      "list": "リスト",
+      "posts": "投稿",
+      "settings": "プロフィール設定",
       "all": "すべて"
+    },
+    "statusSummary": {
+      "onHold": "保留中",
+      "dropped": "中止",
+      "noData": "まだデータがありません"
+    },
+    "recommendationErrors": {
+      "loginRequired": "おすすめアニメを使うにはログインしてください。",
+      "quotaExceeded": "今月の分析回数を使い切りました。",
+      "noCandidatesLeft": "このセッションに一致する候補は残っていません。",
+      "recommendationFailed": "現在おすすめを処理できません。もう一度お試しください。"
+    }
+  },
+  "recommendations": {
+    "metadataTitle": "おすすめアニメ",
+    "backToProfile": "プロフィール",
+    "score": "スコア",
+    "unscored": "スコアなし",
+    "episodes": "{count}話",
+    "updating": "更新中",
+    "markedCompleted": "視聴済み",
+    "notInterested": "好みに合わない",
+    "addToPlan": "視聴予定に追加",
+    "loadingTitle": "アニメの好みを分析中",
+    "loadingDescription": "Animezがあなたのリストを読み込み、好みに合う候補をランク付けしています。",
+    "fit": {
+      "veryHigh": "とても相性が良い",
+      "high": "相性が良い",
+      "possible": "好みに合うかも",
+      "discovery": "新しい発見"
+    },
+    "errors": {
+      "loginRequired": "おすすめアニメを使うにはログインしてください。",
+      "quotaExceeded": "今月の分析回数を使い切りました。",
+      "noCandidatesLeft": "このセッションに一致する候補は残っていません。",
+      "recommendationFailed": "現在おすすめを処理できません。もう一度お試しください。"
+    },
+    "pageErrors": {
+      "loginRequired": {
+        "title": "ログインが必要です",
+        "description": "個人向けおすすめアニメセッションを作成するにはログインしてください。"
+      },
+      "quotaExceeded": {
+        "title": "分析上限に達しました",
+        "description": "今月の分析回数を使い切りました。"
+      },
+      "noCandidatesLeft": {
+        "title": "一致する候補がありません",
+        "description": "現在のリストを除外したあと、新しい候補が見つかりませんでした。"
+      },
+      "recommendationFailed": {
+        "title": "おすすめを作成できません",
+        "description": "サイトが正常に応答していません。しばらくしてからもう一度お試しください。"
+      }
     }
   },
   "social": {

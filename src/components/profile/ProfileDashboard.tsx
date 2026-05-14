@@ -32,6 +32,10 @@ import { ANIME_LIST_STATUS_BADGE_CLASS } from "@/lib/anime-list/constants";
 import { getVisiblePageNumbers } from "@/lib/pagination";
 import type { AnimeMedia } from "@/types/anime";
 import type { AnimeListEntry, AnimeListEntryInput, AnimeListStatus } from "@/types/anime-list";
+import {
+  replaceRecommendationSession,
+  type RecommendationProfileSummary,
+} from "@/lib/anime-recommendations/actions";
 import type {
   ProfileFieldErrorKey,
   ProfileStats,
@@ -49,7 +53,9 @@ import {
   Loader2Icon,
   MoreHorizontalIcon,
   PencilIcon,
+  PlusIcon,
   SettingsIcon,
+  SparklesIcon,
   StarIcon,
   Trash2Icon,
 } from "lucide-react";
@@ -188,10 +194,11 @@ function ProfileTabs({
   activeTab: ContentTab;
   onTabChange: (tab: ContentTab) => void;
 }) {
+  const t = useTranslations("profile");
   const tabs: { key: ContentTab; label: string }[] = [
-    { key: "list", label: "Danh sách" },
-    { key: "posts", label: "Bài đăng" },
-    { key: "settings", label: "Cài đặt hồ sơ" },
+    { key: "list", label: t("tabs.list") },
+    { key: "posts", label: t("tabs.posts") },
+    { key: "settings", label: t("tabs.settings") },
   ];
 
   return (
@@ -229,12 +236,13 @@ function StatusFilters({
   statusLabels: Record<AnimeListStatus, string>;
   onStatusChange: (status: StatusFilter) => void;
 }) {
+  const t = useTranslations("profile");
   return (
     <div className="flex flex-wrap gap-2">
       {STATUS_FILTERS.map((filter) => {
         const isActive = activeStatus === filter;
         const count = filter === "all" ? stats.total_anime : getStatusCount(stats, filter);
-        const label = filter === "all" ? "Tất cả" : statusLabels[filter];
+        const label = filter === "all" ? t("tabs.all") : statusLabels[filter];
 
         return (
           <button
@@ -269,12 +277,13 @@ function PaginationControls({
   };
   onPageChange: (page: number) => void;
 }) {
+  const t = useTranslations("profile");
   if (lastPage <= 1) return null;
 
   const visiblePages = getVisiblePageNumbers(currentPage, lastPage);
 
   return (
-    <nav className="mt-5 flex flex-wrap items-center justify-center gap-2" aria-label="Phân trang">
+    <nav className="mt-5 flex flex-wrap items-center justify-center gap-2" aria-label={t("pagination.label")}>
       <button
         type="button"
         onClick={() => onPageChange(currentPage - 1)}
@@ -406,6 +415,7 @@ function RecentAnimeList({
   onDelete: (entry: UserAnimeListEntry) => Promise<boolean>;
   deletingAnimeId: number | null;
 }) {
+  const t = useTranslations("profile");
   const [openMenuAnimeId, setOpenMenuAnimeId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -463,7 +473,7 @@ function RecentAnimeList({
               </div>
               <p className="mt-1 text-xs font-semibold text-[#5f6472]">
                 {[entry.format?.replace("_", " "), entry.season_year].filter(Boolean).join(" · ") ||
-                  "Anime"}
+                  t("animeFallback")}
               </p>
               <div className="mt-3 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
@@ -504,9 +514,9 @@ function RecentAnimeList({
                 }
                 disabled={deleting}
                 className="inline-flex justify-center cursor-pointer text-[#d1d5db] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-                aria-label="Mở menu anime"
+                aria-label={t("animeMenuLabel")}
                 aria-expanded={menuOpen}
-                title="Tùy chọn"
+                title={t("options")}
               >
                 {deleting ? (
                   <Loader2Icon className="size-4 animate-spin" />
@@ -525,7 +535,7 @@ function RecentAnimeList({
                     className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm font-bold text-[#d1d5db] transition-colors hover:bg-[#1a1a24] hover:text-white"
                   >
                     <PencilIcon className="size-4 text-[#f49e0b]" />
-                    Sửa
+                    {t("edit")}
                   </button>
                   <button
                     type="button"
@@ -541,7 +551,7 @@ function RecentAnimeList({
                     ) : (
                       <Trash2Icon className="size-4" />
                     )}
-                    Xóa
+                    {t("delete")}
                   </button>
                 </div>
               )}
@@ -565,23 +575,24 @@ function OverviewCard({
     averageScore: string;
   };
 }) {
+  const t = useTranslations("profile");
   const chartData = useMemo(
     () =>
       [
         { name: labels.watching, value: stats.watching, status: "watching" as const },
         { name: labels.planToWatch, value: stats.plan_to_watch, status: "plan_to_watch" as const },
         { name: labels.completed, value: stats.completed, status: "completed" as const },
-        { name: "Tạm dừng", value: stats.on_hold, status: "on_hold" as const },
-        { name: "Đã bỏ", value: stats.dropped, status: "dropped" as const },
+        { name: t("statusSummary.onHold"), value: stats.on_hold, status: "on_hold" as const },
+        { name: t("statusSummary.dropped"), value: stats.dropped, status: "dropped" as const },
       ].filter((item) => item.value > 0),
-    [labels.completed, labels.planToWatch, labels.watching, stats.completed, stats.dropped, stats.on_hold, stats.plan_to_watch, stats.watching]
+    [labels.completed, labels.planToWatch, labels.watching, stats.completed, stats.dropped, stats.on_hold, stats.plan_to_watch, stats.watching, t]
   );
   const visibleChartData =
-    chartData.length > 0 ? chartData : [{ name: "Chưa có dữ liệu", value: 1, status: "completed" as const }];
+    chartData.length > 0 ? chartData : [{ name: t("statusSummary.noData"), value: 1, status: "completed" as const }];
 
   return (
     <aside className="rounded border border-[#1a1a24] bg-[#111118] p-5">
-      <p className="text-xs font-bold uppercase tracking-normal text-[#5f6472]">Tổng quan</p>
+      <p className="text-xs font-bold uppercase tracking-normal text-[#5f6472]">{t("overview")}</p>
       <div className="mt-4 grid grid-cols-2 gap-2">
         <div className="rounded border border-[#1a1a24] bg-[#0d0d14] p-3">
           <p className="text-xl font-black text-green-300">{stats.watching}</p>
@@ -761,9 +772,11 @@ interface ProfileDashboardProps {
   profile: UserProfile;
   stats: ProfileStats;
   userEmail: string | null;
+  recommendationSummary: RecommendationProfileSummary;
   labels: {
     emptyList: string;
-    recentList: string;
+    recommendAnime: string;
+    viewRecommendations: string;
     settings: string;
     privateStatus: string;
     publicStatus: string;
@@ -791,8 +804,10 @@ export default function ProfileDashboard({
   profile,
   stats,
   userEmail,
+  recommendationSummary,
   labels,
 }: ProfileDashboardProps) {
+  const t = useTranslations("profile");
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<ContentTab>("list");
   const [activeStatus, setActiveStatus] = useState<StatusFilter>("all");
@@ -803,10 +818,12 @@ export default function ProfileDashboard({
   const [visibilityError, setVisibilityError] = useState<string | null>(null);
   const [pendingVisibility, setPendingVisibility] = useState<boolean | null>(null);
   const [isVisibilityPending, startVisibilityTransition] = useTransition();
+  const [isRecommendationPending, startRecommendationTransition] = useTransition();
   const [editingEntry, setEditingEntry] = useState<UserAnimeListEntry | null>(null);
   const [entrySaving, setEntrySaving] = useState(false);
   const [entryError, setEntryError] = useState<string | null>(null);
   const [deletingAnimeId, setDeletingAnimeId] = useState<number | null>(null);
+  const recommendationQuotaLabel = `${recommendationSummary.remainingMonthlySessions}/${recommendationSummary.monthlySessionLimit}`;
 
   useEffect(() => {
     setDashboardEntries(entries);
@@ -879,6 +896,22 @@ export default function ProfileDashboard({
 
       setIsPublic(result.profile?.is_public ?? nextPublic);
       setPendingVisibility(null);
+      router.refresh();
+    });
+  }
+
+  function handleCreateNewAnalysis() {
+    if (!window.confirm(t("replaceRecommendationConfirm"))) return;
+
+    startRecommendationTransition(async () => {
+      const result = await replaceRecommendationSession(locale);
+
+      if (result.status === "error") {
+        window.alert(t(`recommendationErrors.${result.messageKey}`));
+        return;
+      }
+
+      router.push("/profile/recommendations");
       router.refresh();
     });
   }
@@ -1005,8 +1038,8 @@ export default function ProfileDashboard({
                 {visibilityError && (
                   <p className="text-xs font-semibold text-red-300">
                     {visibilityError === "loginRequired"
-                      ? "Vui lòng đăng nhập để cập nhật hồ sơ."
-                      : "Không thể cập nhật trạng thái hồ sơ."}
+                      ? t("loginRequired")
+                      : t("visibilityUpdateFailed")}
                   </p>
                 )}
               </div>
@@ -1029,9 +1062,33 @@ export default function ProfileDashboard({
             {activeTab === "list" && (
               <>
                 <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                  <p className="text-xs font-bold uppercase tracking-normal text-[#5f6472]">
-                    {labels.recentList}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Link
+                      href="/profile/recommendations"
+                      className="inline-flex h-9 items-center justify-center gap-2 rounded bg-[#f49e0b] px-3 text-xs font-black text-[#0a0a0f] transition-colors hover:bg-[#d68a09]"
+                    >
+                      <SparklesIcon className="size-4" />
+                      {recommendationSummary.hasActiveSession ? labels.viewRecommendations : labels.recommendAnime}
+                      <span className="rounded bg-[#0a0a0f]/15 px-1.5 py-0.5 tabular-nums">
+                        {recommendationQuotaLabel}
+                      </span>
+                    </Link>
+                    {recommendationSummary.hasActiveSession && (
+                      <button
+                        type="button"
+                        onClick={handleCreateNewAnalysis}
+                        disabled={isRecommendationPending || recommendationSummary.remainingMonthlySessions <= 0}
+                        className="inline-flex h-9 items-center justify-center gap-2 rounded border border-[#f49e0b]/40 bg-[#f49e0b]/10 px-3 text-xs font-black text-[#f49e0b] transition-colors hover:border-[#f49e0b] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isRecommendationPending ? (
+                          <Loader2Icon className="size-4 animate-spin" />
+                        ) : (
+                          <PlusIcon className="size-4" />
+                        )}
+                        {t("createNewAnalysis")}
+                      </button>
+                    )}
+                  </div>
                   <StatusFilters
                     activeStatus={activeStatus}
                     stats={stats}
