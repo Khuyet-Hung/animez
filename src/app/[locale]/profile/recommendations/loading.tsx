@@ -1,19 +1,5 @@
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import LottieLoader from "@/components/common/LottieLoader";
-import RecommendationLoading from "@/components/recommendations/RecommendationLoading";
-import { getRecommendationProfileSummary } from "@/lib/anime-recommendations/actions";
+import RecommendationLoadingScreen from "@/components/recommendations/RecommendationLoadingScreen";
 
-export default async function RecommendationsLoadingPage() {
-  const recommendationSummary = await getRecommendationProfileSummary();
-
-  return (
-    <>
-      <Navbar />
-      <main className="min-h-screen bg-bg lg:pl-28 min-[1600px]:pl-6">
-        {recommendationSummary.hasActiveSession ? <LottieLoader /> : <RecommendationLoading />}
-      </main>
-      <Footer />
-    </>
-  );
+export default function RecommendationsLoadingPage() {
+  return <RecommendationLoadingScreen />;
 }

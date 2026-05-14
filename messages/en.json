@@ -319,6 +319,10 @@
         "title": "No matching candidates",
         "description": "Animez could not find new candidates after excluding anime already in your list."
       },
+      "noActiveSession": {
+        "title": "No AI recommendations yet",
+        "description": "Go back to your profile and start an AI recommendation run."
+      },
       "recommendationFailed": {
         "title": "Could not create recommendations",
         "description": "The site is not responding as expected. Please try again later."

@@ -16,6 +16,7 @@ import AnimeListEditor from "@/components/anime-list/AnimeListEditor";
 import ProfileAvatar from "@/components/profile/ProfileAvatar";
 import ProfilePostsList from "@/components/profile/ProfilePostsList";
 import ProfileSettingsForm from "@/components/profile/ProfileSettingsForm";
+import RecommendationLoadingScreen from "@/components/recommendations/RecommendationLoadingScreen";
 import { AppAlertDialog, AppButton, AppEmptyState, AppPanel } from "@/components/ui";
 import { Link, useRouter } from "@/i18n/navigation";
 import {
@@ -44,7 +45,7 @@ import type {
   UserAnimeListEntry,
   UserProfile,
 } from "@/types/profile";
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, MouseEvent } from "react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -821,6 +822,7 @@ export default function ProfileDashboard({
   const [entryError, setEntryError] = useState<string | null>(null);
   const [deletingAnimeId, setDeletingAnimeId] = useState<number | null>(null);
   const [showRecommendationDialog, setShowRecommendationDialog] = useState(false);
+  const [showRecommendationLoading, setShowRecommendationLoading] = useState(false);
   const recommendationQuotaLabel = `${recommendationSummary.remainingMonthlySessions}/${recommendationSummary.monthlySessionLimit}`;
 
   useEffect(() => {
@@ -902,17 +904,49 @@ export default function ProfileDashboard({
     setShowRecommendationDialog(true);
   }
 
-  function handleConfirmCreateNewAnalysis() {
+  function handleCreateRecommendation(event: MouseEvent<HTMLAnchorElement>) {
+    if (
+      recommendationSummary.hasActiveSession ||
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    setShowRecommendationLoading(true);
+
     startRecommendationTransition(async () => {
       const result = await replaceRecommendationSession(locale);
 
       if (result.status === "error") {
-        setShowRecommendationDialog(false);
+        setShowRecommendationLoading(false);
         window.alert(t(`recommendationErrors.${result.messageKey}`));
         return;
       }
 
-      setShowRecommendationDialog(false);
+      router.push("/profile/recommendations");
+      router.refresh();
+    });
+  }
+
+  function handleConfirmCreateNewAnalysis() {
+    setShowRecommendationDialog(false);
+    setShowRecommendationLoading(true);
+
+    startRecommendationTransition(async () => {
+      const result = await replaceRecommendationSession(locale);
+
+      if (result.status === "error") {
+        setShowRecommendationLoading(false);
+        window.alert(t(`recommendationErrors.${result.messageKey}`));
+        return;
+      }
+
       router.push("/profile/recommendations");
       router.refresh();
     });
@@ -1060,6 +1094,7 @@ export default function ProfileDashboard({
                   <div className="flex flex-wrap items-center gap-3">
                     <Link
                       href="/profile/recommendations"
+                      onClick={handleCreateRecommendation}
                       className="inline-flex h-9 items-center justify-center gap-2 rounded-ui-sm bg-brand px-3 text-xs font-black text-brand-fg transition-colors hover:bg-brand-hover"
                     >
                       <SparklesIcon className="size-4" />
@@ -1152,6 +1187,11 @@ export default function ProfileDashboard({
         onCancel={() => setShowRecommendationDialog(false)}
         isConfirming={isRecommendationPending}
       />
+      {showRecommendationLoading && (
+        <div className="fixed inset-0 z-[130] bg-bg">
+          <RecommendationLoadingScreen contentAs="div" />
+        </div>
+      )}
     </main>
   );
 }

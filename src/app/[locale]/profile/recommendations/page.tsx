@@ -2,7 +2,7 @@ import Footer from "@/components/layout/Footer";
 import Navbar from "@/components/layout/Navbar";
 import RecommendationSessionPanel from "@/components/recommendations/RecommendationSessionPanel";
 import { AppErrorState } from "@/components/ui";
-import { getOrCreateRecommendationSession } from "@/lib/anime-recommendations/actions";
+import { getRecommendationSession } from "@/lib/anime-recommendations/actions";
 import { createSeoMetadata } from "@/lib/seo";
 import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
@@ -38,7 +38,7 @@ export default async function RecommendationsPage({ params }: RecommendationsPag
     redirect(`/${locale}/login?next=/${locale}/profile/recommendations`);
   }
 
-  const result = await getOrCreateRecommendationSession();
+  const result = await getRecommendationSession();
 
   return (
     <>

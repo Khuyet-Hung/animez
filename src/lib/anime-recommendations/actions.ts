@@ -137,6 +137,52 @@ async function buildSessionView(
   const items = ((itemsData ?? []) as RawRecommendationItem[]).map(normalizeItem);
   const pendingItems = items.filter((item) => item.state === "pending");
 
+  if (pendingItems.length > 0) {
+    const { data: listEntriesData } = await supabase
+      .from("anime_list_entries")
+      .select("anime_id,status")
+      .eq("user_id", userId)
+      .in(
+        "anime_id",
+        pendingItems.map((item) => item.anime_id)
+      )
+      .limit(1);
+    const listedEntry = (listEntriesData ?? [])[0] as
+      | { anime_id: number | string; status: string }
+      | undefined;
+
+    if (listedEntry) {
+      const listedAnimeId = Number(listedEntry.anime_id);
+      const listedItem = pendingItems.find((item) => item.anime_id === listedAnimeId);
+
+      if (listedItem) {
+        const stateChangedAt = new Date().toISOString();
+        const nextState =
+          listedEntry.status === "completed" ? "marked_completed" : "added_plan_to_watch";
+
+        await supabase
+          .from("anime_recommendation_items")
+          .update({ state: nextState, state_changed_at: stateChangedAt })
+          .eq("id", listedItem.id)
+          .eq("user_id", userId);
+
+        await supabase
+          .from("anime_recommendation_sessions")
+          .update({ status: "completed", completed_at: stateChangedAt })
+          .eq("id", session.id)
+          .eq("user_id", userId);
+
+        return {
+          session: null,
+          currentItem: null,
+          totalCount: items.length,
+          pendingCount: 0,
+          remainingMonthlySessions: getRemainingSessions(createdThisMonth),
+        };
+      }
+    }
+  }
+
   return {
     session,
     currentItem: pendingItems[0] ?? null,
@@ -350,6 +396,16 @@ export async function getOrCreateRecommendationSession(): Promise<Recommendation
   return createSessionForUser(supabase, user.id);
 }
 
+export async function getRecommendationSession(): Promise<RecommendationActionResult> {
+  const { supabase, user } = await getCurrentUser();
+  if (!user) return { status: "error", messageKey: "loginRequired" };
+
+  const activeSession = await getActiveSession(supabase, user.id);
+  if (!activeSession) return { status: "error", messageKey: "noActiveSession" };
+
+  return { status: "success", view: await buildSessionView(supabase, user.id, activeSession) };
+}
+
 export async function getRecommendationProfileSummary(): Promise<RecommendationProfileSummary> {
   const { supabase, user } = await getCurrentUser();
   if (!user) {
@@ -419,6 +475,53 @@ async function loadPendingItem(
   return data ? normalizeItem(data as RawRecommendationItem) : null;
 }
 
+async function loadCurrentPendingItem(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  sessionId: string
+) {
+  const { data } = await supabase
+    .from("anime_recommendation_items")
+    .select("*")
+    .eq("session_id", sessionId)
+    .eq("user_id", userId)
+    .eq("state", "pending")
+    .order("rank", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  return data ? normalizeItem(data as RawRecommendationItem) : null;
+}
+
+async function markItemNotInterested(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  item: RecommendationItem
+) {
+  const stateChangedAt = new Date().toISOString();
+  const { error: notInterestedError } = await supabase.from("anime_not_interested").upsert(
+    {
+      user_id: userId,
+      anime_id: item.anime_id,
+      title_romaji: item.title_romaji,
+      title_english: item.title_english,
+      cover_image: item.cover_image,
+      format: item.format,
+    },
+    { onConflict: "user_id,anime_id" }
+  );
+
+  if (notInterestedError) return false;
+
+  const { error: itemError } = await supabase
+    .from("anime_recommendation_items")
+    .update({ state: "not_interested", state_changed_at: stateChangedAt })
+    .eq("id", item.id)
+    .eq("user_id", userId);
+
+  return !itemError;
+}
+
 async function returnUpdatedView(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string,
@@ -484,22 +587,9 @@ export async function markRecommendationNotInterested(
   const item = await loadPendingItem(supabase, user.id, itemId);
   if (!item) return { status: "error", messageKey: "recommendationFailed" };
 
-  await supabase.from("anime_not_interested").upsert(
-    {
-      user_id: user.id,
-      anime_id: item.anime_id,
-      title_romaji: item.title_romaji,
-      title_english: item.title_english,
-      cover_image: item.cover_image,
-      format: item.format,
-    },
-    { onConflict: "user_id,anime_id" }
-  );
-  await supabase
-    .from("anime_recommendation_items")
-    .update({ state: "not_interested", state_changed_at: new Date().toISOString() })
-    .eq("id", item.id)
-    .eq("user_id", user.id);
+  const marked = await markItemNotInterested(supabase, user.id, item);
+  if (!marked) return { status: "error", messageKey: "recommendationFailed" };
+
   await advanceSession(supabase, user.id, item.session_id);
 
   return returnUpdatedView(supabase, user.id, locale);
@@ -554,6 +644,12 @@ export async function replaceRecommendationSession(locale: string): Promise<Reco
 
   const activeSession = await getActiveSession(supabase, user.id);
   if (activeSession) {
+    const currentItem = await loadCurrentPendingItem(supabase, user.id, activeSession.id);
+    if (currentItem) {
+      const marked = await markItemNotInterested(supabase, user.id, currentItem);
+      if (!marked) return { status: "error", messageKey: "recommendationFailed" };
+    }
+
     await supabase
       .from("anime_recommendation_sessions")
       .update({ status: "replaced", completed_at: new Date().toISOString() })

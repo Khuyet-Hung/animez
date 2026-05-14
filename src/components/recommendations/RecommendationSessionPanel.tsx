@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useState, useTransition } from "react";
+import { memo, useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import {
@@ -15,6 +15,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { AppBadge, AppButton } from "@/components/ui";
 import {
   addRecommendationToPlan,
+  getRecommendationSession,
   markRecommendationCompleted,
   markRecommendationNotInterested,
 } from "@/lib/anime-recommendations/actions";
@@ -46,19 +47,84 @@ function getFormatYear(item: RecommendationItem) {
 
 function RecommendationSessionPanel({ initialView, locale }: RecommendationSessionPanelProps) {
   const t = useTranslations("recommendations");
+  const taxonomyT = useTranslations("taxonomy");
   const router = useRouter();
   const [view, setView] = useState(initialView);
   const [error, setError] = useState<string | null>(null);
+  const [isValidating, setIsValidating] = useState(true);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const validatingRef = useRef(false);
   const item = view.currentItem;
   const busy = isPending || pendingAction !== null;
+
+  useEffect(() => {
+    setView(initialView);
+  }, [initialView]);
 
   useEffect(() => {
     if (!view.session || !view.currentItem) {
       router.replace("/profile");
     }
   }, [router, view.currentItem, view.session]);
+
+  const validateSession = useCallback(() => {
+    if (validatingRef.current || pendingAction !== null) return;
+
+    validatingRef.current = true;
+    setIsValidating(true);
+    startTransition(async () => {
+      try {
+        const result = await getRecommendationSession();
+
+        if (result.status === "error") {
+          if (result.messageKey === "noActiveSession") {
+            setView((currentView) => ({
+              ...currentView,
+              session: null,
+              currentItem: null,
+              pendingCount: 0,
+            }));
+            router.replace("/profile");
+            return;
+          }
+
+          setError(t(`errors.${result.messageKey}`));
+          return;
+        }
+
+        setView(result.view);
+      } catch {
+        setError(t("errors.recommendationFailed"));
+      } finally {
+        validatingRef.current = false;
+        setIsValidating(false);
+      }
+    });
+  }, [pendingAction, router, t]);
+
+  useEffect(() => {
+    function handlePageShow() {
+      validateSession();
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        validateSession();
+      }
+    }
+
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("focus", validateSession);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    validateSession();
+
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("focus", validateSession);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [validateSession]);
 
   function runAction(actionName: string, action: () => Promise<RecommendationActionResult>) {
     setError(null);
@@ -76,7 +142,7 @@ function RecommendationSessionPanel({ initialView, locale }: RecommendationSessi
     });
   }
 
-  if (!view.session || !item) {
+  if (isValidating || !view.session || !item) {
     return null;
   }
 
@@ -139,7 +205,7 @@ function RecommendationSessionPanel({ initialView, locale }: RecommendationSessi
           <div className="mt-4 flex flex-wrap gap-2">
             {item.genres.slice(0, 3).map((genre) => (
               <AppBadge key={genre} variant="neutral" className="px-3 py-1 text-sm">
-                {genre}
+                {taxonomyT(`genres.${genre}`)}
               </AppBadge>
             ))}
           </div>

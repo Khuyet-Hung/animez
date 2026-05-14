@@ -284,8 +284,8 @@
   },
   "recommendations": {
     "metadataTitle": "Gợi ý anime",
-    "backToProfile": "Profile",
-    "score": "Score",
+    "backToProfile": "Hồ sơ",
+    "score": "Điểm",
     "unscored": "Chưa có điểm",
     "episodes": "{count} tập",
     "updating": "Đang cập nhật",
@@ -318,6 +318,10 @@
       "noCandidatesLeft": {
         "title": "Chưa có ứng viên phù hợp",
         "description": "Animez không tìm được ứng viên mới sau khi loại trừ danh sách hiện tại của bạn."
+      },
+      "noActiveSession": {
+        "title": "Chưa có gợi ý AI",
+        "description": "Quay lại hồ sơ và bắt đầu một lượt gợi ý bằng AI."
       },
       "recommendationFailed": {
         "title": "Không thể tạo gợi ý",

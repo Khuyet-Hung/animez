@@ -319,6 +319,10 @@
         "title": "一致する候補がありません",
         "description": "現在のリストを除外したあと、新しい候補が見つかりませんでした。"
       },
+      "noActiveSession": {
+        "title": "AIおすすめはまだありません",
+        "description": "プロフィールに戻って、AIおすすめを開始してください。"
+      },
       "recommendationFailed": {
         "title": "おすすめを作成できません",
         "description": "サイトが正常に応答していません。しばらくしてからもう一度お試しください。"
