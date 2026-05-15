@@ -6,7 +6,7 @@ import { formatAnimeTitle } from "@/lib/anime-title";
 import type { AnimeMedia } from "@/types/anime";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import AnimeCard from "@/components/anime/AnimeCard";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
@@ -24,32 +24,46 @@ import {
   toJsonLd,
   truncateSeoDescription,
 } from "@/lib/seo";
+import { getAnimeHref, getGenreHref, getSeasonHref, parseAnimeIdParam } from "@/lib/anime-routes";
 import { AppBadge, AppPanel, AppSectionHeader } from "@/components/ui";
+import type { MediaSeason } from "@/types/anime";
 
 interface DetailData {
   Media: AnimeMedia;
 }
 
 interface PageProps {
-  params: Promise<{ id: string; locale: string }>;
+  params: Promise<{ anime: string; locale: string }>;
 }
 
 export const revalidate = 600;
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id, locale } = await params;
+  const { anime, locale } = await params;
+  const animeId = parseAnimeIdParam(anime);
+
+  if (!animeId) {
+    return {
+      title: "Anime Detail",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
 
   try {
     const data = await anilistClient.request<DetailData>(ANIME_DETAIL_QUERY, {
-      id: parseInt(id, 10),
+      id: animeId,
     });
     const title = formatAnimeTitle(data.Media.title, locale);
     const description = truncateSeoDescription(stripHtml(data.Media.description));
     const image = data.Media.bannerImage || data.Media.coverImage?.extraLarge || data.Media.coverImage?.large;
+    const canonicalPath = getAnimeHref(data.Media, locale);
 
     return createSeoMetadata({
       locale,
-      path: `/anime/${id}`,
+      path: canonicalPath,
       title,
       description,
       image,
@@ -66,7 +80,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-function InfoRow({ label, value }: { label: string; value?: string | number | null }) {
+function InfoRow({ label, value }: { label: string; value?: React.ReactNode }) {
   if (!value) return null;
   return (
     <div className="flex justify-between border-b border-border py-2 last:border-0">
@@ -84,11 +98,11 @@ function formatAiringDate(timestamp: number, locale: string) {
 }
 
 export default async function AnimeDetailPage({ params }: PageProps) {
-  const { id, locale } = await params;
+  const { anime: animeParam, locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("detail");
-  const animeId = parseInt(id, 10);
-  if (isNaN(animeId)) notFound();
+  const animeId = parseAnimeIdParam(animeParam);
+  if (!animeId) notFound();
 
   let anime: AnimeMedia;
   try {
@@ -99,6 +113,10 @@ export default async function AnimeDetailPage({ params }: PageProps) {
   }
 
   const title = formatAnimeTitle(anime.title, locale);
+  const canonicalAnimeHref = getAnimeHref(anime, locale);
+  if (animeParam !== canonicalAnimeHref.slice("/anime/".length)) {
+    redirect(canonicalAnimeHref);
+  }
   const taxonomyT = await getTranslations("taxonomy");
   const score = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : null;
   const synopsis = anime.description?.replace(/<[^>]*>/g, "") || "";
@@ -119,7 +137,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
     HIATUS: t("status_hiatus"),
   };
   const formatStatus = (s?: string | null) => s ? (statusMap[s] || s) : "Unknown";
-  const animeUrl = getAbsoluteUrl(`/${locale}/anime/${anime.id}`);
+  const animeUrl = getAbsoluteUrl(`/${locale}${canonicalAnimeHref}`);
   const imageUrl = anime.bannerImage || anime.coverImage?.extraLarge || anime.coverImage?.large || undefined;
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -234,7 +252,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
               {anime.genres && anime.genres.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-4">
                   {anime.genres.map((g) => (
-                    <Link key={g} href={`/search?genre=${encodeURIComponent(g)}`} className="rounded-ui-pill border border-border bg-surface px-3 py-1 text-xs font-semibold text-fg-muted transition-all hover:border-brand hover:text-fg">
+                    <Link key={g} href={getGenreHref(g)} className="rounded-ui-pill border border-border bg-surface px-3 py-1 text-xs font-semibold text-fg-muted transition-all hover:border-brand hover:text-fg">
                       {taxonomyT(`genres.${g}`)}
                     </Link>
                   ))}
@@ -313,7 +331,19 @@ export default async function AnimeDetailPage({ params }: PageProps) {
                 <InfoRow label={t("episodes")} value={anime.episodes} />
                 <InfoRow label={t("duration")} value={anime.duration ? t("duration_unit", { n: anime.duration }) : null} />
                 <InfoRow label={t("status")} value={formatStatus(anime.status)} />
-                <InfoRow label={t("season")} value={anime.season && anime.seasonYear ? `${taxonomyT(`seasons.${anime.season}`)} ${anime.seasonYear}` : null} />
+                <InfoRow
+                  label={t("season")}
+                  value={
+                    anime.season && anime.seasonYear ? (
+                      <Link
+                        href={getSeasonHref(anime.season as MediaSeason, anime.seasonYear)}
+                        className="transition-colors hover:text-brand"
+                      >
+                        {taxonomyT(`seasons.${anime.season}`)} {anime.seasonYear}
+                      </Link>
+                    ) : null
+                  }
+                />
                 <InfoRow label={t("studio")} value={studio} />
                 <InfoRow label={t("source")} value={anime.source?.replace("_", " ")} />
 

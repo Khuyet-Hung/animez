@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 import { locales } from "@/i18n/locales";
 import { anilistClient } from "@/lib/anilist";
+import { animeGenres, animeSeasons } from "@/lib/anime-taxonomy";
+import { getAnimeHref, getGenreHref, getSeasonHref, getSeasonLandingYears } from "@/lib/anime-routes";
 import { TRENDING_QUERY } from "@/lib/queries";
 import { getAbsoluteUrl } from "@/lib/seo";
 import type { AnimeMedia } from "@/types/anime";
@@ -30,6 +32,40 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     }))
   );
+  const genreEntries = locales.flatMap((locale) =>
+    animeGenres.map((genre) => ({
+      url: getAbsoluteUrl(`/${locale}${getGenreHref(genre)}`),
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.75,
+      alternates: {
+        languages: Object.fromEntries(
+          locales.map((alternateLocale) => [
+            alternateLocale,
+            getAbsoluteUrl(`/${alternateLocale}${getGenreHref(genre)}`),
+          ])
+        ),
+      },
+    }))
+  );
+  const seasonEntries = locales.flatMap((locale) =>
+    getSeasonLandingYears().flatMap((year) =>
+      animeSeasons.map((season) => ({
+        url: getAbsoluteUrl(`/${locale}${getSeasonHref(season, year)}`),
+        lastModified: now,
+        changeFrequency: "weekly" as const,
+        priority: 0.7,
+        alternates: {
+          languages: Object.fromEntries(
+            locales.map((alternateLocale) => [
+              alternateLocale,
+              getAbsoluteUrl(`/${alternateLocale}${getSeasonHref(season, year)}`),
+            ])
+          ),
+        },
+      }))
+    )
+  );
 
   try {
     const data = await anilistClient.request<SitemapAnimeData>(TRENDING_QUERY, {
@@ -44,24 +80,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       )
     );
     const animeEntries = locales.flatMap((locale) =>
-      animeIds.map((id) => ({
-        url: getAbsoluteUrl(`/${locale}/anime/${id}`),
-        lastModified: now,
-        changeFrequency: "daily" as const,
-        priority: 0.7,
-        alternates: {
-          languages: Object.fromEntries(
-            locales.map((alternateLocale) => [
-              alternateLocale,
-              getAbsoluteUrl(`/${alternateLocale}/anime/${id}`),
-            ])
-          ),
-        },
-      }))
+      animeIds.map((id) => {
+        const anime = [...data.trending.media, ...data.topAllTime.media].find((item) => item.id === id);
+        const animePath = anime ? getAnimeHref(anime, locale) : `/anime/${id}`;
+
+        return {
+          url: getAbsoluteUrl(`/${locale}${animePath}`),
+          lastModified: now,
+          changeFrequency: "daily" as const,
+          priority: 0.7,
+          alternates: {
+            languages: Object.fromEntries(
+              locales.map((alternateLocale) => {
+                const alternateAnimePath = anime
+                  ? getAnimeHref(anime, alternateLocale)
+                  : `/anime/${id}`;
+
+                return [
+                  alternateLocale,
+                  getAbsoluteUrl(`/${alternateLocale}${alternateAnimePath}`),
+                ];
+              })
+            ),
+          },
+        };
+      })
     );
 
-    return [...staticEntries, ...animeEntries];
+    return [...staticEntries, ...genreEntries, ...seasonEntries, ...animeEntries];
   } catch {
-    return staticEntries;
+    return [...staticEntries, ...genreEntries, ...seasonEntries];
   }
 }

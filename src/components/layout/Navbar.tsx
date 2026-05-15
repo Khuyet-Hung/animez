@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useRef, useState, useEffect, Suspense } from "react";
 import { defaultLocale, type AppLocale, isAppLocale, locales } from "@/i18n/locales";
 import { formatAnimeTitle } from "@/lib/anime-title";
+import { getAnimeHref } from "@/lib/anime-routes";
 import type { AnimeMedia } from "@/types/anime";
 import Image, { type StaticImageData } from "next/image";
 import { useTranslations, useLocale } from "next-intl";
@@ -134,7 +135,7 @@ function SearchBarInner() {
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-ui-sm border border-border bg-surface shadow-xl">
           {suggestions.map((anime) => (
-            <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => setShowSuggestions(false)} className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-border">
+            <Link key={anime.id} href={getAnimeHref(anime, locale)} onClick={() => setShowSuggestions(false)} className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-border">
               {anime.coverImage?.medium && (
                 <Image src={anime.coverImage.medium} alt={formatAnimeTitle(anime.title, locale)} width={32} height={44} className="flex-none rounded-ui-sm object-cover" unoptimized />
               )}

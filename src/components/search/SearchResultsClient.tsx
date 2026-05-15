@@ -48,6 +48,7 @@ interface SearchResultsClientProps {
   year?: string;
   sort?: string;
   page?: string;
+  pathname?: string;
 }
 
 function SkeletonCard() {
@@ -79,6 +80,7 @@ export default function SearchResultsClient({
   year,
   sort,
   page,
+  pathname = "/search",
 }: SearchResultsClientProps) {
   const t = useTranslations("search");
 
@@ -132,7 +134,8 @@ export default function SearchResultsClient({
     if (sort && normalized.sort !== DEFAULT_SORT) params.set("sort", normalized.sort);
     params.set("page", String(nextPage));
 
-    return `/search?${params.toString()}`;
+    const query = params.toString();
+    return query ? `${pathname}?${params.toString()}` : pathname;
   }
 
   if (searchQuery.isPending) {

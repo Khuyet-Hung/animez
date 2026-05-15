@@ -10,6 +10,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 import { AppBadge } from "@/components/ui";
+import { getAnimeHref } from "@/lib/anime-routes";
 import {
   heroContentItemVariants,
   heroContentVariants,
@@ -37,6 +38,7 @@ export default function HeroSection({ anime }: HeroSectionProps) {
   const score = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : null;
   const genres = anime.genres?.slice(0, 3).map((genre) => taxonomyT(`genres.${genre}`)).join(", ") || "";
   const bannerSrc = anime.bannerImage || anime.coverImage?.extraLarge || anime.coverImage?.large;
+  const animeHref = getAnimeHref(anime, locale);
 
   return (
     <motion.section
@@ -110,7 +112,7 @@ export default function HeroSection({ anime }: HeroSectionProps) {
             whileTap={reduceMotion ? undefined : { scale: 0.98 }}
           >
             <Link
-              href={`/anime/${anime.id}`}
+              href={animeHref}
               className="flex h-12 items-center gap-2 rounded-ui-sm bg-brand px-6 text-base font-bold text-brand-fg transition-colors hover:bg-brand-hover"
             >
               <PlayIcon className="size-5" />
