@@ -178,7 +178,14 @@ export default async function AnimeDetailPage({ params }: PageProps) {
         {/* Hero Banner */}
         <div className="relative w-full h-[300px] md:h-[400px] overflow-hidden">
           {(anime.bannerImage || anime.coverImage?.extraLarge) ? (
-            <Image src={anime.bannerImage || anime.coverImage!.extraLarge!} alt={title} fill className="object-cover" priority unoptimized />
+            <Image
+              src={anime.bannerImage || anime.coverImage!.extraLarge!}
+              alt={title}
+              fill
+              sizes="100vw"
+              className="object-cover"
+              priority
+            />
           ) : (
             <div className="h-full w-full bg-surface" style={anime.coverImage?.color ? { backgroundColor: anime.coverImage.color } : undefined} />
           )}
@@ -190,7 +197,13 @@ export default async function AnimeDetailPage({ params }: PageProps) {
             <div className="flex-none self-start">
               <div className="group/poster relative aspect-2/3 w-[140px] overflow-hidden rounded-ui-sm border border-border shadow-2xl md:w-[200px]">
                 {anime.coverImage?.large && (
-                  <Image src={anime.coverImage.large} alt={title} fill className="object-cover" unoptimized />
+                  <Image
+                    src={anime.coverImage.medium || anime.coverImage.large}
+                    alt={title}
+                    fill
+                    sizes="(max-width: 768px) 140px, 200px"
+                    className="object-cover"
+                  />
                 )}
                 {trailer?.id && (
                   <TrailerModalButton

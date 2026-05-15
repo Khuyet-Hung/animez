@@ -36,6 +36,7 @@ export default function AnimeCard({
   const title = formatAnimeTitle(anime.title, locale);
   const score = formatScore(anime.averageScore);
   const genres = anime.genres?.slice(0, 2).map((genre) => taxonomyT(`genres.${genre}`)).join(" \u2022 ") || "";
+  const coverSrc = anime.coverImage?.medium || anime.coverImage?.large;
   const revealVariants = useMemo(
     () => createCardRevealVariants(revealDelay, reduceMotion),
     [revealDelay, reduceMotion]
@@ -66,14 +67,13 @@ export default function AnimeCard({
           )}
 
           <div className="w-full h-full transition-transform duration-500 ease-out group-hover:scale-105 relative">
-            {anime.coverImage?.large ? (
+            {coverSrc ? (
               <Image
-                src={anime.coverImage.large}
+                src={coverSrc}
                 alt={title}
                 fill
-                sizes="(max-width: 768px) 180px, 220px"
+                sizes={variant === "compact" ? "(max-width: 768px) 180px, 220px" : "220px"}
                 className="object-cover"
-                unoptimized
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-border">
