@@ -135,8 +135,8 @@ function SearchBarInner() {
         <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-ui-sm border border-border bg-surface shadow-xl">
           {suggestions.map((anime) => (
             <Link key={anime.id} href={`/anime/${anime.id}`} onClick={() => setShowSuggestions(false)} className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-border">
-              {anime.coverImage?.medium && (
-                <Image src={anime.coverImage.medium} alt={formatAnimeTitle(anime.title, locale)} width={32} height={44} className="flex-none rounded-ui-sm object-cover" unoptimized />
+              {anime.coverImage?.large && (
+                <Image src={anime.coverImage.large} alt={formatAnimeTitle(anime.title, locale)} width={32} height={44} className="flex-none rounded-ui-sm object-cover" unoptimized />
               )}
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-fg">{formatAnimeTitle(anime.title, locale)}</p>

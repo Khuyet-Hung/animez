@@ -198,7 +198,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
               <div className="group/poster relative aspect-2/3 w-[140px] overflow-hidden rounded-ui-sm border border-border shadow-2xl md:w-[200px]">
                 {anime.coverImage?.large && (
                   <Image
-                    src={anime.coverImage.medium || anime.coverImage.large}
+                    src={anime.coverImage.large}
                     alt={title}
                     fill
                     sizes="(max-width: 768px) 140px, 200px"

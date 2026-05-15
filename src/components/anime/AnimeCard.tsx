@@ -36,7 +36,7 @@ export default function AnimeCard({
   const title = formatAnimeTitle(anime.title, locale);
   const score = formatScore(anime.averageScore);
   const genres = anime.genres?.slice(0, 2).map((genre) => taxonomyT(`genres.${genre}`)).join(" \u2022 ") || "";
-  const coverSrc = anime.coverImage?.medium || anime.coverImage?.large;
+  const coverSrc = anime.coverImage?.large;
   const revealVariants = useMemo(
     () => createCardRevealVariants(revealDelay, reduceMotion),
     [revealDelay, reduceMotion]

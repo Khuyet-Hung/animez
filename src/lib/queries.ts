@@ -6,7 +6,7 @@ export const TRENDING_QUERY = `
       media(sort: TRENDING_DESC, type: ANIME) {
         id
         title { romaji english native }
-        coverImage { medium large extraLarge color }
+        coverImage { large extraLarge color }
         bannerImage
         averageScore
         genres
@@ -22,7 +22,7 @@ export const TRENDING_QUERY = `
       media(sort: SCORE_DESC, type: ANIME) {
         id
         title { romaji english native }
-        coverImage { medium large extraLarge color }
+        coverImage { large extraLarge color }
         averageScore
         genres
         format
@@ -58,7 +58,7 @@ export const SEARCH_QUERY = `
       ) {
         id
         title { romaji english native }
-        coverImage { medium large extraLarge color }
+        coverImage { large extraLarge color }
         averageScore
         genres
         format
@@ -76,7 +76,7 @@ export const ANIME_DETAIL_QUERY = `
     Media(id: $id, type: ANIME) {
       id
       title { romaji english native }
-      coverImage { medium large extraLarge color }
+      coverImage { large extraLarge color }
       bannerImage
       averageScore
       meanScore
@@ -114,7 +114,7 @@ export const ANIME_DETAIL_QUERY = `
           mediaRecommendation {
             id
             title { romaji english native }
-            coverImage { medium large }
+            coverImage { large }
             averageScore
             format
           }
@@ -126,7 +126,7 @@ export const ANIME_DETAIL_QUERY = `
           node {
             id
             title { romaji english native }
-            coverImage { medium large }
+            coverImage { large }
             averageScore
             format
             type
@@ -143,7 +143,7 @@ export const SUGGESTIONS_QUERY = `
       media(search: $search, type: ANIME, isAdult: false) {
         id
         title { romaji english native }
-        coverImage { medium large }
+        coverImage { large }
         format
         episodes
         seasonYear
