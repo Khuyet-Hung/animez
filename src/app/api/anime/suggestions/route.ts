@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { anilistClient } from "@/lib/anilist";
+import { AniListRateLimitError, anilistClient } from "@/lib/anilist";
 import { SUGGESTIONS_QUERY } from "@/lib/queries";
 import { checkRateLimit, getRateLimitIdentifier } from "@/lib/rate-limit";
 import type { AnimeMedia } from "@/types/anime";
@@ -65,7 +65,20 @@ export async function GET(request: Request) {
     return jsonResponse({
       results: data.Page.media,
     });
-  } catch {
+  } catch (error: unknown) {
+    if (error instanceof AniListRateLimitError) {
+      return jsonResponse(
+        { results: [], message: "AniList rate limit exceeded." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(error.retryAfter ?? 60),
+          },
+          cache: false,
+        }
+      );
+    }
+
     return jsonResponse(
       { results: [], message: "Unable to load anime suggestions." },
       { status: 502, cache: false }

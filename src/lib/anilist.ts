@@ -2,12 +2,36 @@ import "server-only";
 
 const ANILIST_URL = "https://graphql.anilist.co";
 export const ANILIST_CACHE_SECONDS = 10 * 60;
+const BASE_RETRY_DELAY_MS = 1000;
+
+export class AniListRateLimitError extends Error {
+  retryAfter: number | null;
+
+  constructor(retryAfter: number | null) {
+    super("AniList rate limit exceeded");
+    this.name = "AniListRateLimitError";
+    this.retryAfter = retryAfter;
+  }
+}
+
+function getRetryAfter(response: Response) {
+  const retryAfter = Number(response.headers.get("Retry-After"));
+  return Number.isFinite(retryAfter) ? retryAfter : null;
+}
+
+function isRetryableStatus(status: number) {
+  return status === 408 || status === 425 || status >= 500;
+}
+
+async function wait(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function requestWithRetry<T>(
   query: string,
   variables?: Record<string, unknown>,
-  retries = 3,
-  delayMs = 1000
+  retries = 2,
+  delayMs = BASE_RETRY_DELAY_MS
 ): Promise<T> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -24,19 +48,15 @@ async function requestWithRetry<T>(
       });
 
       if (response.status === 429) {
-        const retryAfter = Number(response.headers.get("Retry-After"));
-        const wait = Number.isFinite(retryAfter)
-          ? Math.max(retryAfter * 1000, delayMs * Math.pow(2, attempt))
-          : delayMs * Math.pow(2, attempt);
-
-        if (attempt < retries) {
-          console.warn(`AniList bị rate limit. Thử lại sau ${wait}ms...`);
-          await new Promise((resolve) => setTimeout(resolve, wait));
-          continue;
-        }
+        throw new AniListRateLimitError(getRetryAfter(response));
       }
 
       if (!response.ok) {
+        if (attempt < retries && isRetryableStatus(response.status)) {
+          await wait(delayMs * Math.pow(2, attempt));
+          continue;
+        }
+
         throw new Error(`AniList request failed with status ${response.status}`);
       }
 
@@ -54,11 +74,11 @@ async function requestWithRetry<T>(
       }
 
       return result.data;
-    } catch (err: unknown) {
-      if (attempt >= retries) throw err;
+    } catch (error: unknown) {
+      if (error instanceof AniListRateLimitError) throw error;
+      if (attempt >= retries) throw error;
 
-      const wait = delayMs * Math.pow(2, attempt);
-      await new Promise((resolve) => setTimeout(resolve, wait));
+      await wait(delayMs * Math.pow(2, attempt));
     }
   }
 
@@ -66,8 +86,6 @@ async function requestWithRetry<T>(
 }
 
 export const anilistClient = {
-  request: <T>(
-    query: string,
-    variables?: Record<string, unknown>
-  ): Promise<T> => requestWithRetry<T>(query, variables),
+  request: <T>(query: string, variables?: Record<string, unknown>): Promise<T> =>
+    requestWithRetry<T>(query, variables),
 };

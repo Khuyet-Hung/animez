@@ -11,7 +11,16 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "s4.anilist.co",
+      },
+    ],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+    deviceSizes: [640, 750, 828, 1080, 1200, 1400],
+    imageSizes: [32, 40, 48, 56, 96, 120, 180, 220, 320, 480],
+    qualities: [75],
   },
 };
 

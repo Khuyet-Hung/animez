@@ -51,9 +51,9 @@ export default function HeroSection({ anime }: HeroSectionProps) {
             src={bannerSrc}
             alt={title}
             fill
+            sizes="(max-width: 768px) 100vw, 1400px"
             className="object-cover will-change-transform"
             priority
-            unoptimized
           />
         </motion.div>
       ) : (
