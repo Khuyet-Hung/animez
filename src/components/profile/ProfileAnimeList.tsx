@@ -2,6 +2,7 @@ import Image from "next/image";
 import { ImageIcon, StarIcon } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { ANIME_LIST_STATUS_BADGE_CLASS } from "@/lib/anime-list/constants";
+import { buildAnimeDetailHref } from "@/lib/anime-url";
 import type { AnimeListStatus } from "@/types/anime-list";
 import type { PublicAnimeListEntry } from "@/types/profile";
 import { AppEmptyState, AppPanel } from "@/components/ui";
@@ -40,7 +41,7 @@ export default function ProfileAnimeList({ entries, emptyLabel, labels }: Profil
           return (
             <Link
               key={entry.anime_id}
-              href={`/anime/${entry.anime_id}`}
+              href={buildAnimeDetailHref(entry.anime_id, title)}
               className="grid grid-cols-[56px_1fr] gap-3 px-4 py-3 transition-colors hover:bg-border/70 md:grid-cols-[56px_1fr_auto]"
             >
               <div className="relative h-20 w-14 overflow-hidden rounded-ui-sm border border-border bg-surface-muted">

@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { locales } from "@/i18n/locales";
 import { anilistClient } from "@/lib/anilist";
 import { TRENDING_QUERY } from "@/lib/queries";
+import { buildAnimeDetailHref } from "@/lib/anime-url";
 import { getAbsoluteUrl } from "@/lib/seo";
 import type { AnimeMedia } from "@/types/anime";
 
@@ -36,16 +37,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       page: 1,
       perPage: 12,
     });
-    const animeIds = Array.from(
-      new Set(
-        [...data.trending.media, ...data.topAllTime.media]
-          .map((anime) => anime.id)
-          .filter(Boolean)
-      )
-    );
+    const animeById = new Map<number, AnimeMedia>();
+    [...data.trending.media, ...data.topAllTime.media].forEach((anime) => {
+      animeById.set(anime.id, anime);
+    });
+    const animeItems = Array.from(animeById.values());
     const animeEntries = locales.flatMap((locale) =>
-      animeIds.map((id) => ({
-        url: getAbsoluteUrl(`/${locale}/anime/${id}`),
+      animeItems.map((anime) => ({
+        url: getAbsoluteUrl(`/${locale}${buildAnimeDetailHref(anime.id, anime.title, locale)}`),
         lastModified: now,
         changeFrequency: "daily" as const,
         priority: 0.7,
@@ -53,7 +52,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           languages: Object.fromEntries(
             locales.map((alternateLocale) => [
               alternateLocale,
-              getAbsoluteUrl(`/${alternateLocale}/anime/${id}`),
+              getAbsoluteUrl(`/${alternateLocale}${buildAnimeDetailHref(anime.id, anime.title, alternateLocale)}`),
             ])
           ),
         },

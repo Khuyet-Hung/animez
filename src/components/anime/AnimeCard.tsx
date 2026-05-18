@@ -8,6 +8,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { formatAnimeTitle } from "@/lib/anime-title";
+import { buildAnimeDetailHref } from "@/lib/anime-url";
 import { createCardRevealVariants, viewportOnce } from "@/lib/motion";
 import useHydratedReducedMotion from "@/hooks/useHydratedReducedMotion";
 
@@ -52,7 +53,7 @@ export default function AnimeCard({
       whileHover={reduceMotion ? undefined : { y: -6 }}
       transition={{ duration: 0.24, ease: "easeOut" }}
     >
-      <Link href={`/anime/${anime.id}`} className="block h-full">
+      <Link href={buildAnimeDetailHref(anime.id, anime.title, locale)} className="block h-full">
         <div
           className={`relative mb-3 w-full overflow-hidden rounded-ui-sm border border-transparent shadow-lg transition-all duration-300 group-hover:border-brand/80 group-hover:shadow-[0_18px_44px_rgba(244,158,11,0.18)] ${
             variant === "compact" ? "rounded-ui-sm" : "rounded-ui-sm"
