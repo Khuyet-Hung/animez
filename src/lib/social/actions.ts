@@ -18,6 +18,7 @@ import {
   moderateSocialText,
   type SocialTextModerationResult,
 } from "@/lib/social/moderation";
+import { buildAnimeDetailHref } from "@/lib/anime-url";
 import type {
   CreateSocialPostCommentActionState,
   CreateSocialPostActionState,
@@ -39,6 +40,13 @@ const INITIAL_UPDATE_ERROR_STATE: UpdateSocialPostActionState = {
   messageKey: "updateFailed",
   fieldErrors: {},
 };
+
+function revalidateAnimeDetail(locale: string, anime: SocialPostAnimeDraft) {
+  const title = anime.title_english || anime.title_romaji;
+
+  revalidatePath(`/${locale}/anime/${anime.anime_id}`);
+  revalidatePath(`/${locale}${buildAnimeDetailHref(anime.anime_id, title)}`);
+}
 
 const IMAGE_POST_DAILY_LIMIT = 10;
 const COMMENT_MAX_LENGTH = 1000;
@@ -389,7 +397,7 @@ export async function createSocialPostAction(
   }
 
   const locale = getSafeLocale(formData);
-  revalidatePath(`/${locale}/anime/${input.value.primaryAnime.anime_id}`);
+  revalidateAnimeDetail(locale, input.value.primaryAnime);
   revalidatePath(`/${locale}/feed`);
   revalidatePath(`/${locale}/profile`);
 
@@ -523,7 +531,7 @@ export async function updateSocialPostAction(
     revalidatePath(`/${locale}/anime/${previousPrimaryAnime}`);
   }
 
-  revalidatePath(`/${locale}/anime/${input.value.primaryAnime.anime_id}`);
+  revalidateAnimeDetail(locale, input.value.primaryAnime);
   revalidatePath(`/${locale}/feed`);
   revalidatePath(`/${locale}/profile`);
 

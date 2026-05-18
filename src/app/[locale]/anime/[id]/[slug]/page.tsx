@@ -1,6 +1,6 @@
 export {
   default,
   generateMetadata,
-} from "./AnimeDetailPage";
+} from "../AnimeDetailPage";
 
 export const revalidate = 600;

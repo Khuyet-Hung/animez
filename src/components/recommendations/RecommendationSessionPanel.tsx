@@ -12,6 +12,7 @@ import {
   TvIcon,
 } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
+import { buildAnimeDetailHref } from "@/lib/anime-url";
 import { AppBadge, AppButton } from "@/components/ui";
 import {
   addRecommendationToPlan,
@@ -188,7 +189,7 @@ function RecommendationSessionPanel({ initialView, locale }: RecommendationSessi
         <div className="flex min-h-[360px] flex-col px-5 py-6 sm:px-7">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <Link href={`/anime/${item.anime_id}`} className="group/title block">
+              <Link href={buildAnimeDetailHref(item.anime_id, title)} className="group/title block">
                 <h1 className="line-clamp-2 text-2xl font-black leading-tight text-fg transition-colors group-hover/title:text-brand sm:text-3xl">
                   {title}
                 </h1>

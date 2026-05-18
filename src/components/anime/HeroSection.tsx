@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import type { AnimeMedia } from "@/types/anime";
 import { formatAnimeTitle } from "@/lib/anime-title";
+import { buildAnimeDetailHref } from "@/lib/anime-url";
 import { PlayIcon } from "lucide-react";
 import { FaStar } from "react-icons/fa";
 import { useLocale, useTranslations } from "next-intl";
@@ -110,7 +111,7 @@ export default function HeroSection({ anime }: HeroSectionProps) {
             whileTap={reduceMotion ? undefined : { scale: 0.98 }}
           >
             <Link
-              href={`/anime/${anime.id}`}
+              href={buildAnimeDetailHref(anime.id, anime.title, locale)}
               className="flex h-12 items-center gap-2 rounded-ui-sm bg-brand px-6 text-base font-bold text-brand-fg transition-colors hover:bg-brand-hover"
             >
               <PlayIcon className="size-5" />

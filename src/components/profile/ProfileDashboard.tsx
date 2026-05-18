@@ -31,6 +31,7 @@ import {
   createAnimeListUpsertInput,
 } from "@/lib/anime-list/normalizers";
 import { ANIME_LIST_STATUS_BADGE_CLASS } from "@/lib/anime-list/constants";
+import { buildAnimeDetailHref } from "@/lib/anime-url";
 import { getVisiblePageNumbers } from "@/lib/pagination";
 import type { AnimeMedia } from "@/types/anime";
 import type { AnimeListEntry, AnimeListEntryInput, AnimeListStatus } from "@/types/anime-list";
@@ -453,14 +454,14 @@ function RecentAnimeList({
             key={entry.anime_id}
             className="grid grid-cols-[80px_minmax(0,1fr)_40px] gap-3 rounded-ui-sm border border-border bg-surface px-3 py-4 transition-colors sm:px-4 md:grid-cols-[72px_minmax(0,1fr)_40px] md:items-stretch"
           >
-            <Link href={`/anime/${entry.anime_id}`} aria-label={title}>
+            <Link href={buildAnimeDetailHref(entry.anime_id, title)} aria-label={title}>
               <AnimeCover entry={entry} title={title} />
             </Link>
 
             <div className="min-w-0">
               <div className="flex min-w-0 items-start justify-between gap-3">
                 <Link
-                  href={`/anime/${entry.anime_id}`}
+                  href={buildAnimeDetailHref(entry.anime_id, title)}
                   className="block min-w-0 flex-1 truncate text-sm font-black text-fg transition-colors hover:text-brand"
                 >
                   {title}
