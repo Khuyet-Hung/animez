@@ -186,6 +186,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
               sizes="100vw"
               className="object-cover"
               priority
+              unoptimized
             />
           ) : (
             <div className="h-full w-full bg-surface" style={anime.coverImage?.color ? { backgroundColor: anime.coverImage.color } : undefined} />
@@ -204,6 +205,7 @@ export default async function AnimeDetailPage({ params }: PageProps) {
                     fill
                     sizes="(max-width: 768px) 140px, 200px"
                     className="object-cover"
+                    unoptimized
                   />
                 )}
                 {trailer?.id && (

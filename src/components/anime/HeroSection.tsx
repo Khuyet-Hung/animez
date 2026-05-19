@@ -55,6 +55,7 @@ export default function HeroSection({ anime }: HeroSectionProps) {
             sizes="(max-width: 768px) 100vw, 1400px"
             className="object-cover will-change-transform"
             priority
+            unoptimized
           />
         </motion.div>
       ) : (

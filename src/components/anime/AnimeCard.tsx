@@ -75,6 +75,7 @@ export default function AnimeCard({
                 fill
                 sizes={variant === "compact" ? "(max-width: 768px) 180px, 220px" : "220px"}
                 className="object-cover"
+                unoptimized
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-border">

@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "s4.anilist.co",
+        hostname: "**.anilist.co",
       },
     ],
     minimumCacheTTL: 60 * 60 * 24 * 30,
